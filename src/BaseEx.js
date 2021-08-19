@@ -31,12 +31,12 @@ class Base32 {
 
     validateInput(input, inputType) {
         if (inputType === "str") {
-            if (typeof input !== 'string') {
+            if (typeof input !== "string") {
                 this.warnUser("Your input was converted into a string.");
             }
             return String(input);
         } else {
-            if (typeof input === 'string') {
+            if (typeof input === "string") {
                 throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
             } else if (typeof input !== 'object') {
                 throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'array'.");
