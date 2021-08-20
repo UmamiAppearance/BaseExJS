@@ -1,3 +1,64 @@
+class Base16 {
+    validateArgs(args) {
+        if (Boolean(args.length)) {
+            const validArgs = ["str", "array"];
+            const globalStandard = Boolean(this.standard);
+
+            args.forEach(arg => {
+                if (!validArgs.includes(arg)) {
+                    throw new TypeError(`Invalid argument: "${arg}"\nValid arguments for in- and output-type are 'str' and 'array'.`);
+                }
+            });
+        }
+    }
+
+    encode(input, ...args) {
+
+        this.validateArgs(args);
+        const inputType = (args.includes("array")) ? "array" : "str";
+        input = utils.validateInput(input, inputType);
+
+        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+
+        const output = Array.from(inputBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+
+        return output;
+    }
+
+    decode(input, ...args) {
+        /*
+            inspired by:
+            https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
+        */
+        
+        this.validateArgs(args);
+        const outputType = (args.includes("array")) ? "array" : "str";
+        
+        // remove the leading 0x if present
+        input = input.replace(/^0x/, '');
+        
+        if (isNaN(parseInt(input, 16))) {
+            throw new TypeError("The provided input is not a valid hexadecimal string.")
+        }
+
+        // ensure even number of characters
+        if (Boolean(input.length % 2)) {
+            input = "0".concat(input);
+        }
+        
+        // Split the string into pairs of octets, convert to integers 
+        // and create a Uin8array from the output.
+        const uInt8 = Uint8Array.from(input.match(/../g).map(pair => parseInt(pair, 16))); 
+
+        if (outputType === "array") {
+            return uInt8;
+        } else {
+            return new TextDecoder().decode(uInt8);
+        }
+        
+    }   
+}
+
 class Base32 {
     constructor(standard=null) {
         
@@ -40,15 +101,10 @@ class Base32 {
 
         const inputType = (args.includes("array")) ? "array" : "str";
         input = utils.validateInput(input, inputType);
-
+        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const chars = this.charsets[standard];
 
-        let binaryStr;
-        if (inputType === "str") {
-            binaryStr = input.split('').map((c) => c.charCodeAt(0).toString(2).padStart(8, "0")).join("");
-        } else if (inputType === "array") {
-            binaryStr = Array.from(input).map(b => b.toString(2).padStart(8, "0")).join("");
-        }
+        let binaryStr = Array.from(inputBytes).map(b => b.toString(2).padStart(8, "0")).join("");
 
         const bitGroups = binaryStr.match(/.{1,40}/g);
 
@@ -85,7 +141,6 @@ class Base32 {
 
         input.split('').map((c) => {
             const index = chars.indexOf(c);
-            console.log(index);
             if (index > -1) {                                       // -1 is the index if the char was not found, "=" was ignored
                 binaryStr = binaryStr.concat(index.toString(2).padStart(5, "0"));
             }
@@ -97,7 +152,7 @@ class Base32 {
         if (outputType === "array") {
             return uInt8;
         } else {
-            return byteArray.map(b => String.fromCharCode(b)).join("");
+            return new TextDecoder().decode(uInt8);
         }
     }
 }
@@ -146,14 +201,8 @@ class Base64 {
         }
 
         const chars = this.charssets[charset];
-    
-        let binaryStr;
-        if (inputType === "str") {
-            binaryStr = input.split('').map((c) => c.charCodeAt(0).toString(2).padStart(8, "0")).join("");
-        } else if (inputType === "array") {
-            binaryStr = Array.from(input).map(b => b.toString(2).padStart(8, "0")).join("");
-        }
-    
+        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        const binaryStr = Array.from(inputBytes).map(b => b.toString(2).padStart(8, "0")).join("");
         const bitGroups = binaryStr.match(/.{1,24}/g);
     
         let output = "";
@@ -192,7 +241,6 @@ class Base64 {
 
         input.split('').map((c) => {
             const index = chars.indexOf(c);
-            console.log(index);
             if (index > -1) {                                       // -1 is the index if the char was not found, "=" was ignored
                 binaryStr = binaryStr.concat(index.toString(2).padStart(6, "0"));
             }
@@ -204,7 +252,7 @@ class Base64 {
         if (outputType === "array") {
             return uInt8;
         } else {
-            return byteArray.map(b => String.fromCharCode(b)).join("");
+            return new TextDecoder().decode(uInt8);
         }
     }
 }
