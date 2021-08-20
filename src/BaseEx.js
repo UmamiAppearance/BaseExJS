@@ -171,6 +171,42 @@ class Base64 {
     
         return output;
     }
+
+    decode(input, ...args) {
+        this.validateArgs(args);
+
+        const inputType = (args.includes("array")) ? "array" : "str";
+        input = utils.validateInput(input, inputType);
+
+        let charset = "default";
+        if (Boolean(this.charset)) {
+            charset = this.charset;
+        } else if (args.includes("urlsafe")) {
+            charset = "urlsafe";
+        }
+    
+        const outputType = (args.includes("array")) ? "array" : "str";
+        const chars = this.charssets[charset];
+        
+        let binaryStr = "";
+
+        input.split('').map((c) => {
+            const index = chars.indexOf(c);
+            console.log(index);
+            if (index > -1) {                                       // -1 is the index if the char was not found, "=" was ignored
+                binaryStr = binaryStr.concat(index.toString(2).padStart(6, "0"));
+            }
+        });
+        
+        const byteArray = binaryStr.match(/.{8}/g).map(bin => parseInt(bin, 2))
+        const uInt8 = Uint8Array.from(byteArray);
+
+        if (outputType === "array") {
+            return uInt8;
+        } else {
+            return byteArray.map(b => String.fromCharCode(b)).join("");
+        }
+    }
 }
 
 const utils = {
