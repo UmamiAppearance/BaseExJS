@@ -19,7 +19,6 @@ class Base16 {
         input = utils.validateInput(input, inputType);
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-
         const output = Array.from(inputBytes).map(b => b.toString(16).padStart(2, "0")).join("");
 
         return output;
@@ -257,7 +256,58 @@ class Base64 {
     }
 }
 
+
+class Base85 {
+    encode(input, inputType="str") {
+        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        for (let i=0, l=inputBytes.length; i<l; l+=4) {
+            const b = inputBytes.slice(i, i+4);
+            let n = b[0] * 256**3 + b[1] * 256**2 + b[2] * 256 + b[4];
+            let c3, c2, c1, c0;
+            [c0, n] = utils.divmod(n, 85);
+            [c1, n] = utils.divmod(n, 85);
+            [c2, c3] = utils.divmod(n, 85);
+            console.log(c3, c2, c1, c0)
+            
+        }
+    }
+}
+
+
+function encode(input, inputType="str") {
+    const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+    const numbers = [];
+    for (let i=0, l=inputBytes.length; i<l; i+=4) {
+        console.log(i,i+4);
+        const bytesSection = inputBytes.slice(i, i+4);
+        console.log(bytesSection);
+        const pow256 = [16777216, 65536, 256, 1];
+        
+        let n = 0;
+        bytesSection.forEach((b, j) => n += b * pow256[j]);
+
+        b85Array = new Uint8Array(5);
+
+        let q = n, r;
+        for (let pos=4; pos>=0; pos--) {
+            [q, r] = utils.divmod(q, 85);
+            b85Array[pos] = r;
+            if (q < 85) {
+                b85Array[pos-1] = q;
+                break;
+            }
+        }
+        console.log(b85Array);
+
+        console.log(n);
+        numbers.push(n);
+    }
+    return numbers;
+}
+
 const utils = {
+    divmod: (x, y) => [Math.floor(x / y), x % y],
+
     validateInput: (input, inputType) => {
         if (inputType === "str") {
             if (typeof input !== "string") {
