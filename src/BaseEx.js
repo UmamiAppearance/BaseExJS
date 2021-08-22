@@ -2,7 +2,6 @@ class Base16 {
     validateArgs(args) {
         if (Boolean(args.length)) {
             const validArgs = ["str", "array"];
-            const globalStandard = Boolean(this.standard);
 
             args.forEach(arg => {
                 if (!validArgs.includes(arg)) {
@@ -165,9 +164,10 @@ class Base64 {
         }
         this.charset = charset;
         
+        const base62 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         this.charssets = {
-            default: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
-            urlsafe: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+            default: `${base62}+/`,
+            urlsafe: `${base62}-_`
         }
     }
 
@@ -260,50 +260,68 @@ class Base64 {
 class Base85 {
     encode(input, inputType="str") {
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        for (let i=0, l=inputBytes.length; i<l; l+=4) {
-            const b = inputBytes.slice(i, i+4);
-            let n = b[0] * 256**3 + b[1] * 256**2 + b[2] * 256 + b[4];
-            let c3, c2, c1, c0;
-            [c0, n] = utils.divmod(n, 85);
-            [c1, n] = utils.divmod(n, 85);
-            [c2, c3] = utils.divmod(n, 85);
-            console.log(c3, c2, c1, c0)
+        let output = "";
+        for (let i=0, l=inputBytes.length; i<l; i+=4) {
+            const subArray = inputBytes.subarray(i, i+4);
+            const pow256 = [16777216, 65536, 256, 1];       //[256^3, 256^2, 256^1, 256^0]
             
-        }
-    }
-}
+            let n = 0;
+            subArray.forEach((b, j) => n += b * pow256[j]);
 
+            const b85Add33Array = new Uint8Array(5);
 
-function encode(input, inputType="str") {
-    const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-    const numbers = [];
-    for (let i=0, l=inputBytes.length; i<l; i+=4) {
-        console.log(i,i+4);
-        const bytesSection = inputBytes.slice(i, i+4);
-        console.log(bytesSection);
-        const pow256 = [16777216, 65536, 256, 1];
-        
-        let n = 0;
-        bytesSection.forEach((b, j) => n += b * pow256[j]);
-
-        b85Array = new Uint8Array(5);
-
-        let q = n, r;
-        for (let pos=4; pos>=0; pos--) {
-            [q, r] = utils.divmod(q, 85);
-            b85Array[pos] = r;
-            if (q < 85) {
-                b85Array[pos-1] = q;
-                break;
+            let q = n, r;
+            for (let pos=4; pos>=0; pos--) {
+                [q, r] = utils.divmod(q, 85);
+                b85Add33Array[pos] = r + 33;
+                if (q < 85) {
+                    b85Add33Array[pos-1] = q + 33;
+                    break;
+                }
             }
-        }
-        console.log(b85Array);
 
-        console.log(n);
-        numbers.push(n);
+            const ascii = new TextDecoder('windows-1252').decode(b85Add33Array);
+            output = output.concat(ascii);
+        }
+        return output;
     }
-    return numbers;
+
+    decode(input, outputType="str") {
+        const inputBytes = new TextEncoder('windows-1252').encode(input);
+        console.log(inputBytes);
+        let uInt8 = new Uint8Array();
+        for (let i=0, l=inputBytes.length; i<l; i+=5) {
+            const subArray = inputBytes.subarray(i, i+5);
+            const pow85 = [52200625, 614125, 7225, 85, 1];      //[85^4, 85^3, 85^2, 85^1, 85^0]
+
+            let n = 0;
+            subArray.forEach((b, j) => n += (b-33) * pow85[j]);
+
+            const uInt8AsciiArray = new Uint8Array(4);
+            let q = n, r;
+            for (let pos=3; pos>=0; pos--) {
+                [q, r] = utils.divmod(q, 256);
+                uInt8AsciiArray[pos] = r;
+                if (q < 256) {
+                    uInt8AsciiArray[pos-1] = q;
+                    break;
+                }
+            }
+
+            console.log(uInt8AsciiArray);
+
+            uInt8 = new Uint8Array([...uInt8, ...uInt8AsciiArray]);
+        }
+
+        if (outputType === "array") {
+            return uInt8;
+        } else {
+            return new TextDecoder().decode(uInt8);
+        }
+
+    }
 }
+
 
 const utils = {
     divmod: (x, y) => [Math.floor(x / y), x % y],
