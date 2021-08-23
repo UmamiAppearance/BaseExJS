@@ -223,9 +223,6 @@ class Base64 {
     decode(input, ...args) {
         this.validateArgs(args);
 
-        const inputType = (args.includes("array")) ? "array" : "str";
-        input = utils.validateInput(input, inputType);
-
         let charset = "default";
         if (Boolean(this.charset)) {
             charset = this.charset;
@@ -258,7 +255,25 @@ class Base64 {
 
 
 class Base85 {
-    encode(input, inputType="str") {
+    
+    validateArgs(args) {
+        if (Boolean(args.length)) {
+            const validArgs = ["str", "array"];
+
+            args.forEach(arg => {
+                if (!validArgs.includes(arg)) {
+                    throw new TypeError(`Invalid argument: "${arg}"\nValid arguments for in- and output-type are 'str' and 'array'.`);
+                }
+            });
+        }
+    }
+
+    encode(input, ...args) {
+        this.validateArgs(args);
+
+        const inputType = (args.includes("array")) ? "array" : "str";
+        input = utils.validateInput(input, inputType);
+
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         let output = "";
         for (let i=0, l=inputBytes.length; i<l; i+=4) {
@@ -286,7 +301,10 @@ class Base85 {
         return output;
     }
 
-    decode(input, outputType="str") {
+    decode(input, ...args) {
+        this.validateArgs(args);
+        const outputType = (args.includes("array")) ? "array" : "str";
+
         const inputBytes = new TextEncoder('windows-1252').encode(input);
         console.log(inputBytes);
         let uInt8 = new Uint8Array();
