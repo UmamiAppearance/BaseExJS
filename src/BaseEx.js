@@ -262,7 +262,7 @@ class Base85 {
     
     validateArgs(args) {
         if (Boolean(args.length)) {
-            const validArgs = ["str", "array", "rfc1924"];
+            const validArgs = ["str", "array", "rfc1924", "ipv6"];
 
             args.forEach(arg => {
                 if (!validArgs.includes(arg)) {
@@ -272,15 +272,32 @@ class Base85 {
         }
     }
 
+    ipv6ToUint(address) {
+        const normalizedAddress = address;
+        const hexStr = normalizedAddress.replaceAll(":", "");
+        const base16 = new Base16();
+        const uint8 = base16.decode(hexStr, "array");
+        return uint8;
+    }
+
     encode(input, ...args) {
         this.validateArgs(args);
 
-        const inputType = (args.includes("array")) ? "array" : "str";
+        let version;
+        let inputType = "str";
+        
+        if (args.includes("ipv6")) {
+            input = this.ipv6ToUint(input);
+            inputType = "array";
+            if (!args.includes("rfc1924")) args.push("rfc1924");
+        } else if (args.includes("array")) {
+            inputType = "array";
+        }
         input = utils.validateInput(input, inputType);
 
-        let version;
         let bs;
         let add = 0;
+        
         if (args.includes("rfc1924")) {
             version = "rfc1924";
             bs = 16;
