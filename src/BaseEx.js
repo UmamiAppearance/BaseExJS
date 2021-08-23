@@ -255,10 +255,14 @@ class Base64 {
 
 
 class Base85 {
+
+    constructor() {
+        this.rfc1924Charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+    }
     
     validateArgs(args) {
         if (Boolean(args.length)) {
-            const validArgs = ["str", "array"];
+            const validArgs = ["str", "array", "rfc1924"];
 
             args.forEach(arg => {
                 if (!validArgs.includes(arg)) {
@@ -274,31 +278,66 @@ class Base85 {
         const inputType = (args.includes("array")) ? "array" : "str";
         input = utils.validateInput(input, inputType);
 
-        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        let output = "";
-        for (let i=0, l=inputBytes.length; i<l; i+=4) {
-            const subArray = inputBytes.subarray(i, i+4);
-            const pow256 = [16777216, 65536, 256, 1];       //[256^3, 256^2, 256^1, 256^0]
-            
-            let n = 0;
-            subArray.forEach((b, j) => n += b * pow256[j]);
+        let version;
+        let bs;
+        let add = 0;
+        if (args.includes("rfc1924")) {
+            version = "rfc1924";
+            bs = 16;
+        } else {
+            version = "ascii85";
+            bs = 4;
+            add = 33;
+        }
 
-            const b85Add33Array = new Uint8Array(5);
+        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        const l = inputBytes.length;
+        
+
+        let output = "";
+        let zeroFills = 0;
+
+        for (let i=0; i<l; i+=bs) {
+            let subArray = inputBytes.subarray(i, i+bs);
+
+            if (subArray.length !== bs) {
+                zeroFills = bs - subArray.length;
+                const paddedArray = new Uint8Array(bs);
+                paddedArray.set(subArray);
+                subArray = paddedArray;
+            }
+            
+            let n = BigInt(subArray[0]);                                        // set n to the first byte
+            subArray.subarray(1).forEach((b) => n = (n << 8n) + BigInt(b));     // start shifting (e.g. times the base 256) and adding of all other bytes
+            console.log(n);
+
+            const b85Array = [];
 
             let q = n, r;
-            for (let pos=4; pos>=0; pos--) {
-                [q, r] = utils.divmod(q, 85);
-                b85Add33Array[pos] = r + 33;
+            while (true) {
+                [q, r] = utils.divmod(q, 85n);
+                console.log(q, r);
+                b85Array.unshift(Number(r) + add);
                 if (q < 85) {
-                    b85Add33Array[pos-1] = q + 33;
+                    b85Array.unshift(Number(q) + add);
                     break;
                 }
             }
+            console.log(b85Array);
 
-            const ascii = new TextDecoder('windows-1252').decode(b85Add33Array);
-            output = output.concat(ascii);
+            if (version === "ascii85") {
+                const b85uInt8 = Uint8Array.from(b85Array);
+                const ascii = new TextDecoder('windows-1252').decode(b85uInt8);
+                output = output.concat(ascii);
+            } else if (version === "rfc1924") {
+                const x = 0;
+                const classObject = this;
+                b85Array.forEach(
+                    charIndex => output = output.concat(classObject.rfc1924Charset[charIndex])
+                );
+            }
         }
-        return output;
+        return output.slice(0, output.length-zeroFills);
     }
 
     decode(input, ...args) {
@@ -306,7 +345,8 @@ class Base85 {
         const outputType = (args.includes("array")) ? "array" : "str";
 
         const inputBytes = new TextEncoder('windows-1252').encode(input);
-        console.log(inputBytes);
+        const l = inputBytes.length;
+
         let uInt8 = new Uint8Array();
         for (let i=0, l=inputBytes.length; i<l; i+=5) {
             const subArray = inputBytes.subarray(i, i+5);
@@ -326,8 +366,6 @@ class Base85 {
                 }
             }
 
-            console.log(uInt8AsciiArray);
-
             uInt8 = new Uint8Array([...uInt8, ...uInt8AsciiArray]);
         }
 
@@ -342,7 +380,13 @@ class Base85 {
 
 
 const utils = {
-    divmod: (x, y) => [Math.floor(x / y), x % y],
+    divmod: (x, y) => {
+        if (typeof(x) === "bigint" || typeof(y) === "bigint") {
+            return [(BigInt(x) / BigInt(y)), BigInt(x)%BigInt(y)];
+        } else {
+            return [Math.floor(x / y), x % y];
+        }
+    },
 
     validateInput: (input, inputType) => {
         if (inputType === "str") {
@@ -368,3 +412,16 @@ const utils = {
         }
     }
 }
+
+class BaseEx {
+    constructor(inputType=null) {
+        this.base16 = new Base16();
+        this.base32_rfc3548 = new Base32("rfc3548");
+        this.base32_rfc4648 = new Base32("rfc4648");
+        this.base64 = new Base64("default");
+        this.base64_urlsafe = new Base64("urlsafe");
+        this.base85 = new Base85();
+    }
+}
+
+//export {Base16, Base32, Base64, Base85, BaseEx}
