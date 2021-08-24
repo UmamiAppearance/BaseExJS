@@ -1,19 +1,15 @@
 class Base16 {
-    validateArgs(args) {
-        if (Boolean(args.length)) {
-            const validArgs = ["str", "array"];
-
-            args.forEach(arg => {
-                if (!validArgs.includes(arg)) {
-                    throw new TypeError(`Invalid argument: "${arg}"\nValid arguments for in- and output-type are 'str' and 'array'.`);
-                }
-            });
-        }
+    validateArgs() {
+        return utils.validateArgs(
+            args,
+            ["str", "array"],
+            "Valid arguments for in- and output-type are 'str' and 'array'."
+        );
     }
 
     encode(input, ...args) {
 
-        this.validateArgs(args);
+        args = this.validateArgs(args);
         const inputType = (args.includes("array")) ? "array" : "str";
         input = utils.validateInput(input, inputType);
 
@@ -29,7 +25,7 @@ class Base16 {
             https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
         */
         
-        this.validateArgs(args);
+        args = this.validateArgs(args);
         const outputType = (args.includes("array")) ? "array" : "str";
         
         // remove the leading 0x if present
@@ -72,23 +68,16 @@ class Base32 {
     }
 
     validateArgs(args) {
-        if (Boolean(args.length)) {
-            const validArgs = ["rfc3548", "rfc4648", "str", "array"];
-            const globalStandard = Boolean(this.standard);
-
-            args.forEach(arg => {
-                if (!validArgs.includes(arg)) {
-                    throw new TypeError(`Invalid argument: "${arg}"\nThe options are 'rfc3548' and 'rfc4648' for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'.`);
-                } else if (globalStandard && validArgs.slice(0, 2).includes(arg)) {
-                    utils.warning(`Standard is already set.\nArgument '${arg}' was ignored.`)
-                }
-            });
-        }
+        return utils.validateArgs(
+            args,
+            ["rfc3548", "rfc4648", "str", "array"],
+            "The options are 'rfc3548' and 'rfc4648' for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'."
+        );
     }
     
     encode(input, ...args) {
         
-        this.validateArgs(args);
+        args = this.validateArgs(args);
         
         let standard = "rfc4648";
         if (Boolean(this.standard)) {
@@ -124,7 +113,7 @@ class Base32 {
 
     decode(input, ...args) {
 
-        this.validateArgs(args);
+        args = this.validateArgs(args);
         let standard = "rfc4648";
         if (this.standard) {
             standard = this.standard;
@@ -166,28 +155,21 @@ class Base64 {
         
         const base62 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         this.charssets = {
-            default: `${base62}+/`,
-            urlsafe: `${base62}-_`
+            default: base62.concat("+/"),
+            urlsafe: base62.concat("-_")
         }
     }
 
     validateArgs(args) {
-        if (Boolean(args.length)) {
-            const validArgs = ["default", "urlsafe", "str", "array"];
-            const globalCharset = Boolean(this.charset);
-
-            args.forEach(arg => {
-                if (!validArgs.includes(arg)) {
-                    throw new TypeError(`Invalid argument: "${arg}"\nThe options are 'default' and 'urlsafe' for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.`);
-                } else if (globalCharset && validArgs.slice(0, 2).includes(arg)) {
-                    utils.warning(`Charset is already set.\nArgument '${arg}' was ignored.`)
-                }
-            });
-        }
+        return utils.validateArgs(
+            args,
+            ["default", "urlsafe", "str", "array"],
+            "The options are 'default' and 'urlsafe' for the charset.\nValid arguments for in- and output-type are 'str' and 'array'."
+        );
     }
 
     encode(input, ...args) {
-        this.validateArgs(args);
+        args = this.validateArgs(args);
 
         const inputType = (args.includes("array")) ? "array" : "str";
         input = utils.validateInput(input, inputType);
@@ -221,7 +203,7 @@ class Base64 {
     }
 
     decode(input, ...args) {
-        this.validateArgs(args);
+        args = this.validateArgs(args);
 
         let charset = "default";
         if (Boolean(this.charset)) {
@@ -258,18 +240,15 @@ class Base85 {
 
     constructor() {
         this.rfc1924Charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+        this.z85Charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
     }
     
     validateArgs(args) {
-        if (Boolean(args.length)) {
-            const validArgs = ["str", "array", "rfc1924", "ipv6"];
-
-            args.forEach(arg => {
-                if (!validArgs.includes(arg)) {
-                    throw new TypeError(`Invalid argument: "${arg}"\nValid arguments for in- and output-type are 'str' and 'array'.`);
-                }
-            });
-        }
+        return utils.validateArgs(
+            args,
+            ["str", "array", "ascii85", "rfc1924", "ipv6", "z85"],
+            "Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: 'ascii85', 'rfc1924', 'ipv6' and 'z85'"
+        );
     }
 
     ipv6ToUint8(address) {
@@ -278,7 +257,8 @@ class Base85 {
         */
 
         // Test at first if zeros where removed.
-        // Expand if it is the case. 
+        // Expand if it is the case.
+        console.log(address.indexOf("::"));
         if (address.indexOf("::") > -1) {
             let start, end;
 
@@ -302,12 +282,13 @@ class Base85 {
             // Join it back to a string
             address = addressArray.join(":");
         }
-        
+
         console.log(address);
         // Split the address at the colons,
         // add zero padding of 4 and join it
         // into a hex string.
         const hexStr = address.split(":").map(group => group.padStart(4, "0")).join("");
+        console.log(hexStr);
         
         // Split the string every second char
         // to receive a pair of  octets. Convert
@@ -316,9 +297,9 @@ class Base85 {
         const uInt8 = Uint8Array.from(hexStr.match(/../g).map(pair => parseInt(pair, 16)));
         return uInt8;
     }
-
+    uFillings
     encode(input, ...args) {
-        this.validateArgs(args);
+        args = this.validateArgs(args);
 
         let version;
         let inputType = "str";
@@ -338,24 +319,26 @@ class Base85 {
         if (args.includes("rfc1924")) {
             version = "rfc1924";
             bs = 16;
+        } else if (args.includes("z85")) {
+            version = "z85";
+            bs = 4;
         } else {
             version = "ascii85";
             bs = 4;
             add = 33;
-        }
+        } 
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const l = inputBytes.length;
-        
 
         let output = "";
-        let zeroFills = 0;
+        let zeroPadding = 0;
 
         for (let i=0; i<l; i+=bs) {
             let subArray = inputBytes.subarray(i, i+bs);
 
             if (subArray.length !== bs) {
-                zeroFills = bs - subArray.length;
+                zeroPadding = bs - subArray.length;
                 const paddedArray = new Uint8Array(bs);
                 paddedArray.set(subArray);
                 subArray = paddedArray;
@@ -367,7 +350,7 @@ class Base85 {
 
             const b85Array = [];
 
-            let q = n, r;
+            let q = n, r;                                                       // initialize quotient and remainder
             while (true) {
                 [q, r] = utils.divmod(q, 85n);
                 console.log(q, r);
@@ -379,49 +362,94 @@ class Base85 {
             }
             console.log(b85Array);
 
+            const classObject = this;
             if (version === "ascii85") {
                 const b85uInt8 = Uint8Array.from(b85Array);
-                const ascii = new TextDecoder('windows-1252').decode(b85uInt8);
+                const ascii = new TextDecoder("windows-1252").decode(b85uInt8);
                 output = output.concat(ascii);
             } else if (version === "rfc1924") {
-                const x = 0;
-                const classObject = this;
                 b85Array.forEach(
                     charIndex => output = output.concat(classObject.rfc1924Charset[charIndex])
                 );
+            } else if (version === "z85") {
+                b85Array.forEach(
+                    charIndex => output = output.concat(classObject.z85Charset[charIndex])
+                );
             }
         }
-        return output.slice(0, output.length-zeroFills);
+        return output.slice(0, output.length-zeroPadding);
     }
 
     decode(input, ...args) {
-        this.validateArgs(args);
+        args = this.validateArgs(args);
+
         const outputType = (args.includes("array")) ? "array" : "str";
+        let version;
+        let bs;
+        let l;
+        let sub = 0;
+        let inputBytes;
+        let charset;
+        
+        if (args.includes("rfc1924")) {
+            version = "rfc1924";
+            bs = 20;
+            charset = this.rfc1924Charset;
+        } else if (args.includes("ipv6")) {
+            version = "ipv6";
+            bs = 20;
+            charset = this.rfc1924Charset;
+        } else if (args.includes("z85")) {
+            version = "z85";
+            bs = 5;
+            charset = this.z85Charset;
+        } else {
+            version = "ascii85";
+            bs = 5;
+            sub = 33;
+            inputBytes = new TextEncoder("windows-1252").encode(input);
+            l = inputBytes.length
+        }
+        
+        if (!inputBytes) {
+            l = input.length;
+            inputBytes = new Uint8Array(l);
+            input.split('').forEach((c, i) => inputBytes[i] = charset.indexOf(c));
+        }        
 
-        const inputBytes = new TextEncoder('windows-1252').encode(input);
-        const l = inputBytes.length;
+        let uPadding = 0;
+        let b256Array = [];
+        for (let i=0; i<l; i+=bs) {
+            let subArray = inputBytes.subarray(i, i+bs);
 
-        let uInt8 = new Uint8Array();
-        for (let i=0, l=inputBytes.length; i<l; i+=5) {
-            const subArray = inputBytes.subarray(i, i+5);
-            const pow85 = [52200625, 614125, 7225, 85, 1];      //[85^4, 85^3, 85^2, 85^1, 85^0]
+            if (subArray.length !== bs) {
+                uPadding = bs - subArray.length;
+                const paddedArray = Uint8Array.from(Array(bs).fill(84+sub));
+                paddedArray.set(subArray);
+                subArray = paddedArray;
+            }
+            
+            const subArray256 = [];
 
-            let n = 0;
-            subArray.forEach((b, j) => n += (b-33) * pow85[j]);
-
-            const uInt8AsciiArray = new Uint8Array(4);
+            let n = 0n;
+            subArray.forEach((b, j) => n += BigInt(b-sub) * 85n**BigInt(bs-1-j));
+            console.log(n);
             let q = n, r;
-            for (let pos=3; pos>=0; pos--) {
-                [q, r] = utils.divmod(q, 256);
-                uInt8AsciiArray[pos] = r;
+            while (true) {
+                [q, r] = utils.divmod(q, 256n);
+                console.log(q, r);
+                subArray256.unshift(Number(r));
                 if (q < 256) {
-                    uInt8AsciiArray[pos-1] = q;
+                    subArray256.unshift(Number(q));
                     break;
                 }
             }
-
-            uInt8 = new Uint8Array([...uInt8, ...uInt8AsciiArray]);
+            console.log(subArray256);
+            b256Array = b256Array.concat(subArray256)
         }
+        if (version === "rfc1924") uPadding = 0;
+        b256Array.splice(l-uPadding, l); //FIXME
+        const uInt8 = Uint8Array.from(b256Array);
 
         if (outputType === "array") {
             return uInt8;
@@ -440,6 +468,20 @@ const utils = {
         } else {
             return [Math.floor(x / y), x % y];
         }
+    },
+
+    validateArgs: (args, validArgs, errorMessage) => {
+        const loweredArgs = [];
+        if (Boolean(args.length)) {
+            args.forEach(arg => {
+                arg = arg.toLowerCase();
+                if (!validArgs.includes(arg)) {
+                    throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
+                }
+                loweredArgs.push(arg);
+            });
+        }
+        return loweredArgs;
     },
 
     validateInput: (input, inputType) => {
@@ -477,5 +519,7 @@ class BaseEx {
         this.base85 = new Base85();
     }
 }
+
+const b = new Base85();
 
 //export {Base16, Base32, Base64, Base85, BaseEx}
