@@ -272,12 +272,49 @@ class Base85 {
         }
     }
 
-    ipv6ToUint(address) {
-        const normalizedAddress = address;
-        const hexStr = normalizedAddress.replaceAll(":", "");
-        const base16 = new Base16();
-        const uint8 = base16.decode(hexStr, "array");
-        return uint8;
+    ipv6ToUint8(address) {
+        /*
+            Converts a IPv6-Address into a Typed Uint8 Array,
+        */
+
+        // Test at first if zeros where removed.
+        // Expand if it is the case. 
+        if (address.indexOf("::") > -1) {
+            let start, end;
+
+            // Split the address at the double colon
+            [start, end] = address.split("::");
+
+            // If no values where present at the colons
+            // set it to "0"
+            if (start === "") start = "0";
+            if (end === "") end = "0";
+
+            // Start fresh with an address array of zeros
+            const addressArray = Array(8).fill(0);
+
+            // Put the left hand part to the
+            // beginning of the array, the
+            // right hand part to the end.
+            start.split(":").forEach((group, i) => addressArray[i] = group);
+            end.split(":").reverse().forEach((unit, i) => addressArray[7-i] = unit);
+            
+            // Join it back to a string
+            address = addressArray.join(":");
+        }
+        
+        console.log(address);
+        // Split the address at the colons,
+        // add zero padding of 4 and join it
+        // into a hex string.
+        const hexStr = address.split(":").map(group => group.padStart(4, "0")).join("");
+        
+        // Split the string every second char
+        // to receive a pair of  octets. Convert
+        // it into an integer and plug it all into
+        // an Uint8 array.
+        const uInt8 = Uint8Array.from(hexStr.match(/../g).map(pair => parseInt(pair, 16)));
+        return uInt8;
     }
 
     encode(input, ...args) {
@@ -287,7 +324,7 @@ class Base85 {
         let inputType = "str";
         
         if (args.includes("ipv6")) {
-            input = this.ipv6ToUint(input);
+            input = this.ipv6ToUint8(input);
             inputType = "array";
             if (!args.includes("rfc1924")) args.push("rfc1924");
         } else if (args.includes("array")) {
