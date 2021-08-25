@@ -297,7 +297,12 @@ class Base85 {
         const uInt8 = Uint8Array.from(hexStr.match(/../g).map(pair => parseInt(pair, 16)));
         return uInt8;
     }
-    uFillings
+
+    uint8ToIpv6(uInt8) {
+        const hexStr = Array.from(uInt8).map(b => b.toString(16).padStart(2, "0")).join("");
+        return hexStr;
+    }
+    
     encode(input, ...args) {
         args = this.validateArgs(args);
 
@@ -339,6 +344,7 @@ class Base85 {
 
             if (subArray.length !== bs) {
                 zeroPadding = bs - subArray.length;
+                console.log("zeroPadding: ", zeroPadding);
                 const paddedArray = new Uint8Array(bs);
                 paddedArray.set(subArray);
                 subArray = paddedArray;
@@ -383,7 +389,14 @@ class Base85 {
     decode(input, ...args) {
         args = this.validateArgs(args);
 
-        const outputType = (args.includes("array")) ? "array" : "str";
+        let outputType;
+        if (args.includes("array")) {
+            outputType = "array";
+        } else if (args.includes("ipv6")) {
+            outputType = "ipv6";
+        } else {
+            outputType = "str";
+        }
         let version;
         let bs;
         let l;
@@ -411,12 +424,12 @@ class Base85 {
             l = inputBytes.length
         }
         
-        if (!inputBytes) {
+        if (version !== "ascii85") {
             l = input.length;
             inputBytes = new Uint8Array(l);
             input.split('').forEach((c, i) => inputBytes[i] = charset.indexOf(c));
         }        
-
+        console.log(l);
         let uPadding = 0;
         let b256Array = [];
         for (let i=0; i<l; i+=bs) {
@@ -424,6 +437,7 @@ class Base85 {
 
             if (subArray.length !== bs) {
                 uPadding = bs - subArray.length;
+                console.log("uPadding", uPadding);
                 const paddedArray = Uint8Array.from(Array(bs).fill(84+sub));
                 paddedArray.set(subArray);
                 subArray = paddedArray;
@@ -447,14 +461,16 @@ class Base85 {
             console.log(subArray256);
             b256Array = b256Array.concat(subArray256)
         }
-        if (version === "rfc1924") uPadding = 0;
-        b256Array.splice(l-uPadding, l); //FIXME
-        const uInt8 = Uint8Array.from(b256Array);
+
+        const uInt8 = Uint8Array.from(b256Array.slice(0, b256Array.length-uPadding));
 
         if (outputType === "array") {
             return uInt8;
+        } else if (outputType === "ipv6") {
+            return this.uint8ToIpv6(uInt8);
         } else {
-            return new TextDecoder().decode(uInt8);
+            const outputStr = new TextDecoder().decode(uInt8);
+            return outputStr;
         }
 
     }
