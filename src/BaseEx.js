@@ -246,130 +246,80 @@ class Base85 {
     validateArgs(args) {
         return utils.validateArgs(
             args,
-            ["str", "array", "ascii85", "rfc1924", "ipv6", "z85"],
-            "Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: 'ascii85', 'rfc1924', 'ipv6' and 'z85'"
+            ["str", "array", "adobe", "ascii85", "rfc1924", "z85"],
+            "Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: 'adobe', 'ascii85', 'rfc1924', and 'z85'"
         );
-    }
-
-    ipv6ToUint8(address) {
-        /*
-            Converts a IPv6-Address into a Typed Uint8 Array,
-        */
-
-        // Test at first if zeros where removed.
-        // Expand if it is the case.
-        console.log(address.indexOf("::"));
-        if (address.indexOf("::") > -1) {
-            let start, end;
-
-            // Split the address at the double colon
-            [start, end] = address.split("::");
-
-            // If no values where present at the colons
-            // set it to "0"
-            if (start === "") start = "0";
-            if (end === "") end = "0";
-
-            // Start fresh with an address array of zeros
-            const addressArray = Array(8).fill(0);
-
-            // Put the left hand part to the
-            // beginning of the array, the
-            // right hand part to the end.
-            start.split(":").forEach((group, i) => addressArray[i] = group);
-            end.split(":").reverse().forEach((unit, i) => addressArray[7-i] = unit);
-            
-            // Join it back to a string
-            address = addressArray.join(":");
-        }
-
-        console.log(address);
-        // Split the address at the colons,
-        // add zero padding of 4 and join it
-        // into a hex string.
-        const hexStr = address.split(":").map(group => group.padStart(4, "0")).join("");
-        console.log(hexStr);
-        
-        // Split the string every second char
-        // to receive a pair of  octets. Convert
-        // it into an integer and plug it all into
-        // an Uint8 array.
-        const uInt8 = Uint8Array.from(hexStr.match(/../g).map(pair => parseInt(pair, 16)));
-        return uInt8;
-    }
-
-    uint8ToIpv6(uInt8) {
-        const hexStr = Array.from(uInt8).map(b => b.toString(16).padStart(2, "0")).join("");
-        return hexStr;
     }
     
     encode(input, ...args) {
         args = this.validateArgs(args);
 
-        let version;
-        let inputType = "str";
-        
-        if (args.includes("ipv6")) {
-            input = this.ipv6ToUint8(input);
-            inputType = "array";
-            if (!args.includes("rfc1924")) args.push("rfc1924");
-        } else if (args.includes("array")) {
-            inputType = "array";
-        }
+        const inputType = (args.includes("array")) ? "array" : "str";
         input = utils.validateInput(input, inputType);
+        let output = "";
 
-        let bs;
         let add = 0;
-        
+        let version;
         if (args.includes("rfc1924")) {
             version = "rfc1924";
-            bs = 16;
+            const date = new Date();
+            if (date.getMonth() === 3 && date.getDate() === 1) {
+                console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
+            } else {
+                const ts = date.getTime();
+                date.setMonth(3, 1);
+                date.setHours(0, 0, 0);
+                if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
+                const dist = date - ts;
+                const d = Math.floor(dist / 86400000);
+                const H = Math.floor((dist % 86400000) / 3600000);
+                const M = Math.floor((dist % 3600000) / 60000);
+                const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
+                utils.warning(msg);
+            }
         } else if (args.includes("z85")) {
             version = "z85";
-            bs = 4;
         } else {
-            version = "ascii85";
-            bs = 4;
+            version = (args.includes("adobe")) ? "adobe" : "ascii85";
             add = 33;
         } 
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const l = inputBytes.length;
 
-        let output = "";
         let zeroPadding = 0;
 
-        for (let i=0; i<l; i+=bs) {
-            let subArray = inputBytes.subarray(i, i+bs);
+        for (let i=0; i<l; i+=4) {
+            let subArray = inputBytes.subarray(i, i+4);
 
-            if (subArray.length !== bs) {
-                zeroPadding = bs - subArray.length;
+            if (subArray.length < 4) {
+                zeroPadding = 4 - subArray.length;
                 console.log("zeroPadding: ", zeroPadding);
-                const paddedArray = new Uint8Array(bs);
+                const paddedArray = new Uint8Array(4);
                 paddedArray.set(subArray);
                 subArray = paddedArray;
             }
             
-            let n = BigInt(subArray[0]);                                        // set n to the first byte
-            subArray.subarray(1).forEach((b) => n = (n << 8n) + BigInt(b));     // start shifting (e.g. times the base 256) and adding of all other bytes
+            let n = subArray[0];                                        // set n to the first byte
+            subArray.subarray(1).forEach((b) => n = (n << 8) + b);     // start shifting (e.g. times the base 256) and adding of all other bytes
             console.log(n);
 
             const b85Array = [];
 
             let q = n, r;                                                       // initialize quotient and remainder
             while (true) {
-                [q, r] = utils.divmod(q, 85n);
+                [q, r] = utils.divmod(q, 85);
                 console.log(q, r);
-                b85Array.unshift(Number(r) + add);
+                b85Array.unshift(r + add);
                 if (q < 85) {
-                    b85Array.unshift(Number(q) + add);
+                    b85Array.unshift(q + add);
                     break;
                 }
             }
             console.log(b85Array);
 
             const classObject = this;
-            if (version === "ascii85") {
+            if (version === "ascii85" || version === "adobe") {
                 const b85uInt8 = Uint8Array.from(b85Array);
                 const ascii = new TextDecoder("windows-1252").decode(b85uInt8);
                 output = output.concat(ascii);
@@ -383,22 +333,22 @@ class Base85 {
                 );
             }
         }
-        return output.slice(0, output.length-zeroPadding);
+
+        output = output.slice(0, output.length-zeroPadding);
+        if (version === "adobe") {
+            output = `<~${output}~>`;
+        }
+        
+        return output;
     }
 
     decode(input, ...args) {
         args = this.validateArgs(args);
 
-        let outputType;
-        if (args.includes("array")) {
-            outputType = "array";
-        } else if (args.includes("ipv6")) {
-            outputType = "ipv6";
-        } else {
-            outputType = "str";
-        }
+        const outputType = (args.includes("array")) ? "array" : "str";
+
+        input = input.replace(/\s/g,'');        //remove all whitespace from input
         let version;
-        let bs;
         let l;
         let sub = 0;
         let inputBytes;
@@ -406,55 +356,55 @@ class Base85 {
         
         if (args.includes("rfc1924")) {
             version = "rfc1924";
-            bs = 20;
             charset = this.rfc1924Charset;
-        } else if (args.includes("ipv6")) {
-            version = "ipv6";
-            bs = 20;
-            charset = this.rfc1924Charset;
+            utils.warning("You might have been fooled. (It works never the less, but only the charset is used).");
         } else if (args.includes("z85")) {
             version = "z85";
-            bs = 5;
             charset = this.z85Charset;
         } else {
-            version = "ascii85";
-            bs = 5;
+            if (args.includes("adobe")) {
+                version = "adobe";
+                input = input.slice(2, input.length-2);
+            } else {
+                version = "ascii85";
+            }
+
             sub = 33;
             inputBytes = new TextEncoder("windows-1252").encode(input);
-            l = inputBytes.length
+            l = inputBytes.length;
         }
         
-        if (version !== "ascii85") {
+        if (!(version === "ascii85" || version === "adobe")) {
             l = input.length;
             inputBytes = new Uint8Array(l);
             input.split('').forEach((c, i) => inputBytes[i] = charset.indexOf(c));
-        }        
+        }   
         console.log(l);
         let uPadding = 0;
         let b256Array = [];
-        for (let i=0; i<l; i+=bs) {
-            let subArray = inputBytes.subarray(i, i+bs);
+        for (let i=0; i<l; i+=5) {
+            let subArray = inputBytes.subarray(i, i+5);
 
-            if (subArray.length !== bs) {
-                uPadding = bs - subArray.length;
+            if (subArray.length !== 5) {
+                uPadding = 5 - subArray.length;
                 console.log("uPadding", uPadding);
-                const paddedArray = Uint8Array.from(Array(bs).fill(84+sub));
+                const paddedArray = Uint8Array.from(Array(5).fill(84+sub));
                 paddedArray.set(subArray);
                 subArray = paddedArray;
             }
             
             const subArray256 = [];
 
-            let n = 0n;
-            subArray.forEach((b, j) => n += BigInt(b-sub) * 85n**BigInt(bs-1-j));
+            let n = 0;
+            subArray.forEach((b, j) => n += (b-sub) * 85**(5-1-j));
             console.log(n);
             let q = n, r;
             while (true) {
-                [q, r] = utils.divmod(q, 256n);
+                [q, r] = utils.divmod(q, 256);
                 console.log(q, r);
-                subArray256.unshift(Number(r));
+                subArray256.unshift(r);
                 if (q < 256) {
-                    subArray256.unshift(Number(q));
+                    subArray256.unshift(q);
                     break;
                 }
             }
@@ -478,13 +428,7 @@ class Base85 {
 
 
 const utils = {
-    divmod: (x, y) => {
-        if (typeof(x) === "bigint" || typeof(y) === "bigint") {
-            return [(BigInt(x) / BigInt(y)), BigInt(x)%BigInt(y)];
-        } else {
-            return [Math.floor(x / y), x % y];
-        }
-    },
+    divmod: (x, y) => [Math.floor(x / y), x % y],
 
     validateArgs: (args, validArgs, errorMessage) => {
         const loweredArgs = [];
