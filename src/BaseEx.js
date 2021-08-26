@@ -1,17 +1,13 @@
 class Base16 {
-    validateArgs() {
-        return utils.validateArgs(
-            args,
-            ["str", "array"],
-            "Valid arguments for in- and output-type are 'str' and 'array'."
-        );
+    constructor() {
+        this.utils = this.utilsContructor();
     }
 
     encode(input, ...args) {
 
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
         const inputType = (args.includes("array")) ? "array" : "str";
-        input = utils.validateInput(input, inputType);
+        input = this.utils.validateInput(input, inputType);
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const output = Array.from(inputBytes).map(b => b.toString(16).padStart(2, "0")).join("");
@@ -25,7 +21,7 @@ class Base16 {
             https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
         */
         
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
         const outputType = (args.includes("array")) ? "array" : "str";
         
         // remove the leading 0x if present
@@ -49,8 +45,53 @@ class Base16 {
         } else {
             return new TextDecoder().decode(uInt8);
         }
-        
-    }   
+    }
+
+    utilsContructor() {
+        // settings for validation
+        const validArgs = ["str", "array"];
+        const errorMessage = "Valid arguments for in- and output-type are 'str' and 'array'.";
+
+        return {
+            validateArgs: (args) => {
+                const loweredArgs = [];
+                if (Boolean(args.length)) {
+                    args.forEach(arg => {
+                        arg = String(arg).toLowerCase();
+                        if (!validArgs.includes(arg)) {
+                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
+                        }
+                        loweredArgs.push(arg);
+                    });
+                }
+                return loweredArgs;
+            },
+
+            validateInput: (input, inputType) => {
+                if (inputType === "str") {
+                    if (typeof input !== "string") {
+                        this.utils.warning("Your input was converted into a string.");
+                    }
+                    return String(input);
+                } else {
+                    if (typeof input === "string") {
+                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
+                    } else if (typeof input !== 'object') {
+                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'array'.");
+                    }
+                    return input; 
+                }
+            },
+
+            warning: (message) => {
+                if (console.hasOwnProperty("warn")) {
+                    console.warn(message);
+                } else {
+                    console.log(`___\n${message}\n`);
+                }
+            }
+        }
+    }
 }
 
 class Base32 {
@@ -65,19 +106,13 @@ class Base32 {
             rfc3548: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
         }
-    }
 
-    validateArgs(args) {
-        return utils.validateArgs(
-            args,
-            ["rfc3548", "rfc4648", "str", "array"],
-            "The options are 'rfc3548' and 'rfc4648' for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'."
-        );
+        this.utils = this.utilsContructor();
     }
     
     encode(input, ...args) {
         
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
         
         let standard = "rfc4648";
         if (Boolean(this.standard)) {
@@ -87,7 +122,7 @@ class Base32 {
         }
 
         const inputType = (args.includes("array")) ? "array" : "str";
-        input = utils.validateInput(input, inputType);
+        input = this.utils.validateInput(input, inputType);
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const chars = this.charsets[standard];
 
@@ -113,7 +148,7 @@ class Base32 {
 
     decode(input, ...args) {
 
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
         let standard = "rfc4648";
         if (this.standard) {
             standard = this.standard;
@@ -142,6 +177,52 @@ class Base32 {
             return new TextDecoder().decode(uInt8);
         }
     }
+
+    utilsContructor() {
+        // settings for validation
+        const validArgs = ["rfc3548", "rfc4648", "str", "array"];
+        const errorMessage = "The options are 'rfc3548' and 'rfc4648' for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'.";
+
+        return {
+            validateArgs: (args) => {
+                const loweredArgs = [];
+                if (Boolean(args.length)) {
+                    args.forEach(arg => {
+                        arg = String(arg).toLowerCase();
+                        if (!validArgs.includes(arg)) {
+                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
+                        }
+                        loweredArgs.push(arg);
+                    });
+                }
+                return loweredArgs;
+            },
+
+            validateInput: (input, inputType) => {
+                if (inputType === "str") {
+                    if (typeof input !== "string") {
+                        this.utils.warning("Your input was converted into a string.");
+                    }
+                    return String(input);
+                } else {
+                    if (typeof input === "string") {
+                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
+                    } else if (typeof input !== 'object') {
+                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'array'.");
+                    }
+                    return input; 
+                }
+            },
+
+            warning: (message) => {
+                if (console.hasOwnProperty("warn")) {
+                    console.warn(message);
+                } else {
+                    console.log(`___\n${message}\n`);
+                }
+            }
+        }
+    }
 }
 
 
@@ -158,21 +239,15 @@ class Base64 {
             default: base62.concat("+/"),
             urlsafe: base62.concat("-_")
         }
-    }
 
-    validateArgs(args) {
-        return utils.validateArgs(
-            args,
-            ["default", "urlsafe", "str", "array"],
-            "The options are 'default' and 'urlsafe' for the charset.\nValid arguments for in- and output-type are 'str' and 'array'."
-        );
+        this.utils = this.utilsContructor();
     }
 
     encode(input, ...args) {
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
 
         const inputType = (args.includes("array")) ? "array" : "str";
-        input = utils.validateInput(input, inputType);
+        input = this.utils.validateInput(input, inputType);
 
         let charset = "default";
         if (Boolean(this.charset)) {
@@ -203,7 +278,7 @@ class Base64 {
     }
 
     decode(input, ...args) {
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
 
         let charset = "default";
         if (Boolean(this.charset)) {
@@ -233,35 +308,94 @@ class Base64 {
             return new TextDecoder().decode(uInt8);
         }
     }
+
+    utilsContructor() {
+        // settings for validation
+        const validArgs = ["default", "urlsafe", "str", "array"];
+        const errorMessage = "The options are 'default' and 'urlsafe' for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.";
+
+        return {
+            validateArgs: (args) => {
+                const loweredArgs = [];
+                if (Boolean(args.length)) {
+                    args.forEach(arg => {
+                        arg = String(arg).toLowerCase();
+                        if (!validArgs.includes(arg)) {
+                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
+                        }
+                        loweredArgs.push(arg);
+                    });
+                }
+                return loweredArgs;
+            },
+
+            validateInput: (input, inputType) => {
+                if (inputType === "str") {
+                    if (typeof input !== "string") {
+                        this.utils.warning("Your input was converted into a string.");
+                    }
+                    return String(input);
+                } else {
+                    if (typeof input === "string") {
+                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
+                    } else if (typeof input !== 'object') {
+                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'array'.");
+                    }
+                    return input; 
+                }
+            },
+
+            warning: (message) => {
+                if (console.hasOwnProperty("warn")) {
+                    console.warn(message);
+                } else {
+                    console.log(`___\n${message}\n`);
+                }
+            }
+        }
+    }
 }
 
 
 class Base85 {
 
-    constructor() {
+    constructor(version=null) {
+        
+        this.versions = ["adobe", "ascii85", "rfc1924", "z85"];
+        this.version = null;
+
+        if (version) {
+            version = String(version).toLocaleLowerCase();
+            if (this.versions.includes(version)) {
+                this.version = version;
+            } else {
+                throw new TypeError(`Available versions are: ${this.versions.map(v=>`\'${v}\'`).join(", ")}`);
+            }
+        }
+
         this.rfc1924Charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
         this.z85Charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
-    }
-    
-    validateArgs(args) {
-        return utils.validateArgs(
-            args,
-            ["str", "array", "adobe", "ascii85", "rfc1924", "z85"],
-            "Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: 'adobe', 'ascii85', 'rfc1924', and 'z85'"
-        );
+
+        this.utils = this.utilsContructor();
     }
     
     encode(input, ...args) {
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
 
         const inputType = (args.includes("array")) ? "array" : "str";
-        input = utils.validateInput(input, inputType);
+        input = this.utils.validateInput(input, inputType);
         let output = "";
-
         let add = 0;
-        let version;
-        if (args.includes("rfc1924")) {
-            version = "rfc1924";
+
+        let version = this.version;
+        if (!version) {
+            version = "ascii85";
+            args.forEach(arg => {
+                if (this.versions.includes(arg)) version = arg;
+            });
+        }
+        
+        if (version === "rfc1924") {
             const date = new Date();
             if (date.getMonth() === 3 && date.getDate() === 1) {
                 console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
@@ -275,12 +409,10 @@ class Base85 {
                 const H = Math.floor((dist % 86400000) / 3600000);
                 const M = Math.floor((dist % 3600000) / 60000);
                 const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                utils.warning(msg);
+                this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                this.utils.warning(msg);
             }
-        } else if (args.includes("z85")) {
-            version = "z85";
-        } else {
-            version = (args.includes("adobe")) ? "adobe" : "ascii85";
+        } else if (version === "adobe" || version === "ascii85") {
             add = 33;
         } 
 
@@ -300,15 +432,15 @@ class Base85 {
                 subArray = paddedArray;
             }
             
-            let n = subArray[0];                                        // set n to the first byte
-            subArray.subarray(1).forEach((b) => n = (n << 8) + b);     // start shifting (e.g. times the base 256) and adding of all other bytes
+            let n = 0;
+            subArray.forEach((b, j) => n += b * this.utils.pow256[j]);
             console.log(n);
 
             const b85Array = [];
 
-            let q = n, r;                                                       // initialize quotient and remainder
+            let q = n, r;                                              // initialize quotient and remainder
             while (true) {
-                [q, r] = utils.divmod(q, 85);
+                [q, r] = this.utils.divmod(q, 85);
                 console.log(q, r);
                 b85Array.unshift(r + add);
                 if (q < 85) {
@@ -318,18 +450,21 @@ class Base85 {
             }
             console.log(b85Array);
 
-            const classObject = this;
             if (version === "ascii85" || version === "adobe") {
-                const b85uInt8 = Uint8Array.from(b85Array);
-                const ascii = new TextDecoder("windows-1252").decode(b85uInt8);
+                const b85uInt8 = Uint8Array.from(new Array(5).fill(add));
+                b85uInt8.set(b85Array);
+                let ascii = this.utils.ascii.decode(b85uInt8);
+                if (ascii === "!!!!!") ascii = "z";
                 output = output.concat(ascii);
+                console.log("asciii:", ascii);
+                console.log("strLen:", ascii.length);
             } else if (version === "rfc1924") {
                 b85Array.forEach(
-                    charIndex => output = output.concat(classObject.rfc1924Charset[charIndex])
+                    charIndex => output = output.concat(this.rfc1924Charset[charIndex])
                 );
             } else if (version === "z85") {
                 b85Array.forEach(
-                    charIndex => output = output.concat(classObject.z85Charset[charIndex])
+                    charIndex => output = output.concat(this.z85Charset[charIndex])
                 );
             }
         }
@@ -343,41 +478,40 @@ class Base85 {
     }
 
     decode(input, ...args) {
-        args = this.validateArgs(args);
+        args = this.utils.validateArgs(args);
 
         const outputType = (args.includes("array")) ? "array" : "str";
 
         input = input.replace(/\s/g,'');        //remove all whitespace from input
-        let version;
         let l;
         let sub = 0;
         let inputBytes;
         let charset;
         
-        if (args.includes("rfc1924")) {
-            version = "rfc1924";
+        let version = this.version;
+        if (!version) {
+            version = "ascii85";
+            args.forEach(arg => {
+                if (this.versions.includes(arg)) version = arg;
+            });
+        }
+        
+        if (version === "rfc1924") {
             charset = this.rfc1924Charset;
-            utils.warning("You might have been fooled. (It works never the less, but only the charset is used).");
-        } else if (args.includes("z85")) {
-            version = "z85";
+            this.utils.warning("You might have been fooled. (It works never the less, but only the charset is used).");
+        } else if (version === "z85") {
             charset = this.z85Charset;
-        } else {
-            if (args.includes("adobe")) {
-                version = "adobe";
-                input = input.slice(2, input.length-2);
-            } else {
-                version = "ascii85";
-            }
-
+        } else if (version === "adobe" || version === "ascii85") {
+            if (version === "adobe") input = input.slice(2, input.length-2);
             sub = 33;
-            inputBytes = new TextEncoder("windows-1252").encode(input);
+            inputBytes = this.utils.ascii.encode(input);
             l = inputBytes.length;
         }
         
         if (!(version === "ascii85" || version === "adobe")) {
             l = input.length;
             inputBytes = new Uint8Array(l);
-            input.split('').forEach((c, i) => inputBytes[i] = charset.indexOf(c));
+            input.split('').forEach((c, i) => inputBytes[i] = charset.indexOf(c));  //create bytes from corresponding charset
         }   
         console.log(l);
         let uPadding = 0;
@@ -396,11 +530,11 @@ class Base85 {
             const subArray256 = [];
 
             let n = 0;
-            subArray.forEach((b, j) => n += (b-sub) * 85**(5-1-j));
+            subArray.forEach((b, j) => n += (b-sub) * this.utils.pow85[j]);
             console.log(n);
             let q = n, r;
             while (true) {
-                [q, r] = utils.divmod(q, 256);
+                [q, r] = this.utils.divmod(q, 256);
                 console.log(q, r);
                 subArray256.unshift(r);
                 if (q < 256) {
@@ -424,50 +558,67 @@ class Base85 {
         }
 
     }
-}
 
+    utilsContructor() {
+        // settings for validation
+        const validArgs = ["str", "array", ...this.versions];
+        const errorMessage = `Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: ${this.versions.map(v=>`\'${v}\'`).join(", ")}`;
 
-const utils = {
-    divmod: (x, y) => [Math.floor(x / y), x % y],
+        const ASCIIdecoder = new TextDecoder("ascii");
+        
+        return {
+            ascii: {
+                decode: (input) => ASCIIdecoder.decode(input),
+                encode: (input) => Uint8Array.from(input.split("").map(c => c.charCodeAt(0)))
+            },
 
-    validateArgs: (args, validArgs, errorMessage) => {
-        const loweredArgs = [];
-        if (Boolean(args.length)) {
-            args.forEach(arg => {
-                arg = arg.toLowerCase();
-                if (!validArgs.includes(arg)) {
-                    throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
+            divmod: (x, y) => [Math.floor(x / y), x % y],
+
+            pow256: [16777216, 65536, 256, 1],
+
+            pow85: [52200625, 614125, 7225, 85, 1],
+
+            validateArgs: (args) => {
+                const loweredArgs = [];
+                if (Boolean(args.length)) {
+                    args.forEach(arg => {
+                        arg = String(arg).toLowerCase();
+                        if (!validArgs.includes(arg)) {
+                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
+                        }
+                        loweredArgs.push(arg);
+                    });
                 }
-                loweredArgs.push(arg);
-            });
-        }
-        return loweredArgs;
-    },
+                return loweredArgs;
+            },
 
-    validateInput: (input, inputType) => {
-        if (inputType === "str") {
-            if (typeof input !== "string") {
-                utils.warning("Your input was converted into a string.");
-            }
-            return String(input);
-        } else {
-            if (typeof input === "string") {
-                throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-            } else if (typeof input !== 'object') {
-                throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'array'.");
-            }
-            return input; 
-        }
-    },
+            validateInput: (input, inputType) => {
+                if (inputType === "str") {
+                    if (typeof input !== "string") {
+                        this.utils.warning("Your input was converted into a string.");
+                    }
+                    return String(input);
+                } else {
+                    if (typeof input === "string") {
+                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
+                    } else if (typeof input !== 'object') {
+                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'array'.");
+                    }
+                    return input; 
+                }
+            },
 
-    warning: (message) => {
-        if (console.hasOwnProperty("warn")) {
-            console.warn(message);
-        } else {
-            console.log(`___\n${message}\n`);
+            warning: (message) => {
+                if (console.hasOwnProperty("warn")) {
+                    console.warn(message);
+                } else {
+                    console.log(`___\n${message}\n`);
+                }
+            }
         }
     }
 }
+
 
 class BaseEx {
     constructor(inputType=null) {
