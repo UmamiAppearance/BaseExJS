@@ -244,17 +244,22 @@ class Base32 {
 class Base64 {
     constructor(charset=null) {
 
-        if (charset && !(charset === "default" || charset === "urlsafe")) {
-            throw new TypeError("Unknown charset.\nThe options are 'standard' and 'urlsafe'.");
-        }
-        this.charset = charset;
-        
         const base62 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        this.charssets = {
+        this.charsets = {
             default: base62.concat("+/"),
             urlsafe: base62.concat("-_")
         }
-
+        this.charsetNames = Object.keys(this.charsets);
+        
+        if (charset) {
+            charset = String(charset).toLowerCase();
+            if (!(this.charsetNames.includes(charset))) {
+                const charsetNamesStr = this.charsetNames.map(cs => `'${cs}'`).join(" and ");
+                throw new TypeError(`Unknown charset.\nThe options are ${charsetNamesStr}.`);
+            }
+        }
+        this.charset = charset;
+        
         this.utils = this.utilsConstructor();
     }
 
@@ -271,7 +276,7 @@ class Base64 {
             charset = "urlsafe";
         }
 
-        const chars = this.charssets[charset];
+        const chars = this.charsets[charset];
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const binaryStr = Array.from(inputBytes).map(b => b.toString(2).padStart(8, "0")).join("");
         const bitGroups = binaryStr.match(/.{1,24}/g);
@@ -303,7 +308,7 @@ class Base64 {
         }
     
         const outputType = (args.includes("array")) ? "array" : "str";
-        const chars = this.charssets[charset];
+        const chars = this.charsets[charset];
         
         let binaryStr = "";
 
@@ -326,8 +331,9 @@ class Base64 {
 
     utilsConstructor() {
         // settings for validation
-        const validArgs = ["default", "urlsafe", "str", "array"];
-        const errorMessage = "The options are 'default' and 'urlsafe' for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.";
+        const validArgs = ["str", "array", ...this.charsetNames];
+        const charsetNamesStr = this.charsetNames.map(cs => `'${cs}'`).join(" and ");
+        const errorMessage = `The options are ${charsetNamesStr} for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.`;
 
         return {
             validateArgs: (args) => {
