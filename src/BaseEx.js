@@ -26,19 +26,23 @@ class Base16 {
         
         // remove the leading 0x if present
         input = input.replace(/^0x/, '');
-        
-        if (isNaN(parseInt(input, 16))) {
-            throw new TypeError("The provided input is not a valid hexadecimal string.")
-        }
 
         // ensure even number of characters
         if (Boolean(input.length % 2)) {
             input = "0".concat(input);
         }
         
-        // Split the string into pairs of octets, convert to integers 
-        // and create a Uin8array from the output.
-        const uInt8 = Uint8Array.from(input.match(/../g).map(pair => parseInt(pair, 16))); 
+        // Split the string into pairs of octets, convert to integers (byte values) 
+        // and create an Uint8array from the output.
+        
+        const byteArray = input.match(/../g).map(
+            octets => {
+                const b = parseInt(octets, 16);
+                this.utils.validateHex(b); 
+                return b;
+            }
+        );
+        const uInt8 = Uint8Array.from(byteArray);
 
         if (outputType === "array") {
             return uInt8;
@@ -65,6 +69,12 @@ class Base16 {
                     });
                 }
                 return loweredArgs;
+            },
+
+            validateHex: (bytes) => {
+                if (isNaN(bytes)) {
+                    throw new TypeError("The provided input is not a valid hexadecimal string.");
+                }
             },
 
             validateInput: (input, inputType) => {
@@ -97,8 +107,11 @@ class Base16 {
 class Base32 {
     constructor(standard=null) {
         
-        if (standard && !(standard === "rfc3548" || standard === "rfc4648")) {
-            throw new TypeError("Unknown standard.\nThe options are 'rfc3548' and 'rfc4648'.");
+        this.standards = ["rfc3548", "rfc4648"];
+
+        if (standard && !this.standards.includes(standard)) {
+            const versionString = this.standards.map(s => `'${s}'`).join(" and ");
+            throw new TypeError(`Unknown standard.\nThe options are: ${versionString}`);
         }
         this.standard = standard;
 
@@ -149,6 +162,7 @@ class Base32 {
     decode(input, ...args) {
 
         args = this.utils.validateArgs(args);
+
         let standard = "rfc4648";
         if (this.standard) {
             standard = this.standard;
@@ -180,8 +194,9 @@ class Base32 {
 
     utilsContructor() {
         // settings for validation
-        const validArgs = ["rfc3548", "rfc4648", "str", "array"];
-        const errorMessage = "The options are 'rfc3548' and 'rfc4648' for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'.";
+        const validArgs = ["str", "array", ...this.standards];
+        const versionString = this.standards.map(s => `'${s}'`).join(" and ");
+        const errorMessage = `The options are ${versionString} for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'.`;
 
         return {
             validateArgs: (args) => {
@@ -369,12 +384,15 @@ class Base85 {
             if (this.versions.includes(version)) {
                 this.version = version;
             } else {
-                throw new TypeError(`Available versions are: ${this.versions.map(v=>`\'${v}\'`).join(", ")}`);
+                const versionString = this.versions.map(v => `'${v}'`).join(", ");
+                throw new TypeError(`Available versions are: ${versionString}`);
             }
         }
 
-        this.rfc1924Charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
-        this.z85Charset = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
+        this.charsets = {
+            rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
+            z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"
+        }
 
         this.utils = this.utilsContructor();
     }
@@ -426,7 +444,6 @@ class Base85 {
 
             if (subArray.length < 4) {
                 zeroPadding = 4 - subArray.length;
-                console.log("zeroPadding: ", zeroPadding);
                 const paddedArray = new Uint8Array(4);
                 paddedArray.set(subArray);
                 subArray = paddedArray;
@@ -434,21 +451,20 @@ class Base85 {
             
             let n = 0;
             subArray.forEach((b, j) => n += b * this.utils.pow256[j]);
-            console.log(n);
 
             const b85Array = [];
 
             let q = n, r;                                              // initialize quotient and remainder
             while (true) {
+
                 [q, r] = this.utils.divmod(q, 85);
-                console.log(q, r);
                 b85Array.unshift(r + add);
+
                 if (q < 85) {
                     b85Array.unshift(q + add);
                     break;
                 }
             }
-            console.log(b85Array);
 
             if (version === "ascii85" || version === "adobe") {
                 const b85uInt8 = Uint8Array.from(new Array(5).fill(add));
@@ -456,15 +472,9 @@ class Base85 {
                 let ascii = this.utils.ascii.decode(b85uInt8);
                 if (ascii === "!!!!!") ascii = "z";
                 output = output.concat(ascii);
-                console.log("asciii:", ascii);
-                console.log("strLen:", ascii.length);
-            } else if (version === "rfc1924") {
+            } else if (version === "rfc1924" || version === "z85") {
                 b85Array.forEach(
-                    charIndex => output = output.concat(this.rfc1924Charset[charIndex])
-                );
-            } else if (version === "z85") {
-                b85Array.forEach(
-                    charIndex => output = output.concat(this.z85Charset[charIndex])
+                    charIndex => output = output.concat(this.charsets[version][charIndex])
                 );
             }
         }
@@ -486,7 +496,6 @@ class Base85 {
         let l;
         let sub = 0;
         let inputBytes;
-        let charset;
         
         let version = this.version;
         if (!version) {
@@ -496,32 +505,30 @@ class Base85 {
             });
         }
         
-        if (version === "rfc1924") {
-            charset = this.rfc1924Charset;
-            this.utils.warning("You might have been fooled. (It works never the less, but only the charset is used).");
-        } else if (version === "z85") {
-            charset = this.z85Charset;
+        if (version === "rfc1924" || version === "z85") {
+            l = input.length;
+            
+            inputBytes = new Uint8Array(l);
+            input.split('').forEach((c, i) => inputBytes[i] = this.charsets[version].indexOf(c));  //create bytes from corresponding charset
+            
+            if (version === "rfc1924") {
+                this.utils.warning("You might have been fooled. (It works never the less, but only the charset is used).");
+            }
         } else if (version === "adobe" || version === "ascii85") {
             if (version === "adobe") input = input.slice(2, input.length-2);
+            
             sub = 33;
             inputBytes = this.utils.ascii.encode(input);
             l = inputBytes.length;
-        }
-        
-        if (!(version === "ascii85" || version === "adobe")) {
-            l = input.length;
-            inputBytes = new Uint8Array(l);
-            input.split('').forEach((c, i) => inputBytes[i] = charset.indexOf(c));  //create bytes from corresponding charset
         }   
-        console.log(l);
+        
         let uPadding = 0;
-        let b256Array = [];
+        let b256Array = new Array();
         for (let i=0; i<l; i+=5) {
             let subArray = inputBytes.subarray(i, i+5);
 
             if (subArray.length !== 5) {
                 uPadding = 5 - subArray.length;
-                console.log("uPadding", uPadding);
                 const paddedArray = Uint8Array.from(Array(5).fill(84+sub));
                 paddedArray.set(subArray);
                 subArray = paddedArray;
@@ -531,19 +538,19 @@ class Base85 {
 
             let n = 0;
             subArray.forEach((b, j) => n += (b-sub) * this.utils.pow85[j]);
-            console.log(n);
+
             let q = n, r;
             while (true) {
                 [q, r] = this.utils.divmod(q, 256);
-                console.log(q, r);
                 subArray256.unshift(r);
+                
                 if (q < 256) {
                     subArray256.unshift(q);
                     break;
                 }
             }
-            console.log(subArray256);
-            b256Array = b256Array.concat(subArray256)
+            
+            b256Array = b256Array.concat(subArray256);
         }
 
         const uInt8 = Uint8Array.from(b256Array.slice(0, b256Array.length-uPadding));
@@ -562,7 +569,8 @@ class Base85 {
     utilsContructor() {
         // settings for validation
         const validArgs = ["str", "array", ...this.versions];
-        const errorMessage = `Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: ${this.versions.map(v=>`\'${v}\'`).join(", ")}`;
+        const versionString = this.versions.map(v=>`'${v}'`).join(", ");
+        const errorMessage = `Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: ${versionString}`;
 
         const ASCIIdecoder = new TextDecoder("ascii");
         
@@ -621,16 +629,16 @@ class Base85 {
 
 
 class BaseEx {
-    constructor(inputType=null) {
+    constructor() {
         this.base16 = new Base16();
         this.base32_rfc3548 = new Base32("rfc3548");
         this.base32_rfc4648 = new Base32("rfc4648");
         this.base64 = new Base64("default");
         this.base64_urlsafe = new Base64("urlsafe");
-        this.base85 = new Base85();
+        this.base85adobe = new Base85("adobe");
+        this.base85ascii = new Base85("ascii85");
+        this.base85_z85 = new Base85("z85");
     }
 }
-
-const b = new Base85();
 
 //export {Base16, Base32, Base64, Base85, BaseEx}
