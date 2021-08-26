@@ -1,6 +1,6 @@
 class Base16 {
     constructor() {
-        this.utils = this.utilsContructor();
+        this.utils = this.utilsConstructor();
     }
 
     encode(input, ...args) {
@@ -51,7 +51,7 @@ class Base16 {
         }
     }
 
-    utilsContructor() {
+    utilsConstructor() {
         // settings for validation
         const validArgs = ["str", "array"];
         const errorMessage = "Valid arguments for in- and output-type are 'str' and 'array'.";
@@ -120,7 +120,7 @@ class Base32 {
             rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
         }
 
-        this.utils = this.utilsContructor();
+        this.utils = this.utilsConstructor();
     }
     
     encode(input, ...args) {
@@ -192,7 +192,7 @@ class Base32 {
         }
     }
 
-    utilsContructor() {
+    utilsConstructor() {
         // settings for validation
         const validArgs = ["str", "array", ...this.standards];
         const versionString = this.standards.map(s => `'${s}'`).join(" and ");
@@ -255,7 +255,7 @@ class Base64 {
             urlsafe: base62.concat("-_")
         }
 
-        this.utils = this.utilsContructor();
+        this.utils = this.utilsConstructor();
     }
 
     encode(input, ...args) {
@@ -324,7 +324,7 @@ class Base64 {
         }
     }
 
-    utilsContructor() {
+    utilsConstructor() {
         // settings for validation
         const validArgs = ["default", "urlsafe", "str", "array"];
         const errorMessage = "The options are 'default' and 'urlsafe' for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.";
@@ -380,7 +380,7 @@ class Base85 {
         this.version = null;
 
         if (version) {
-            version = String(version).toLocaleLowerCase();
+            version = String(version).toLowerCase();
             if (this.versions.includes(version)) {
                 this.version = version;
             } else {
@@ -394,7 +394,7 @@ class Base85 {
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"
         }
 
-        this.utils = this.utilsContructor();
+        this.utils = this.utilsConstructor();
     }
     
     encode(input, ...args) {
@@ -566,7 +566,7 @@ class Base85 {
 
     }
 
-    utilsContructor() {
+    utilsConstructor() {
         // settings for validation
         const validArgs = ["str", "array", ...this.versions];
         const versionString = this.versions.map(v=>`'${v}'`).join(", ");
