@@ -664,6 +664,12 @@ class Base85 {
                     break;
                 }
             }
+            
+            let missingBytes = 5 - b85Array.length;
+            while (missingBytes--) {
+                b85Array.unshift(0);
+            }
+
 
             let section = ""
             b85Array.forEach(
@@ -755,8 +761,6 @@ class Base85 {
 
         if (outputType === "array") {
             return uInt8;
-        } else if (outputType === "ipv6") {
-            return this.uint8ToIpv6(uInt8);
         } else {
             const outputStr = new TextDecoder().decode(uInt8);
             return outputStr;
