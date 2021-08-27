@@ -163,7 +163,7 @@ class Base32 {
                 throw new TypeError(`Unknown standard.\nThe options are: ${versionString}`);
             }
         }
-        
+
         this.standard = standard;
 
         this.charsets = {
@@ -223,9 +223,9 @@ class Base32 {
             );
         });
 
-        // The lenght of a base32 string (if padding is used)
+        // The length of a base32 string (if padding is used)
         // should not return a remainder if divided by eight.
-        // If they do, missing characters are filled with "=".
+        // If they do, missing characters are padded with a "=".
 
         const missingChars = output.length % 8;
         if (Boolean(missingChars)) {
@@ -237,8 +237,8 @@ class Base32 {
 
     decode(input, ...args) {
         /* 
-            Decode from base32 string to utf-string or bytes.
-            ------------------------------------------------
+            Decode from base32 string to utf8-string or bytes.
+            -------------------------------------------------
 
             @input: base32-string
             @args:
@@ -258,7 +258,6 @@ class Base32 {
         }
 
         const outputType = (args.includes("array")) ? "array" : "str";
-        const chars = this.charsets[standard];
 
         // Split the input into individual characters
         // Take the position (index) of the char in the
@@ -266,8 +265,9 @@ class Base32 {
         // all concatinated to one string of binaries.
 
         let binaryStr = "";
+
         input.split('').map((c) => {
-            const index = chars.indexOf(c);
+            const index = this.charsets[standard].indexOf(c);
             if (index > -1) {                                                     // -1 is the index if the char is not in the set, "=" e.g. gets ignored
                 binaryStr = binaryStr.concat(index.toString(2).padStart(5, "0"));
             }
@@ -283,6 +283,7 @@ class Base32 {
             )
         );
 
+        // Convert to utf8-string if requested
         if (outputType === "array") {
             return uInt8;
         } else {
@@ -345,8 +346,20 @@ class Base32 {
 
 
 class Base64 {
+    /*
+        Standalone en-/decoding to and from base64.
+        Regular and urlsafe charsets can be used.
+    */
     constructor(charset=null) {
+        /*
+            Charset can be set here. If  set, de- and encoding
+            always uses the defined charset.
 
+            If only one variant is needed, this is the way to 
+            go. De- and encoder are ignoring charset-changes if
+            it is set here.
+        */
+       
         const base62 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         this.charsets = {
             default: base62.concat("+/"),
@@ -367,6 +380,18 @@ class Base64 {
     }
 
     encode(input, ...args) {
+        /* 
+            Encode from string or bytes to base64.
+            -------------------------------------
+
+            @input: string or (typed) array
+            @args:
+                "str"       :  tells the encoder, that input is a string (default)
+                "array"     :  tells the encoder, that input is an array
+                "default"   :  sets the used charset to this variant (default)
+                "urlsafe"   :  sets the used charset to this variant
+        */
+       
         args = this.utils.validateArgs(args);
 
         const inputType = (args.includes("array")) ? "array" : "str";
@@ -379,19 +404,33 @@ class Base64 {
             charset = "urlsafe";
         }
 
-        const chars = this.charsets[charset];
+        // Convert to bytes if input is a string
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        const binaryStr = Array.from(inputBytes).map(b => b.toString(2).padStart(8, "0")).join("");
-        const bitGroups = binaryStr.match(/.{1,24}/g);
-    
+        
+        // Convert to binary string
+        const binaryStr = Array.from(inputBytes).map(
+            b => b.toString(2).padStart(8, "0")
+        ).join("");
+
+        // Devide the binary string into groups of 24 bits. Each 
+        // group of 24 bits is seperated into blocks of 6 bits.
+        // Those are converted into integers which are used as 
+        // an index. The corresponding char is picked from the
+        // charset and appended to the output string.
+        
         let output = "";
-        bitGroups.map(function(group) {
-            const blocks = group.match(/.{1,6}/g).map(s=>s.padEnd(6, '0'));
-            blocks.map(function(block) {
+        binaryStr.match(/.{1,24}/g).forEach(group => {
+            group.match(/.{1,6}/g).forEach(block => {
+                block = block.padEnd(6, "0");
                 const charIndex = parseInt(block, 2);
-                output = output.concat(chars[charIndex]);
-            });
+                output = output.concat(this.charsets[charset][charIndex]);
+            })
         });
+
+        // The length of a base62 string (if padding is used)
+        // should not return a remainder if divided by four.
+        // If they do, missing characters are padded with a "=".
+
         const missingChars = output.length % 4;
         if (Boolean(missingChars)) {
             output = output.padEnd(output.length + 4-missingChars, "=");
@@ -401,6 +440,18 @@ class Base64 {
     }
 
     decode(input, ...args) {
+        /* 
+            Decode from base64 string to utf8-string or bytes.
+            -------------------------------------------------
+
+            @input: base32-string
+            @args:
+                "str"       :  tells the encoder, that output should be a string (default)
+                "array"     :  tells the encoder, that output should be an array
+                "default"   :  sets the used charset to this variant (default)
+                "urlsafe"   :  sets the used charset to this variant
+        */
+
         args = this.utils.validateArgs(args);
 
         let charset = "default";
@@ -411,20 +462,33 @@ class Base64 {
         }
     
         const outputType = (args.includes("array")) ? "array" : "str";
-        const chars = this.charsets[charset];
+        
+        // Split the input into individual characters
+        // Take the position (index) of the char in the
+        // set and convert it into binary. The bits are
+        // all concatinated to one string of binaries.
         
         let binaryStr = "";
 
         input.split('').map((c) => {
-            const index = chars.indexOf(c);
+            const index = this.charsets[charset].indexOf(c);
             if (index > -1) {                                       // -1 is the index if the char was not found, "=" was ignored
                 binaryStr = binaryStr.concat(index.toString(2).padStart(6, "0"));
             }
         });
         
-        const byteArray = binaryStr.match(/.{8}/g).map(bin => parseInt(bin, 2))
-        const uInt8 = Uint8Array.from(byteArray);
 
+        // Now the binary string can be (re)grouped 
+        // into regular bytes. Those get plugged into
+        // an Uint8array.
+
+        const uInt8 = Uint8Array.from(
+            binaryStr.match(/.{8}/g).map(bin => 
+                parseInt(bin, 2)
+            )    
+        );
+
+        // Convert to utf8-string if requested
         if (outputType === "array") {
             return uInt8;
         } else {
@@ -433,11 +497,16 @@ class Base64 {
     }
 
     utilsConstructor() {
+        /*
+            Toolset for user-input tests
+        */
+
         // settings for validation
         const validArgs = ["str", "array", ...this.charsetNames];
         const charsetNamesStr = this.charsetNames.map(cs => `'${cs}'`).join(" and ");
         const errorMessage = `The options are ${charsetNamesStr} for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.`;
 
+        // utils object
         return {
             validateArgs: (args) => {
                 const loweredArgs = [];
@@ -482,7 +551,28 @@ class Base64 {
 
 
 class Base85 {
-
+    /*
+        Standalone en-/decoding to and from base85.
+        For versions are supported: 
+            - adobe
+            - ascii85
+            - rfc1924
+            - z85
+        
+        Adobe and ascii85 are the basically the same.
+        Adobe will produce the same output, apart from
+        the <~wrapping~>.
+        
+        Z85 is a important variant, because of the 
+        more interpreter-friendly characterset.
+        
+        The RFC 1924 version is a hybrid. It is not
+        using the mandatory 128 bit calculation.
+        Instead only the charset is used. Do use this
+        for any real project. (Keep in mind, that is
+        based on joke).
+        
+    */
     constructor(version=null) {
         
         this.versions = ["adobe", "ascii85", "rfc1924", "z85"];
@@ -498,9 +588,12 @@ class Base85 {
             }
         }
 
+        const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         this.charsets = {
+            ascii85: asciiChars,
+            adobe: asciiChars,
             rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
-            z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"
+            z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
         }
 
         this.utils = this.utilsConstructor();
@@ -512,7 +605,6 @@ class Base85 {
         const inputType = (args.includes("array")) ? "array" : "str";
         input = this.utils.validateInput(input, inputType);
         let output = "";
-        let add = 0;
 
         let version = this.version;
         if (!version) {
@@ -539,9 +631,7 @@ class Base85 {
                 this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
                 this.utils.warning(msg);
             }
-        } else if (version === "adobe" || version === "ascii85") {
-            add = 33;
-        } 
+        }
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         const l = inputBytes.length;
@@ -567,24 +657,23 @@ class Base85 {
             while (true) {
 
                 [q, r] = this.utils.divmod(q, 85);
-                b85Array.unshift(r + add);
+                b85Array.unshift(r);
 
                 if (q < 85) {
-                    b85Array.unshift(q + add);
+                    b85Array.unshift(q);
                     break;
                 }
             }
 
-            if (version === "ascii85" || version === "adobe") {
-                const b85uInt8 = Uint8Array.from(new Array(5).fill(add));
-                b85uInt8.set(b85Array);
-                let ascii = this.utils.ascii.decode(b85uInt8);
-                if (ascii === "!!!!!") ascii = "z";
-                output = output.concat(ascii);
-            } else if (version === "rfc1924" || version === "z85") {
-                b85Array.forEach(
-                    charIndex => output = output.concat(this.charsets[version][charIndex])
-                );
+            let section = ""
+            b85Array.forEach(
+                charIndex => section = section.concat(this.charsets[version][charIndex])
+            );
+
+            if ((section === "!!!!!") && (version === "ascii85" || version === "adobe")) {
+                output = output.concat("z");   
+            } else {
+                output = output.concat(section);
             }
         }
 
