@@ -95,7 +95,7 @@ class Base16 {
         // utils object
         return {
             validateArgs: (args) => {
-                const loweredArgs = [];
+                const loweredArgs = new Array();
                 if (Boolean(args.length)) {
                     args.forEach(arg => {
                         arg = String(arg).toLowerCase();
@@ -304,7 +304,7 @@ class Base32 {
         // utils object
         return {
             validateArgs: (args) => {
-                const loweredArgs = [];
+                const loweredArgs = new Array();
                 if (Boolean(args.length)) {
                     args.forEach(arg => {
                         arg = String(arg).toLowerCase();
@@ -509,7 +509,7 @@ class Base64 {
         // utils object
         return {
             validateArgs: (args) => {
-                const loweredArgs = [];
+                const loweredArgs = new Array();
                 if (Boolean(args.length)) {
                     args.forEach(arg => {
                         arg = String(arg).toLowerCase();
@@ -593,7 +593,7 @@ class Base85 {
             ascii85: asciiChars,
             adobe: asciiChars,
             rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
-            z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
+            z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()new Array(){}@%$#",
         }
 
         this.utils = this.utilsConstructor();
@@ -604,7 +604,6 @@ class Base85 {
 
         const inputType = (args.includes("array")) ? "array" : "str";
         input = this.utils.validateInput(input, inputType);
-        let output = "";
 
         let version = this.version;
         if (!version) {
@@ -613,33 +612,14 @@ class Base85 {
                 if (this.versions.includes(arg)) version = arg;
             });
         }
-        
-        if (version === "rfc1924") {
-            const date = new Date();
-            if (date.getMonth() === 3 && date.getDate() === 1) {
-                console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
-            } else {
-                const ts = date.getTime();
-                date.setMonth(3, 1);
-                date.setHours(0, 0, 0);
-                if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
-                const dist = date - ts;
-                const d = Math.floor(dist / 86400000);
-                const H = Math.floor((dist % 86400000) / 3600000);
-                const M = Math.floor((dist % 3600000) / 60000);
-                const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                this.utils.warning(msg);
-            }
-        }
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        const l = inputBytes.length;
 
         let zeroPadding = 0;
+        let output = "";
 
-        for (let i=0; i<l; i+=4) {
-            let subArray = inputBytes.subarray(i, i+4);
+        for (let i=0, l=inputBytes.length; i<l; i+=4) {
+            let subArray = inputBytes.slice(i, i+4);
 
             if (subArray.length < 4) {
                 zeroPadding = 4 - subArray.length;
@@ -651,7 +631,7 @@ class Base85 {
             let n = 0;
             subArray.forEach((b, j) => n += b * this.utils.pow256[j]);
 
-            const b85Array = [];
+            const b85Array = new Array();
 
             let q = n, r;                                              // initialize quotient and remainder
             while (true) {
@@ -665,8 +645,7 @@ class Base85 {
                 }
             }
             
-            let missingBytes = 5 - b85Array.length;
-            while (missingBytes--) {
+            while (b85Array.length < 5) {
                 b85Array.unshift(0);
             }
 
@@ -683,6 +662,8 @@ class Base85 {
             }
         }
 
+        if (version === "rfc1924") this.utils.announce();
+
         output = output.slice(0, output.length-zeroPadding);
         if (version === "adobe") {
             output = `<~${output}~>`;
@@ -697,9 +678,6 @@ class Base85 {
         const outputType = (args.includes("array")) ? "array" : "str";
 
         input = input.replace(/\s/g,'');        //remove all whitespace from input
-        let l;
-        let sub = 0;
-        let inputBytes;
         
         let version = this.version;
         if (!version) {
@@ -709,39 +687,26 @@ class Base85 {
             });
         }
         
-        if (version === "rfc1924" || version === "z85") {
-            l = input.length;
-            
-            inputBytes = new Uint8Array(l);
-            input.split('').forEach((c, i) => inputBytes[i] = this.charsets[version].indexOf(c));  //create bytes from corresponding charset
-            
-            if (version === "rfc1924") {
-                this.utils.warning("You might have been fooled. (It works never the less, but only the charset is used).");
-            }
-        } else if (version === "adobe" || version === "ascii85") {
-            if (version === "adobe") input = input.slice(2, input.length-2);
-            
-            sub = 33;
-            inputBytes = this.utils.ascii.encode(input);
-            l = inputBytes.length;
-        }   
-        
+        const inputBytes = Uint8Array.from(
+            input.split('').map(c => this.charsets[version].indexOf(c))
+        );
+
         let uPadding = 0;
         let b256Array = new Array();
-        for (let i=0; i<l; i+=5) {
-            let subArray = inputBytes.subarray(i, i+5);
+        for (let i=0, l=input.length; i<l; i+=5) {
+            let subArray = inputBytes.slice(i, i+5);
 
-            if (subArray.length !== 5) {
+            if (subArray.length < 5) {
                 uPadding = 5 - subArray.length;
-                const paddedArray = Uint8Array.from(Array(5).fill(84+sub));
+                const paddedArray = Uint8Array.from(Array(5).fill(84));
                 paddedArray.set(subArray);
                 subArray = paddedArray;
             }
             
-            const subArray256 = [];
+            const subArray256 = new Array();
 
             let n = 0;
-            subArray.forEach((b, j) => n += (b-sub) * this.utils.pow85[j]);
+            subArray.forEach((b, j) => n += b * this.utils.pow85[j]);
 
             let q = n, r;
             while (true) {
@@ -756,6 +721,8 @@ class Base85 {
             
             b256Array = b256Array.concat(subArray256);
         }
+
+        if (version === "rfc1924") this.utils.warning("You might have been fooled.");
 
         const uInt8 = Uint8Array.from(b256Array.slice(0, b256Array.length-uPadding));
 
@@ -773,23 +740,35 @@ class Base85 {
         const validArgs = ["str", "array", ...this.versions];
         const versionString = this.versions.map(v=>`'${v}'`).join(", ");
         const errorMessage = `Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: ${versionString}`;
-
-        const ASCIIdecoder = new TextDecoder("ascii");
         
         return {
-            ascii: {
-                decode: (input) => ASCIIdecoder.decode(input),
-                encode: (input) => Uint8Array.from(input.split("").map(c => c.charCodeAt(0)))
-            },
-
             divmod: (x, y) => [Math.floor(x / y), x % y],
+
+            announce: () => {
+                const date = new Date();
+                if (date.getMonth() === 3 && date.getDate() === 1) {
+                    console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
+                } else {
+                    const ts = date.getTime();
+                    date.setMonth(3, 1);
+                    date.setHours(0, 0, 0);
+                    if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
+                    const dist = date - ts;
+                    const d = Math.floor(dist / 86400000);
+                    const H = Math.floor((dist % 86400000) / 3600000);
+                    const M = Math.floor((dist % 3600000) / 60000);
+                    const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
+                    this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                    this.utils.warning(msg);
+                }
+            },
 
             pow256: [16777216, 65536, 256, 1],
 
             pow85: [52200625, 614125, 7225, 85, 1],
 
             validateArgs: (args) => {
-                const loweredArgs = [];
+                const loweredArgs = new Array();
                 if (Boolean(args.length)) {
                     args.forEach(arg => {
                         arg = String(arg).toLowerCase();
