@@ -1,22 +1,51 @@
+
+
 class Base16 {
+    /*
+        Standalone en-/decoding to and from base16 (hexadecimal).
+    */
+
     constructor() {
         this.utils = this.utilsConstructor();
     }
 
     encode(input, ...args) {
+        /* 
+            Hex encoder from string or bytes.
+            --------------------------------
 
+            @input: string or (typed) array
+            @args:
+                "str"       :  tells the encoder, that input is a string (default)
+                "array"     :  tells the encoder, that input is an array
+        */
+        
+        // input and output settings
         args = this.utils.validateArgs(args);
         const inputType = (args.includes("array")) ? "array" : "str";
         input = this.utils.validateInput(input, inputType);
 
+        // convert to an array of bytes if necessary
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        const output = Array.from(inputBytes).map(b => b.toString(16).padStart(2, "0")).join("");
+        
+        // convert all bytes to hex and join to a string
+        const output = Array.from(inputBytes).map(
+            b => b.toString(16).padStart(2, "0")
+        ).join("");
 
         return output;
     }
 
     decode(input, ...args) {
         /*
+            Hex string decoder.
+            ------------------
+
+            @input: hex-string
+            @args:
+                "str"       :  tells the encoder, that output should be a string (default)
+                "array"     :  tells the encoder, that output should be an array
+            ___________
             inspired by:
             https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
         */
@@ -25,24 +54,27 @@ class Base16 {
         const outputType = (args.includes("array")) ? "array" : "str";
         
         // remove the leading 0x if present
-        input = input.replace(/^0x/, '');
+        input = String(input).replace(/^0x/, '');
+        
+        // test if valid hex
+        if (Boolean(input.match(/[^0-9A-Fa-f]/g))) {
+            throw new TypeError("The provided input is not a valid hexadecimal string.");
+        }
 
         // ensure even number of characters
         if (Boolean(input.length % 2)) {
             input = "0".concat(input);
         }
         
-        // Split the string into pairs of octets, convert to integers (byte values) 
-        // and create an Uint8array from the output.
-        
-        const byteArray = input.match(/../g).map(
-            octets => {
-                const b = parseInt(octets, 16);
-                this.utils.validateHex(b); 
-                return b;
-            }
+        // Split the string into pairs of octets,
+        // convert to integers (bytes) and create
+        // an Uint8array from the output.
+
+        const uInt8 = Uint8Array.from(
+            input.match(/../g).map(
+                octets => parseInt(octets, 16)
+            )
         );
-        const uInt8 = Uint8Array.from(byteArray);
 
         if (outputType === "array") {
             return uInt8;
@@ -52,10 +84,15 @@ class Base16 {
     }
 
     utilsConstructor() {
+        /*
+            Toolset for user-input tests
+        */
+
         // settings for validation
         const validArgs = ["str", "array"];
         const errorMessage = "Valid arguments for in- and output-type are 'str' and 'array'.";
 
+        // utils object
         return {
             validateArgs: (args) => {
                 const loweredArgs = [];
@@ -69,12 +106,6 @@ class Base16 {
                     });
                 }
                 return loweredArgs;
-            },
-
-            validateHex: (bytes) => {
-                if (isNaN(bytes)) {
-                    throw new TypeError("The provided input is not a valid hexadecimal string.");
-                }
             },
 
             validateInput: (input, inputType) => {
@@ -104,15 +135,35 @@ class Base16 {
     }
 }
 
+
 class Base32 {
+    /*
+        Standalone en-/decoding to and from base32.
+        Uses RFC standard 4658 by default (as used e.g
+        for (t)otp keys), RFC 3548 is also supported.
+    */
+    
     constructor(standard=null) {
+        /*
+            The RFC-Standard can be set here. If the standard 
+            is set, de- and encoding always uses this standard.
+
+            If only one version is needed, this is the way to 
+            go. De- and encoder are ignoring standard-changes if
+            it is set here.
+        */
         
         this.standards = ["rfc3548", "rfc4648"];
 
-        if (standard && !this.standards.includes(standard)) {
-            const versionString = this.standards.map(s => `'${s}'`).join(" and ");
-            throw new TypeError(`Unknown standard.\nThe options are: ${versionString}`);
+        if (standard) {
+            standard = String(standard).toLocaleLowerCase();
+
+            if (!this.standards.includes(standard)) {
+                const versionString = this.standards.map(s => `'${s}'`).join(" and ");
+                throw new TypeError(`Unknown standard.\nThe options are: ${versionString}`);
+            }
         }
+        
         this.standard = standard;
 
         this.charsets = {
@@ -124,7 +175,18 @@ class Base32 {
     }
     
     encode(input, ...args) {
-        
+        /* 
+            Encode from string or bytes to base32.
+            -------------------------------------
+
+            @input: string or (typed) array
+            @args:
+                "str"       :  tells the encoder, that input is a string (default)
+                "array"     :  tells the encoder, that input is an array
+                "rfc3548"   :  sets the used charset to this standard
+                "rfc4648"   :  sets the used charset to this standard
+        */
+
         args = this.utils.validateArgs(args);
         
         let standard = "rfc4648";
@@ -136,21 +198,35 @@ class Base32 {
 
         const inputType = (args.includes("array")) ? "array" : "str";
         input = this.utils.validateInput(input, inputType);
+        
+        // Convert to bytes if input is a string
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        const chars = this.charsets[standard];
 
-        let binaryStr = Array.from(inputBytes).map(b => b.toString(2).padStart(8, "0")).join("");
-
-        const bitGroups = binaryStr.match(/.{1,40}/g);
+        // Convert to binary string
+        let binaryStr = Array.from(inputBytes).map(
+            b => b.toString(2).padStart(8, "0")
+        ).join("");
+        
+        // Devide the binary string into groups of 40 bits. Each 
+        // group of 40 bits is seperated into blocks of 5 bits.
+        // Those are converted into integers which are used as 
+        // an index. The corresponding char is picked from the
+        // charset and appended to the output string.
 
         let output = "";
-        bitGroups.map(function(group) {
-            const blocks = group.match(/.{1,5}/g).map(s=>s.padEnd(5, '0'));
-            blocks.map(function(block) {
-                const charIndex = parseInt(block, 2);
-                output = output.concat(chars[charIndex]);
-            });
+        binaryStr.match(/.{1,40}/g).forEach(group => {
+            group.match(/.{1,5}/g).forEach(block => {
+                    block = block.padEnd(5, '0');                   // The last block might be shorter then 5, it gets filled up with zeros in that case
+                    const charIndex = parseInt(block, 2);
+                    output = output.concat(this.charsets[standard][charIndex]);
+                }
+            );
         });
+
+        // The lenght of a base32 string (if padding is used)
+        // should not return a remainder if divided by eight.
+        // If they do, missing characters are filled with "=".
+
         const missingChars = output.length % 8;
         if (Boolean(missingChars)) {
             output = output.padEnd(output.length + 8-missingChars, "=");
@@ -160,6 +236,17 @@ class Base32 {
     }
 
     decode(input, ...args) {
+        /* 
+            Decode from base32 string to utf-string or bytes.
+            ------------------------------------------------
+
+            @input: base32-string
+            @args:
+                "str"       :  tells the encoder, that output should be a string (default)
+                "array"     :  tells the encoder, that output should be an array
+                "rfc3548"   :  defines to use the charset of this standard
+                "rfc4648"   :  defines to use the charset of this standard (default)
+        */
 
         args = this.utils.validateArgs(args);
 
@@ -172,18 +259,29 @@ class Base32 {
 
         const outputType = (args.includes("array")) ? "array" : "str";
         const chars = this.charsets[standard];
-        
-        let binaryStr = "";
 
+        // Split the input into individual characters
+        // Take the position (index) of the char in the
+        // set and convert it into binary. The bits are
+        // all concatinated to one string of binaries.
+
+        let binaryStr = "";
         input.split('').map((c) => {
             const index = chars.indexOf(c);
-            if (index > -1) {                                       // -1 is the index if the char was not found, "=" was ignored
+            if (index > -1) {                                                     // -1 is the index if the char is not in the set, "=" e.g. gets ignored
                 binaryStr = binaryStr.concat(index.toString(2).padStart(5, "0"));
             }
         });
         
-        const byteArray = binaryStr.match(/.{8}/g).map(bin => parseInt(bin, 2))
-        const uInt8 = Uint8Array.from(byteArray);
+        // Now the binary string can be (re)grouped 
+        // into regular bytes. Those get plugged into
+        // an Uint8array.
+
+        const uInt8 = Uint8Array.from(
+            binaryStr.match(/.{8}/g).map(bin => 
+                parseInt(bin, 2)
+            )
+        );
 
         if (outputType === "array") {
             return uInt8;
@@ -193,11 +291,16 @@ class Base32 {
     }
 
     utilsConstructor() {
+        /*
+            Toolset for user-input tests
+        */
+
         // settings for validation
         const validArgs = ["str", "array", ...this.standards];
         const versionString = this.standards.map(s => `'${s}'`).join(" and ");
         const errorMessage = `The options are ${versionString} for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'.`;
 
+        // utils object
         return {
             validateArgs: (args) => {
                 const loweredArgs = [];
