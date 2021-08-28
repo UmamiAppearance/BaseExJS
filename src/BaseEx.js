@@ -553,24 +553,25 @@ class Base64 {
 class Base85 {
     /*
         Standalone en-/decoding to and from base85.
-        For versions are supported: 
-            - adobe
-            - ascii85
-            - rfc1924
-            - z85
+        Four versions are supported: 
+          
+            * adobe
+            * ascii85
+            * rfc1924
+            * z85
         
         Adobe and ascii85 are the basically the same.
         Adobe will produce the same output, apart from
         the <~wrapping~>.
         
-        Z85 is a important variant, because of the 
+        Z85 is an important variant, because of the 
         more interpreter-friendly characterset.
         
         The RFC 1924 version is a hybrid. It is not
         using the mandatory 128 bit calculation.
-        Instead only the charset is used. Do use this
+        Instead only the charset is used. Do not use this
         for any real project. (Keep in mind, that is
-        based on joke).
+        based on a joke).
         
     */
     constructor(version=null) {
@@ -588,7 +589,7 @@ class Base85 {
             }
         }
 
-        const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
         this.charsets = {
             ascii85: asciiChars,
             adobe: asciiChars,
@@ -655,7 +656,7 @@ class Base85 {
                 charIndex => section = section.concat(this.charsets[version][charIndex])
             );
 
-            if ((section === "!!!!!") && (version === "ascii85" || version === "adobe")) {
+            if ((section === "!!!!!") && Boolean(version.match(/adobe|ascii85/))) {
                 output = output.concat("z");   
             } else {
                 output = output.concat(section);
@@ -674,10 +675,6 @@ class Base85 {
 
     decode(input, ...args) {
         args = this.utils.validateArgs(args);
-
-        const outputType = (args.includes("array")) ? "array" : "str";
-
-        input = input.replace(/\s/g,'');        //remove all whitespace from input
         
         let version = this.version;
         if (!version) {
@@ -686,7 +683,11 @@ class Base85 {
                 if (this.versions.includes(arg)) version = arg;
             });
         }
-        
+
+        const outputType = (args.includes("array")) ? "array" : "str";
+        input = input.replace(/\s/g,'');        //remove all whitespace from input
+        if (Boolean(version.match(/adobe|ascii85/))) input = input.replace(/z/g, "!!!!!");
+
         const inputBytes = Uint8Array.from(
             input.split('').map(c => this.charsets[version].indexOf(c))
         );
@@ -718,6 +719,11 @@ class Base85 {
                     break;
                 }
             }
+            
+            while (subArray256.length < 4) {
+                subArray256.unshift(0);
+            }
+
             
             b256Array = b256Array.concat(subArray256);
         }
