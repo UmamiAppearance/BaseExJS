@@ -14,15 +14,15 @@ class Base16 {
             Hex encoder from string or bytes.
             --------------------------------
 
-            @input: string or (typed) array
+            @input: string or (typed) array of bytes
             @args:
                 "str"       :  tells the encoder, that input is a string (default)
-                "array"     :  tells the encoder, that input is an array
+                "bytes"     :  tells the encoder, that input is an array
         */
         
         // input and output settings
         args = this.utils.validateArgs(args);
-        const inputType = (args.includes("array")) ? "array" : "str";
+        const inputType = (args.includes("bytes")) ? "bytes" : "str";
         input = this.utils.validateInput(input, inputType);
 
         // convert to an array of bytes if necessary
@@ -44,14 +44,14 @@ class Base16 {
             @input: hex-string
             @args:
                 "str"       :  tells the encoder, that output should be a string (default)
-                "array"     :  tells the encoder, that output should be an array
+                "bytes"     :  tells the encoder, that output should be an array
             ___________
             inspired by:
             https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
         */
         
         args = this.utils.validateArgs(args);
-        const outputType = (args.includes("array")) ? "array" : "str";
+        const outputType = (args.includes("bytes")) ? "bytes" : "str";
         
         // remove the leading 0x if present
         input = String(input).replace(/^0x/, '');
@@ -76,7 +76,7 @@ class Base16 {
             )
         );
 
-        if (outputType === "array") {
+        if (outputType === "bytes") {
             return uInt8;
         } else {
             return new TextDecoder().decode(uInt8);
@@ -89,7 +89,7 @@ class Base16 {
         */
 
         // settings for validation
-        const validArgs = ["str", "array"];
+        const validArgs = ["str", "bytes"];
         const errorMessage = "Valid arguments for in- and output-type are 'str' and 'array'.";
 
         // utils object
@@ -179,10 +179,10 @@ class Base32 {
             Encode from string or bytes to base32.
             -------------------------------------
 
-            @input: string or (typed) array
+            @input: string or (typed) array of bytes
             @args:
                 "str"       :  tells the encoder, that input is a string (default)
-                "array"     :  tells the encoder, that input is an array
+                "bytes"     :  tells the encoder, that input is an array
                 "rfc3548"   :  sets the used charset to this standard
                 "rfc4648"   :  sets the used charset to this standard
         */
@@ -196,7 +196,7 @@ class Base32 {
             standard = "rfc3548";
         }
 
-        const inputType = (args.includes("array")) ? "array" : "str";
+        const inputType = (args.includes("bytes")) ? "bytes" : "str";
         input = this.utils.validateInput(input, inputType);
         
         // Convert to bytes if input is a string
@@ -243,7 +243,7 @@ class Base32 {
             @input: base32-string
             @args:
                 "str"       :  tells the encoder, that output should be a string (default)
-                "array"     :  tells the encoder, that output should be an array
+                "bytes"     :  tells the encoder, that output should be an array
                 "rfc3548"   :  defines to use the charset of this standard
                 "rfc4648"   :  defines to use the charset of this standard (default)
         */
@@ -257,7 +257,7 @@ class Base32 {
             standard = "rfc3548";
         }
 
-        const outputType = (args.includes("array")) ? "array" : "str";
+        const outputType = (args.includes("bytes")) ? "bytes" : "str";
 
         // Split the input into individual characters
         // Take the position (index) of the char in the
@@ -284,7 +284,7 @@ class Base32 {
         );
 
         // Convert to utf8-string if requested
-        if (outputType === "array") {
+        if (outputType === "bytes") {
             return uInt8;
         } else {
             return new TextDecoder().decode(uInt8);
@@ -297,7 +297,7 @@ class Base32 {
         */
 
         // settings for validation
-        const validArgs = ["str", "array", ...this.standards];
+        const validArgs = ["str", "bytes", ...this.standards];
         const versionString = this.standards.map(s => `'${s}'`).join(" and ");
         const errorMessage = `The options are ${versionString} for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'array'.`;
 
@@ -384,17 +384,17 @@ class Base64 {
             Encode from string or bytes to base64.
             -------------------------------------
 
-            @input: string or (typed) array
+            @input: string or (typed) array of bytes
             @args:
                 "str"       :  tells the encoder, that input is a string (default)
-                "array"     :  tells the encoder, that input is an array
+                "bytes"     :  tells the encoder, that input is an array
                 "default"   :  sets the used charset to this variant (default)
                 "urlsafe"   :  sets the used charset to this variant
         */
        
         args = this.utils.validateArgs(args);
 
-        const inputType = (args.includes("array")) ? "array" : "str";
+        const inputType = (args.includes("bytes")) ? "bytes" : "str";
         input = this.utils.validateInput(input, inputType);
 
         let charset = "default";
@@ -447,7 +447,7 @@ class Base64 {
             @input: base32-string
             @args:
                 "str"       :  tells the encoder, that output should be a string (default)
-                "array"     :  tells the encoder, that output should be an array
+                "bytes"     :  tells the encoder, that output should be an array
                 "default"   :  sets the used charset to this variant (default)
                 "urlsafe"   :  sets the used charset to this variant
         */
@@ -461,7 +461,7 @@ class Base64 {
             charset = "urlsafe";
         }
     
-        const outputType = (args.includes("array")) ? "array" : "str";
+        const outputType = (args.includes("bytes")) ? "bytes" : "str";
         
         // Split the input into individual characters
         // Take the position (index) of the char in the
@@ -489,7 +489,7 @@ class Base64 {
         );
 
         // Convert to utf8-string if requested
-        if (outputType === "array") {
+        if (outputType === "bytes") {
             return uInt8;
         } else {
             return new TextDecoder().decode(uInt8);
@@ -502,7 +502,7 @@ class Base64 {
         */
 
         // settings for validation
-        const validArgs = ["str", "array", ...this.charsetNames];
+        const validArgs = ["str", "bytes", ...this.charsetNames];
         const charsetNamesStr = this.charsetNames.map(cs => `'${cs}'`).join(" and ");
         const errorMessage = `The options are ${charsetNamesStr} for the charset.\nValid arguments for in- and output-type are 'str' and 'array'.`;
 
@@ -603,7 +603,7 @@ class Base85 {
     encode(input, ...args) {
         args = this.utils.validateArgs(args);
 
-        const inputType = (args.includes("array")) ? "array" : "str";
+        const inputType = (args.includes("bytes")) ? "bytes" : "str";
         input = this.utils.validateInput(input, inputType);
 
         let version = this.version;
@@ -635,31 +635,26 @@ class Base85 {
             const b85Array = new Array();
 
             let q = n, r;                                              // initialize quotient and remainder
-            while (true) {
-
+            while (q > 85) {
                 [q, r] = this.utils.divmod(q, 85);
                 b85Array.unshift(r);
-
-                if (q < 85) {
-                    b85Array.unshift(q);
-                    break;
-                }
             }
-            
+            b85Array.unshift(q);
+
             while (b85Array.length < 5) {
                 b85Array.unshift(0);
             }
 
 
-            let section = ""
+            let frame = ""
             b85Array.forEach(
-                charIndex => section = section.concat(this.charsets[version][charIndex])
+                charIndex => frame = frame.concat(this.charsets[version][charIndex])
             );
 
-            if ((section === "!!!!!") && Boolean(version.match(/adobe|ascii85/))) {
+            if ((frame === "!!!!!") && Boolean(version.match(/adobe|ascii85/))) {
                 output = output.concat("z");   
             } else {
-                output = output.concat(section);
+                output = output.concat(frame);
             }
         }
 
@@ -684,7 +679,7 @@ class Base85 {
             });
         }
 
-        const outputType = (args.includes("array")) ? "array" : "str";
+        const outputType = (args.includes("bytes")) ? "bytes" : "str";
         input = input.replace(/\s/g,'');        //remove all whitespace from input
         if (Boolean(version.match(/adobe|ascii85/))) input = input.replace(/z/g, "!!!!!");
 
@@ -710,20 +705,15 @@ class Base85 {
             subArray.forEach((b, j) => n += b * this.utils.pow85[j]);
 
             let q = n, r;
-            while (true) {
+            while (q > 256) {
                 [q, r] = this.utils.divmod(q, 256);
                 subArray256.unshift(r);
-                
-                if (q < 256) {
-                    subArray256.unshift(q);
-                    break;
-                }
             }
+            subArray256.unshift(q);
             
             while (subArray256.length < 4) {
                 subArray256.unshift(0);
             }
-
             
             b256Array = b256Array.concat(subArray256);
         }
@@ -732,7 +722,7 @@ class Base85 {
 
         const uInt8 = Uint8Array.from(b256Array.slice(0, b256Array.length-uPadding));
 
-        if (outputType === "array") {
+        if (outputType === "bytes") {
             return uInt8;
         } else {
             const outputStr = new TextDecoder().decode(uInt8);
@@ -743,7 +733,7 @@ class Base85 {
 
     utilsConstructor() {
         // settings for validation
-        const validArgs = ["str", "array", ...this.versions];
+        const validArgs = ["str", "bytes", ...this.versions];
         const versionString = this.versions.map(v=>`'${v}'`).join(", ");
         const errorMessage = `Valid arguments for in- and output-type are 'str' and 'array'.\nEn- and decoder have the options: ${versionString}`;
         
