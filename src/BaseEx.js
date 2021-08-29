@@ -389,7 +389,6 @@ class Base64 {
         this.version = String(version).toLowerCase();
         this.defaultInput = input;
         this.defaultOutput = output;
-
     }
 
     encode(input, ...args) {
@@ -596,20 +595,7 @@ class Base85 {
         based on a joke).
         
     */
-    constructor(version=null) {
-        
-        this.versions = ["adobe", "ascii85", "rfc1924", "z85"];
-        this.version = null;
-
-        if (version) {
-            version = String(version).toLowerCase();
-            if (this.versions.includes(version)) {
-                this.version = version;
-            } else {
-                const versionString = this.versions.map(v => `'${v}'`).join(", ");
-                throw new TypeError(`Available versions are: ${versionString}`);
-            }
-        }
+    constructor(version="ascii85", input="str", output="str") {
 
         const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
         this.charsets = {
@@ -618,28 +604,27 @@ class Base85 {
             rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
         }
+        this.versions = Object.keys(this.charsets);
 
         this.utils = this.utilsConstructor();
+        this.utils.validateArgs([version, input, output]);
+
+        this.version = String(version).toLowerCase();
+        this.defaultInput = input;
+        this.defaultOutput = output;
     }
     
     encode(input, ...args) {
+
         args = this.utils.validateArgs(args);
-
-        const inputType = (args.includes("bytes")) ? "bytes" : "str";
+        const inputType = this.utils.setIOType(args, "in");
+        const version = this.utils.setVersion(args);
         input = this.utils.validateInput(input, inputType);
-
-        let version = this.version;
-        if (!version) {
-            version = "ascii85";
-            args.forEach(arg => {
-                if (this.versions.includes(arg)) version = arg;
-            });
-        }
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
 
-        let zeroPadding = 0;
         let output = "";
+        let zeroPadding = 0;
 
         for (let i=0, l=inputBytes.length; i<l; i+=4) {
             let subArray = inputBytes.slice(i, i+4);
@@ -667,8 +652,7 @@ class Base85 {
                 b85Array.unshift(0);
             }
 
-
-            let frame = ""
+            let frame = "";
             b85Array.forEach(
                 charIndex => frame = frame.concat(this.charsets[version][charIndex])
             );
@@ -680,30 +664,28 @@ class Base85 {
             }
         }
 
-        if (version === "rfc1924") this.utils.announce();
-
         output = output.slice(0, output.length-zeroPadding);
         if (version === "adobe") {
             output = `<~${output}~>`;
         }
         
+        if (version === "rfc1924") this.utils.announce();
         return output;
     }
 
     decode(input, ...args) {
-        args = this.utils.validateArgs(args);
-        
-        let version = this.version;
-        if (!version) {
-            version = "ascii85";
-            args.forEach(arg => {
-                if (this.versions.includes(arg)) version = arg;
-            });
-        }
 
-        const outputType = (args.includes("bytes")) ? "bytes" : "str";
+        args = this.utils.validateArgs(args);
+        const version = this.utils.setVersion(args);
+        const outputType = this.utils.setIOType(args, "out");
         input = input.replace(/\s/g,'');        //remove all whitespace from input
-        if (Boolean(version.match(/adobe|ascii85/))) input = input.replace(/z/g, "!!!!!");
+        
+        if (Boolean(version.match(/adobe|ascii85/))) {
+            input = input.replace(/z/g, "!!!!!");
+            if (version === "adobe") {
+                input = input.replace(/^<~|~>$/g, "");
+            }
+        }
 
         const inputBytes = Uint8Array.from(
             input.split('').map(c => this.charsets[version].indexOf(c))
@@ -740,15 +722,12 @@ class Base85 {
             b256Array = b256Array.concat(subArray256);
         }
 
-        if (version === "rfc1924") this.utils.warning("You might have been fooled.");
-
         const uInt8 = Uint8Array.from(b256Array.slice(0, b256Array.length-uPadding));
 
         if (outputType === "bytes") {
             return uInt8;
         } else {
-            const outputStr = new TextDecoder().decode(uInt8);
-            return outputStr;
+            return new TextDecoder().decode(uInt8);
         }
 
     }
@@ -760,8 +739,6 @@ class Base85 {
         const errorMessage = `Valid arguments for in- and output-type are 'str' and 'bytes'.\nEn- and decoder have the options: ${versionString}`;
         
         return {
-            divmod: (x, y) => [Math.floor(x / y), x % y],
-
             announce: () => {
                 const date = new Date();
                 if (date.getMonth() === 3 && date.getDate() === 1) {
@@ -781,9 +758,35 @@ class Base85 {
                 }
             },
 
+            divmod: (x, y) => [Math.floor(x / y), x % y],
+
             pow256: [16777216, 65536, 256, 1],
 
             pow85: [52200625, 614125, 7225, 85, 1],
+
+            setIOType: (args, IO) => {
+                let type;
+                if (args.includes("bytes")) {
+                    type = "bytes";
+                } else if (args.includes("str")) { 
+                    type = "str";
+                } else {
+                    type = (IO === "in") ? this.defaultInput : this.defaultOutput;
+                }
+
+                return type;
+            },
+
+            setVersion: (args) => {
+                let version = this.version;
+                args.forEach(arg => {
+                    if (this.versions.includes(arg)) {
+                        version = arg; 
+                    }
+                })
+                return version;
+            },
+
 
             validateArgs: (args) => {
                 const loweredArgs = new Array();
