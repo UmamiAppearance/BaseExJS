@@ -3,15 +3,14 @@
 class Base16 {
     /*
         Standalone en-/decoding to and from base16 (hexadecimal).
+        (Requires "BaseExUtils")
     */
 
     constructor(input="str", output="str") {
-        this.utils = this.utilsConstructor();
+        this.IOtypes = ["str", "bytes"];
+        this.utils = new BaseExUtils(this);
 
-        this.utils.validateArgs([input, output]);
-
-        this.defaultInput = input;
-        this.defaultOutput = output;
+        [this.defaultInput, this.defaultOutput] = this.utils.validateArgs([input, output]);
     }
 
     encode(input, ...args) {
@@ -25,7 +24,7 @@ class Base16 {
                 "bytes"     :  tells the encoder, that input is an array
         */
         
-        // input and output settings
+        // argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
         input = this.utils.validateInput(input, inputType);
@@ -48,25 +47,26 @@ class Base16 {
 
             @input: hex-string
             @args:
-                "str"       :  tells the encoder, that output should be a string (default)
-                "bytes"     :  tells the encoder, that output should be an array
+                "str"       :  tells the encoder, that output should be a utf8-string (default)
+                "bytes"     :  tells the encoder, that output should be an array of bytes
             ___________
             inspired by:
             https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
         */
         
+        // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const outputType = this.utils.setIOType(args, "out");
         
-        // remove the leading 0x if present
+        // Remove the leading 0x if present
         input = String(input).replace(/^0x/, '');
         
-        // test if valid hex
+        // Test if valid hex
         if (Boolean(input.match(/[^0-9A-Fa-f]/g))) {
             throw new TypeError("The provided input is not a valid hexadecimal string.");
         }
 
-        // ensure even number of characters
+        // Ensure even number of characters
         if (Boolean(input.length % 2)) {
             input = "0".concat(input);
         }
@@ -87,70 +87,6 @@ class Base16 {
             return new TextDecoder().decode(uInt8);
         }
     }
-
-    utilsConstructor() {
-        /*
-            Toolset for user-input tests
-        */
-
-        // settings for validation
-        const validArgs = ["str", "bytes"];
-        const errorMessage = "Valid arguments for in- and output-type are 'str' and 'bytes'.";
-
-        // utils object
-        return {
-            setIOType: (args, IO) => {
-                let type;
-                if (args.includes("bytes")) {
-                    type = "bytes";
-                } else if (args.includes("str")) { 
-                    type = "str";
-                } else {
-                    type = (IO === "in") ? this.defaultInput : this.defaultOutput;
-                }
-
-                return type;
-            },
-
-            validateArgs: (args) => {
-                const loweredArgs = new Array();
-                if (Boolean(args.length)) {
-                    args.forEach(arg => {
-                        arg = String(arg).toLowerCase();
-                        if (!validArgs.includes(arg)) {
-                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
-                        }
-                        loweredArgs.push(arg);
-                    });
-                }
-                return loweredArgs;
-            },
-
-            validateInput: (input, inputType) => {
-                if (inputType === "str") {
-                    if (typeof input !== "string") {
-                        this.utils.warning("Your input was converted into a string.");
-                    }
-                    return String(input);
-                } else {
-                    if (typeof input === "string") {
-                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-                    } else if (typeof input !== 'object') {
-                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
-                    }
-                    return input; 
-                }
-            },
-
-            warning: (message) => {
-                if (console.hasOwnProperty("warn")) {
-                    console.warn(message);
-                } else {
-                    console.log(`___\n${message}\n`);
-                }
-            }
-        }
-    }
 }
 
 
@@ -159,26 +95,26 @@ class Base32 {
         Standalone en-/decoding to and from base32.
         Uses RFC standard 4658 by default (as used e.g
         for (t)otp keys), RFC 3548 is also supported.
+        (Requires "BaseExUtils")
     */
     
     constructor(version="rfc4648", input="str", output="str") {
         /*
-            The RFC standard defined here is used by de- and encoder
-            if not overwritten with the call. 
+            The RFC standard defined here is used by de- and encoder.
+            This can still be overwritten during the call of the
+            function.
         */
 
         this.charsets = {
             rfc3548: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
         }
+
         this.versions = Object.keys(this.charsets);
-
-        this.utils = this.utilsConstructor();
-        this.utils.validateArgs([version, input, output]);
-
-        this.version = String(version).toLowerCase();
-        this.defaultInput = input;
-        this.defaultOutput = output;
+        this.IOtypes = ["str", "bytes"];
+        this.utils = new BaseExUtils(this);
+        
+        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
     }
     
     encode(input, ...args) {
@@ -194,6 +130,7 @@ class Base32 {
                 "rfc4648"   :  sets the used charset to this standard
         */
 
+        // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
         const version = this.utils.setVersion(args);
@@ -216,7 +153,7 @@ class Base32 {
         let output = "";
         binaryStr.match(/.{1,40}/g).forEach(group => {
             group.match(/.{1,5}/g).forEach(block => {
-                    block = block.padEnd(5, '0');                   // The last block might be shorter then 5, it gets filled up with zeros in that case
+                    block = block.padEnd(5, '0');
                     const charIndex = parseInt(block, 2);
                     output = output.concat(this.charsets[version][charIndex]);
                 }
@@ -248,6 +185,7 @@ class Base32 {
                 "rfc4648"   :  defines to use the charset of this version (default)
         */
 
+        // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const version = this.utils.setVersion(args);
         const outputType = this.utils.setIOType(args, "out");
@@ -283,81 +221,6 @@ class Base32 {
             return new TextDecoder().decode(uInt8);
         }
     }
-
-    utilsConstructor() {
-        /*
-            Toolset for user-input tests
-        */
-
-        // settings for validation
-        const validArgs = ["str", "bytes", ...this.versions];
-        const versionString = this.versions.map(s => `'${s}'`).join(" and ");
-        const errorMessage = `The options are ${versionString} for the rfc-standard. Valid arguments for in- and output-type are 'str' and 'bytes'.`;
-
-        // utils object
-        return {
-            setIOType: (args, IO) => {
-                let type;
-                if (args.includes("bytes")) {
-                    type = "bytes";
-                } else if (args.includes("str")) { 
-                    type = "str";
-                } else {
-                    type = (IO === "in") ? this.defaultInput : this.defaultOutput;
-                }
-
-                return type;
-            },
-
-            setVersion: (args) => {
-                let version = this.version;
-                args.forEach(arg => {
-                    if (this.versions.includes(arg)) {
-                        version = arg; 
-                    }
-                })
-                return version;
-            },
-            
-            validateArgs: (args) => {
-                const loweredArgs = new Array();
-                if (Boolean(args.length)) {
-                    args.forEach(arg => {
-                        arg = String(arg).toLowerCase();
-                        if (!validArgs.includes(arg)) {
-                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
-                        }
-                        loweredArgs.push(arg);
-                    });
-                }
-                return loweredArgs;
-            },
-
-            validateInput: (input, inputType) => {
-                if (inputType === "str") {
-                    if (typeof input !== "string") {
-                        this.utils.warning("Your input was converted into a string.");
-                    }
-                    return String(input);
-                } else {
-                    if (typeof input === "string") {
-                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-                    } else if (typeof input !== 'object') {
-                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
-                    }
-                    return input; 
-                }
-            },
-
-            warning: (message) => {
-                if (console.hasOwnProperty("warn")) {
-                    console.warn(message);
-                } else {
-                    console.log(`___\n${message}\n`);
-                }
-            }
-        }
-    }
 }
 
 
@@ -365,15 +228,14 @@ class Base64 {
     /*
         Standalone en-/decoding to and from base64.
         Regular and urlsafe charsets can be used.
+        (Requires "BaseExUtils")
     */
+
     constructor(version="default", input="str", output="str") {
         /*
-            Charset can be set here. If  set, de- and encoding
-            always uses the defined version.
-
-            If only one variant is needed, this is the way to 
-            go. De- and encoder are ignoring version-changes if
-            it is set here.
+            The charset defined here is used by de- and encoder.
+            This can still be overwritten during the call of the
+            function.
         */
 
         const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -381,14 +243,12 @@ class Base64 {
             default: b62Chars.concat("+/"),
             urlsafe: b62Chars.concat("-_")
         }
+
         this.versions = Object.keys(this.charsets);
-
-        this.utils = this.utilsConstructor();
-        this.utils.validateArgs([version, input, output]);
-
-        this.version = String(version).toLowerCase();
-        this.defaultInput = input;
-        this.defaultOutput = output;
+        this.IOtypes = ["str", "bytes"];
+        this.utils = new BaseExUtils(this);
+        
+        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
     }
 
     encode(input, ...args) {
@@ -404,6 +264,7 @@ class Base64 {
                 "urlsafe"   :  sets the used charset to this variant
         */
        
+        // Argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
         const version = this.utils.setVersion(args);
@@ -457,6 +318,7 @@ class Base64 {
                 "urlsafe"   :  sets the used charset to this variant
         */
 
+        // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const version = this.utils.setVersion(args);
         const outputType = this.utils.setIOType(args, "out");
@@ -470,7 +332,7 @@ class Base64 {
 
         input.split('').map((c) => {
             const index = this.charsets[version].indexOf(c);
-            if (index > -1) {                                       // -1 is the index if the char was not found, "=" was ignored
+            if (index > -1) {
                 binaryStr = binaryStr.concat(index.toString(2).padStart(6, "0"));
             }
         });
@@ -491,81 +353,6 @@ class Base64 {
             return uInt8;
         } else {
             return new TextDecoder().decode(uInt8);
-        }
-    }
-
-    utilsConstructor() {
-        /*
-            Toolset for user-input tests
-        */
-
-        // settings for validation
-        const validArgs = ["str", "bytes", ...this.versions];
-        const charsetNamesStr = this.versions.map(cs => `'${cs}'`).join(" and ");
-        const errorMessage = `The options are ${charsetNamesStr} for the charset.\nValid arguments for in- and output-type are 'str' and 'bytes'.`;
-
-        // utils object
-        return {
-            setIOType: (args, IO) => {
-                let type;
-                if (args.includes("bytes")) {
-                    type = "bytes";
-                } else if (args.includes("str")) { 
-                    type = "str";
-                } else {
-                    type = (IO === "in") ? this.defaultInput : this.defaultOutput;
-                }
-
-                return type;
-            },
-
-            setVersion: (args) => {
-                let version = this.version;
-                args.forEach(arg => {
-                    if (this.versions.includes(arg)) {
-                        version = arg; 
-                    }
-                })
-                return version;
-            },
-
-            validateArgs: (args) => {
-                const loweredArgs = new Array();
-                if (Boolean(args.length)) {
-                    args.forEach(arg => {
-                        arg = String(arg).toLowerCase();
-                        if (!validArgs.includes(arg)) {
-                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
-                        }
-                        loweredArgs.push(arg);
-                    });
-                }
-                return loweredArgs;
-            },
-
-            validateInput: (input, inputType) => {
-                if (inputType === "str") {
-                    if (typeof input !== "string") {
-                        this.utils.warning("Your input was converted into a string.");
-                    }
-                    return String(input);
-                } else {
-                    if (typeof input === "string") {
-                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-                    } else if (typeof input !== 'object') {
-                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
-                    }
-                    return input; 
-                }
-            },
-
-            warning: (message) => {
-                if (console.hasOwnProperty("warn")) {
-                    console.warn(message);
-                } else {
-                    console.log(`___\n${message}\n`);
-                }
-            }
         }
     }
 }
@@ -593,6 +380,8 @@ class Base85 {
         Instead only the charset is used. Do not use this
         for any real project. (Keep in mind, that is
         based on a joke).
+
+        (Requires "BaseExUtils")
         
     */
     constructor(version="ascii85", input="str", output="str") {
@@ -604,18 +393,18 @@ class Base85 {
             rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
         }
+        
         this.versions = Object.keys(this.charsets);
-
-        this.utils = this.utilsConstructor();
-        this.utils.validateArgs([version, input, output]);
-
-        this.version = String(version).toLowerCase();
-        this.defaultInput = input;
-        this.defaultOutput = output;
+        this.IOtypes = ["str", "bytes"];
+        this.utils = new BaseExUtils(this);
+        this.expandUtils();
+        
+        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
     }
     
     encode(input, ...args) {
 
+        // Argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
         const version = this.utils.setVersion(args);
@@ -675,6 +464,7 @@ class Base85 {
 
     decode(input, ...args) {
 
+        // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const version = this.utils.setVersion(args);
         const outputType = this.utils.setIOType(args, "out");
@@ -732,99 +522,123 @@ class Base85 {
 
     }
 
-    utilsConstructor() {
-        // settings for validation
-        const validArgs = ["str", "bytes", ...this.versions];
-        const versionString = this.versions.map(v=>`'${v}'`).join(", ");
-        const errorMessage = `Valid arguments for in- and output-type are 'str' and 'bytes'.\nEn- and decoder have the options: ${versionString}`;
+    expandUtils() {
+        /*
+            Helper functions.
+        */
         
-        return {
-            announce: () => {
-                const date = new Date();
-                if (date.getMonth() === 3 && date.getDate() === 1) {
-                    console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
-                } else {
-                    const ts = date.getTime();
-                    date.setMonth(3, 1);
-                    date.setHours(0, 0, 0);
-                    if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
-                    const dist = date - ts;
-                    const d = Math.floor(dist / 86400000);
-                    const H = Math.floor((dist % 86400000) / 3600000);
-                    const M = Math.floor((dist % 3600000) / 60000);
-                    const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                    this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                    this.utils.warning(msg);
-                }
-            },
-
-            divmod: (x, y) => [Math.floor(x / y), x % y],
-
-            pow256: [16777216, 65536, 256, 1],
-
-            pow85: [52200625, 614125, 7225, 85, 1],
-
-            setIOType: (args, IO) => {
-                let type;
-                if (args.includes("bytes")) {
-                    type = "bytes";
-                } else if (args.includes("str")) { 
-                    type = "str";
-                } else {
-                    type = (IO === "in") ? this.defaultInput : this.defaultOutput;
-                }
-
-                return type;
-            },
-
-            setVersion: (args) => {
-                let version = this.version;
-                args.forEach(arg => {
-                    if (this.versions.includes(arg)) {
-                        version = arg; 
-                    }
-                })
-                return version;
-            },
-
-
-            validateArgs: (args) => {
-                const loweredArgs = new Array();
-                if (Boolean(args.length)) {
-                    args.forEach(arg => {
-                        arg = String(arg).toLowerCase();
-                        if (!validArgs.includes(arg)) {
-                            throw new TypeError(`Invalid argument: '${arg}'\n${errorMessage}`);
-                        }
-                        loweredArgs.push(arg);
-                    });
-                }
-                return loweredArgs;
-            },
-
-            validateInput: (input, inputType) => {
-                if (inputType === "str") {
-                    if (typeof input !== "string") {
-                        this.utils.warning("Your input was converted into a string.");
-                    }
-                    return String(input);
-                } else {
-                    if (typeof input === "string") {
-                        throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-                    } else if (typeof input !== 'object') {
-                        throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
-                    }
-                    return input; 
-                }
-            },
-
-            warning: (message) => {
-                if (console.hasOwnProperty("warn")) {
-                    console.warn(message);
-                } else {
-                    console.log(`___\n${message}\n`);
-                }
+        this.utils.announce = () => {
+            const date = new Date();
+            if (date.getMonth() === 3 && date.getDate() === 1) {
+                console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
+            } else {
+                const ts = date.getTime();
+                date.setMonth(3, 1);
+                date.setHours(0, 0, 0);
+                if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
+                const dist = date - ts;
+                const d = Math.floor(dist / 86400000);
+                const H = Math.floor((dist % 86400000) / 3600000);
+                const M = Math.floor((dist % 3600000) / 60000);
+                const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
+                this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                this.utils.warning(msg);
             }
+        }
+
+        this.utils.divmod = (x, y) => [Math.floor(x / y), x % y];
+
+        this.utils.pow256  = [16777216, 65536, 256, 1];
+
+        this.utils.pow85 = [52200625, 614125, 7225, 85, 1];
+    }
+}
+
+
+class BaseExUtils {
+    constructor(main) {
+        this.main = main;
+    }
+
+    listArgs(args) {
+        return args.map(s => `'${s}'`).join(", ")
+    }
+
+    setIOType(args, IO) {
+        /* 
+            Set type for input or output (bytes or string).
+        */
+        let type;
+        if (args.includes("bytes")) {
+            type = "bytes";
+        } else if (args.includes("str")) { 
+            type = "str";
+        } else {
+            type = (IO === "in") ? this.main.defaultInput : this.main.defaultOutput;
+        }
+
+        return type;
+    }
+
+    setVersion(args) {
+        /*
+            Test which version (charset) shoult be used.
+            Sets either the default or overwrites it if
+            requested.
+        */
+        let version = this.main.version;
+        args.forEach(arg => {
+            if (this.main.versions.includes(arg)) {
+                version = arg; 
+            }
+        })
+        return version;
+    }
+        
+    validateArgs(args) {
+        /* 
+            Test if provided arguments are in the argument list.
+            Everything gets converted to lowercase and returned
+        */
+        const validArgs = ("versions" in this.main) ? [...this.main.IOtypes, ...this.main.versions] : this.main.IOtypes;
+        const loweredArgs = new Array();
+        if (Boolean(args.length)) {
+            args.forEach(arg => {
+                arg = String(arg).toLowerCase();
+                if (!validArgs.includes(arg)) {
+                    const versionHint = ("versions" in this.main) ? `The options for version (charset) are:\n${this.listArgs(this.main.versions)}\n\n` : "";
+                    throw new TypeError(`'${arg}'\n\nValid arguments for in- and output-type are:\n${this.listArgs(this.main.IOtypes)}\n\n${versionHint}Traceback:`);
+                }
+                loweredArgs.push(arg);
+            });
+        }
+        return loweredArgs;
+    }
+
+    validateInput(input, inputType) {
+        /* 
+            Test if input type fits to the actual input.
+        */
+        if (inputType === "str") {
+            if (typeof input !== "string") {
+                this.warning("Your input was converted into a string.");
+            }
+            return String(input);
+        } else {
+            if (typeof input === "string") {
+                throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
+            } else if (typeof input !== 'object') {
+                throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
+            }
+            return input; 
+        }
+    }
+
+    warning(message) {
+        if (console.hasOwnProperty("warn")) {
+            console.warn(message);
+        } else {
+            console.log(`___\n${message}\n`);
         }
     }
 }
@@ -844,3 +658,6 @@ class BaseEx {
 }
 
 //export {Base16, Base32, Base64, Base85, BaseEx}
+
+
+// bech32: "qpzry9x8gf2tvdw0s3jn54khce6mua7l",
