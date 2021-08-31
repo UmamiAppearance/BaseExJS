@@ -98,7 +98,7 @@ class Base32 {
         (Requires "BaseExUtils")
     */
     
-    constructor(version="rfc4648", input="str", output="str") {
+    constructor(version="rfc4648", input="str", output="str", padding=true) {
         /*
             The RFC standard defined here is used by de- and encoder.
             This can still be overwritten during the call of the
@@ -110,6 +110,7 @@ class Base32 {
             rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
         }
 
+        this.padding = Boolean(padding);
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
         
@@ -163,7 +164,7 @@ class Base32 {
         // should not return a remainder if divided by eight.
         // If they do, missing characters are padded with a "=".
 
-        const missingChars = output.length % 8;
+        const missingChars = output.length % 8 * this.padding;
         if (Boolean(missingChars)) {
             output = output.padEnd(output.length + 8-missingChars, "=");
         }
@@ -230,7 +231,7 @@ class Base64 {
         (Requires "BaseExUtils")
     */
 
-    constructor(version="default", input="str", output="str") {
+    constructor(version="default", input="str", output="str", padding=true) {
         /*
             The charset defined here is used by de- and encoder.
             This can still be overwritten during the call of the
@@ -243,6 +244,7 @@ class Base64 {
             urlsafe: b62Chars.concat("-_")
         }
 
+        this.padding = Boolean(padding);
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
         
@@ -295,7 +297,7 @@ class Base64 {
         // should not return a remainder if divided by four.
         // If they do, missing characters are padded with a "=".
 
-        const missingChars = output.length % 4;
+        const missingChars = output.length % 4 * this.padding;
         if (Boolean(missingChars)) {
             output = output.padEnd(output.length + 4-missingChars, "=");
         }
@@ -592,9 +594,9 @@ class BaseExUtils {
         return args.map(s => `'${s}'`).join(", ")
     }
 
-    setDefaultVersion(version) { //FIXME !
-        if (this.version in this.main && version in this.main.charsets) {
-            this.main.version = version.toLowerCase();
+    setDefaultVersion(version) {
+        if ("version" in this.main) {
+            [this.main.version] = this.validateArgs([version]);
         } else {
             this.warning("This class has no charset-object. Default cannot be set.");
         }
