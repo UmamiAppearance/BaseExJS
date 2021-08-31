@@ -402,13 +402,27 @@ class Base85 {
     }
     
     encode(input, ...args) {
+        /* 
+            Encode from string or bytes to base85.
+            -------------------------------------
 
+            @input: string or (typed) array of bytes
+            @args:
+                "str"       :  tells the encoder, that input is a string (default)
+                "bytes"     :  tells the encoder, that input is an array
+                "adobe"     :  sets charset to ascii85 + <~padding~> 
+                "ascii85"   :  sets charset to this commonly used one
+                "rfc1924"   :  uses the charset (and only the charset) of this april fool
+                "z85"       :  sets the used charset to this variant
+        */
+       
         // Argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
         const version = this.utils.getVersion(args);
         input = this.utils.validateInput(input, inputType);
 
+        // Convert to bytes if input is a string
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
 
         let output = "";
