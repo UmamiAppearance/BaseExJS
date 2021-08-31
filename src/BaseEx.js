@@ -110,7 +110,6 @@ class Base32 {
             rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
         }
 
-        this.versions = Object.keys(this.charsets);
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
         
@@ -133,7 +132,7 @@ class Base32 {
         // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.setVersion(args);
+        const version = this.utils.getVersion(args);
         input = this.utils.validateInput(input, inputType);
 
         // Convert to bytes if input is a string
@@ -187,7 +186,7 @@ class Base32 {
 
         // Argument validation and output settings
         args = this.utils.validateArgs(args);
-        const version = this.utils.setVersion(args);
+        const version = this.utils.getVersion(args);
         const outputType = this.utils.setIOType(args, "out");
 
         // Split the input into individual characters
@@ -244,7 +243,6 @@ class Base64 {
             urlsafe: b62Chars.concat("-_")
         }
 
-        this.versions = Object.keys(this.charsets);
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
         
@@ -267,7 +265,7 @@ class Base64 {
         // Argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.setVersion(args);
+        const version = this.utils.getVersion(args);
         input = this.utils.validateInput(input, inputType);
 
         // Convert to bytes if input is a string
@@ -320,7 +318,7 @@ class Base64 {
 
         // Argument validation and output settings
         args = this.utils.validateArgs(args);
-        const version = this.utils.setVersion(args);
+        const version = this.utils.getVersion(args);
         const outputType = this.utils.setIOType(args, "out");
  
         // Split the input into individual characters
@@ -394,7 +392,6 @@ class Base85 {
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
         }
         
-        this.versions = Object.keys(this.charsets);
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
         this.expandUtils();
@@ -407,7 +404,7 @@ class Base85 {
         // Argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.setVersion(args);
+        const version = this.utils.getVersion(args);
         input = this.utils.validateInput(input, inputType);
 
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
@@ -466,7 +463,7 @@ class Base85 {
 
         // Argument validation and output settings
         args = this.utils.validateArgs(args);
-        const version = this.utils.setVersion(args);
+        const version = this.utils.getVersion(args);
         const outputType = this.utils.setIOType(args, "out");
         input = input.replace(/\s/g,'');        //remove all whitespace from input
         
@@ -558,10 +555,49 @@ class Base85 {
 class BaseExUtils {
     constructor(main) {
         this.main = main;
+
+        if ("charsets" in main) {
+
+            this.addCharset = (name, charset) => {
+                
+                if (typeof name !== "string") {
+                    throw new TypeError("The charset name must be a string.");
+                }
+    
+                const setLen = parseInt(this.main.constructor.name.replace(/[^0-9]/g, ""), 10);
+                let inputLen = setLen;
+                
+                if (typeof charset === "string" || Array.isArray(charset)) {
+                    inputLen = charset.length;
+                    charset = new Set(charset);
+                } else if (typeof charset !== "set") {
+                    throw new TypeError("The charset must be one of the types:\n'str', 'set', 'array'.");
+                }
+                
+                if (charset.size === setLen) {
+                    charset = [...charset].join("");
+                    this.main.charsets[name] = charset;
+                    console.log("New charset added.");
+                } else if (inputLen === setLen) {
+                    throw new Error("There were repetitive letters found in your charset. Make sure each char is unique.");
+                } else {
+                    throw new Error(`The the length of the charset must be ${setLen}.`);
+                }
+            }
+
+        }
     }
 
-    listArgs(args) {
+    makeListing(args) {
         return args.map(s => `'${s}'`).join(", ")
+    }
+
+    setDefaultVersion(version) { //FIXME !
+        if (this.version in this.main && version in this.main.charsets) {
+            this.main.version = version.toLowerCase();
+        } else {
+            this.warning("This class has no charset-object. Default cannot be set.");
+        }
     }
 
     setIOType(args, IO) {
@@ -580,34 +616,43 @@ class BaseExUtils {
         return type;
     }
 
-    setVersion(args) {
-        /*
+    getVersion(args) {
+        /*listArgs
             Test which version (charset) shoult be used.
             Sets either the default or overwrites it if
             requested.
         */
         let version = this.main.version;
         args.forEach(arg => {
-            if (this.main.versions.includes(arg)) {
+            if (arg in this.main.charsets) {
                 version = arg; 
             }
         })
         return version;
     }
-        
+
     validateArgs(args) {
         /* 
             Test if provided arguments are in the argument list.
             Everything gets converted to lowercase and returned
         */
-        const validArgs = ("versions" in this.main) ? [...this.main.IOtypes, ...this.main.versions] : this.main.IOtypes;
+        let versions = null;
+        let validArgs;
         const loweredArgs = new Array();
+
+        if ("charsets" in this.main) {
+            versions = Object.keys(this.main.charsets);
+            validArgs = [...this.main.IOtypes, ...versions];
+        } else {
+            validArgs = this.main.IOtypes;
+        }
+
         if (Boolean(args.length)) {
             args.forEach(arg => {
                 arg = String(arg).toLowerCase();
                 if (!validArgs.includes(arg)) {
-                    const versionHint = ("versions" in this.main) ? `The options for version (charset) are:\n${this.listArgs(this.main.versions)}\n\n` : "";
-                    throw new TypeError(`'${arg}'\n\nValid arguments for in- and output-type are:\n${this.listArgs(this.main.IOtypes)}\n\n${versionHint}Traceback:`);
+                    const versionHint = (versions) ? `The options for version (charset) are:\n${this.makeListing(versions)}\n\n` : "";
+                    throw new TypeError(`'${arg}'\n\nValid arguments for in- and output-type are:\n${this.makeListing(this.main.IOtypes)}\n\n${versionHint}Traceback:`);
                 }
                 loweredArgs.push(arg);
             });
