@@ -3,8 +3,9 @@
  *
  * @version 0.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
+ * @license GPL3
  */
+
 
 class Base16 {
     /*
@@ -121,6 +122,9 @@ class Base32 {
         this.utils = new BaseExUtils(this);
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
+
+        this.converter = new Base(32, 5, 8);
+        this.converter.padValues = [0, 1, 3, 4, 6];
     }
     
     encode(input, ...args) {
@@ -144,11 +148,6 @@ class Base32 {
 
         // Convert to bytes if input is a string
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-
-        // Convert to binary string
-        let binaryStr = Array.from(inputBytes).map(
-            b => b.toString(2).padStart(8, "0")
-        ).join("");
         
         // Devide the binary string into groups of 40 bits. Each 
         // group of 40 bits is seperated into blocks of 5 bits.
@@ -156,22 +155,25 @@ class Base32 {
         // an index. The corresponding char is picked from the
         // charset and appended to the output string.
 
-        let output = "";
-        binaryStr.match(/.{1,40}/g).forEach(group => {
-            group.match(/.{1,5}/g).forEach(block => {
-                    block = block.padEnd(5, '0');
-                    const charIndex = parseInt(block, 2);
-                    output = output.concat(this.charsets[version][charIndex]);
-                }
-            );
-        });
+        let output, zeroPadding;
+        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version]);
+        
+        if (zeroPadding) {
+            const padValue = this.converter.padValues[zeroPadding];
+            output = output.substr(0, output.length-padValue);
+            if (this.padding) { 
+                output = output.concat("=".repeat(padValue));
+            }
+        }
 
         // The length of a base32 string (if padding is used)
         // should not return a remainder if divided by eight.
         // If they do, missing characters are padded with "=".
-
+        
         const missingChars = output.length % 8 * this.padding;
         if (Boolean(missingChars)) {
+            console.log(missingChars);
+            console.log(8-missingChars);
             output = output.padEnd(output.length + 8-missingChars, "=");
         }
 
@@ -196,29 +198,11 @@ class Base32 {
         const version = this.utils.getVersion(args);
         const outputType = this.utils.setIOType(args, "out");
 
-        // Split the input into individual characters
-        // Take the position (index) of the char in the
-        // set and convert it into binary. The bits are
-        // all concatinated to one string of binaries.
-
-        let binaryStr = "";
-
-        input.split('').map((c) => {
-            const index = this.charsets[version].indexOf(c);
-            if (index > -1) {
-                binaryStr = binaryStr.concat(index.toString(2).padStart(5, "0"));
-            }
-        });
+        let uInt8;
+        let uPadding;
+        [uInt8, uPadding] = this.converter.decode(input, this.charsets[version]);
+        console.log(uPadding);
         
-        // (re)group the binary string into regular 
-        // bytes. Those get plugged into an Uint8array.
-
-        const uInt8 = Uint8Array.from(
-            binaryStr.match(/.{8}/g).map(bin => 
-                parseInt(bin, 2)
-            )
-        );
-
         // Convert to utf8-string if requested
         if (outputType === "bytes") {
             return uInt8;
@@ -382,8 +366,8 @@ class Base85 {
         The RFC 1924 version is a hybrid. It is not
         using the mandatory 128 bit calculation.
         Instead only the charset is used. Do not use this
-        for any real project. (Keep in mind, that is
-        based on a joke).
+        for any real project. (Keep in mind, that even the
+        original is based on a joke).
 
         (Requires "BaseExUtils")
         
@@ -408,7 +392,7 @@ class Base85 {
         this.utils = new BaseExUtils(this);
 
         // This base85 en-/decoder uses some more
-        // helper functions/vars. Those get append
+        // helper functions/vars. Those get appended
         // to the default toolset.
 
         this.expandUtils();
@@ -447,7 +431,7 @@ class Base85 {
 
         // iterate over input array in steps of 4 bytes
         for (let i=0, l=inputBytes.length; i<l; i+=4) {
-
+            byteArray
             // build a subarray of 4 bytes
             let subArray = inputBytes.slice(i, i+4);
 
@@ -479,7 +463,11 @@ class Base85 {
             // Initialize quotient and remainder for base convertion
             let q = n, r;
 
-            // Divide n until the remainder is 85 or less
+            // Divide n until the remainder less than 85
+            // If it is equal the remainder is 0. Technically
+            // 0 also has to be appendend, but missing
+            // zeros get filled up anyway.
+
             while (q > 85) {
                 [q, r] = this.utils.divmod(q, 85);
                 b85Array.unshift(r);
@@ -607,7 +595,7 @@ class Base85 {
             // Initialize quotient and remainder for base convertion
             let q = n, r;
 
-            // Divide n until the remainder is 256 or less
+            // Divide n until the remainder is less than 256.
             while (q > 256) {
                 [q, r] = this.utils.divmod(q, 256);
                 subArray256.unshift(r);
@@ -674,6 +662,204 @@ class Base85 {
 }
 
 
+class Base {
+    constructor(radix, bsEnc, bsDec) {
+        this.radix = radix;
+        this.bsEnc = bsEnc;
+        this.bsDec = bsDec
+    }
+
+    encode(inputBytes, charset) {
+        // Initialize output string and set yet unknown
+        // zero padding to zero.
+        let output = "";
+        let zeroPadding = 0;
+        const bs = this.bsEnc; 
+
+        // iterate over input array in steps of bs bytes
+        for (let i=0, l=inputBytes.length; i<l; i+=bs) {
+            // build a subarray of bs bytes
+            let subArray = inputBytes.slice(i, i+bs);
+
+            // At the very last block of bs bytes, there 
+            // is a change that the subarray has a length
+            // less than bs. If this is the case, padding is
+            // required. All missing bytes are filled with
+            // zeros. The amout of zeros is stored in
+            // "zeroPadding".
+            
+            //console.log(subArray);
+            if (subArray.length < bs) {
+                zeroPadding = bs - subArray.length;
+                const paddedArray = new Uint8Array(bs);
+                paddedArray.set(subArray);
+                subArray = paddedArray;
+            }
+            //console.log(subArray, "padding: ", zeroPadding);
+            
+            // The subarray gets converted into a 32-bit 
+            // binary number "n", most significant byte 
+            // first
+
+            let n = 0;
+            subArray.forEach((b, j) => n += b * this.pow(256, (bs-1-j)));
+
+            // A new standard array gets initilized, to
+            // store 5 radix-85 digits  
+            const bXarray = new Array();
+
+            // Initialize quotient and remainder for base convertion
+            let q = n, r;
+
+            // Divide n until the remainder less than 85
+            // If it is equal the remainder is 0. Technically
+            // 0 also has to be appendend, but missing
+            // zeros get filled up anyway.
+
+            while (this.radix < q) {
+                [q, r] = this.divmod(q, this.radix);
+                bXarray.unshift(r);
+            }
+            // Append the remaining quotient to the array
+            bXarray.unshift(q);
+
+            //console.log(bXarray);
+            //console.log("bxLen", bXarray.length);
+            // If the lenght of the array is less than 5
+            // it gets filled up with zeros.
+            /*
+            while (bXarray.length < 7) {
+                bXarray.unshift(0);
+            }
+            */
+            // Each base85 digit gets used as an index
+            // to pick a corresponding char from the
+            // charset. The chars get concatinated and
+            // stored in "frame".
+            let frame = "";
+            bXarray.forEach(
+                charIndex => frame = frame.concat(charset[charIndex])
+            );
+
+            output = output.concat(frame);
+        }
+        //output = output.slice(0, output.length-zeroPadding);
+
+        return [output, zeroPadding];
+    }
+
+    decode(inputBaseStr, charset) {
+        
+        // Convert each char of the input to the radix-integer
+        // (this becomes the corresponding index of the char
+        // from the charset).
+
+        const bs = this.bsDec;
+        let padChars = 0;
+
+        const inputBytes = Uint8Array.from(
+            inputBaseStr.split('').map(c => {
+                const index = charset.indexOf(c);
+                if (index < 0) { 
+                    padChars++;
+                    return 0;
+                } else {
+                    return index;
+                }
+            })
+        );
+
+        let padding = this.padValues.indexOf(padChars);
+        console.log("Padding", padding, "padChars", padChars);
+
+        // Initialize a new default array to store
+        // the converted radix-256 integers. And set 
+
+        let b256Array = new Array();
+
+        // Iterate over the input bytes in steps of bs.
+        for (let i=0, l=inputBaseStr.length; i<l; i+=bs) {
+            
+            // build a subarray of bs bytes
+            let subArray = inputBytes.slice(i, i+bs);
+
+            // If the last subarray has a length less than
+            // five, it gets padded with the highest possible
+            // value, which is radix-1. The amout of padding is
+            // stored in "uPadding".
+            // ("u" is the corresponding char to 84 in the ascii85
+            // charset).
+            
+            if (subArray.length < bs) {
+                padding = bs - subArray.length;
+                const paddedArray = Uint8Array.from(Array(bs).fill(this.radix-1));
+                paddedArray.set(subArray);
+                subArray = paddedArray;
+            }
+            
+            // To store the output chunks, initialize a
+            // new default array.
+
+            const subArray256 = new Array();
+
+            // The subarray gets converted into a 32-bit 
+            // binary number "n", most significant byte 
+            // first
+            let n = 0;
+            subArray.forEach(
+                (b, j) => n += b * this.pow(this.radix, bs-1-j)
+            );
+            
+            // Initialize quotient and remainder for base convertion
+            let q = n, r;
+
+            // Divide n until the remainder is less than 256.
+            while (q > 256) {
+                [q, r] = this.divmod(q, 256);
+                subArray256.unshift(r);
+            }
+            // Append the reamining quotient to the array
+            subArray256.unshift(q);
+            
+            // If the lenght of the array is less than 4
+            // it gets filled up with zeros.
+
+            // Needed?
+            while (subArray256.length < this.bsEnc) {
+                subArray256.unshift(0);
+            }
+            
+            // The subarray gets concatianted with the
+            // main array.
+            b256Array = b256Array.concat(subArray256);
+        }
+
+        // Convert default array to tyed uInt8 array.
+        // The amount bytes according to the padded is
+        // is left behind.
+
+        const uInt8 = Uint8Array.from(b256Array.slice(0, b256Array.length-padding));
+        
+        return [uInt8, padding];
+    }
+
+
+    divmod(x, y) {
+        return [Math.floor(x / y), x % y];
+    }
+
+    pow(radix, n) {
+        const powList = {
+             32: [32**0, 32**1, 32**2, 32**3, 32**4, 32**5, 32**6, 32**7],
+             64: [64**0, 64**1, 64**2, 64**3],
+             85: [85**0, 85**1, 85**2, 85**3, 85**4 ],
+            256: [256**0, 256**1, 256**2, 256**3, 256**4]
+        } 
+        return powList[radix][n];
+    }
+}
+
+
 class BaseExUtils {
     /*
         Utilities for every BaseEx class.
@@ -693,7 +879,8 @@ class BaseExUtils {
 
     charsetUserToolsConstructor() {
         /*
-            Contructor for the ability to add a charset and 
+            Contructor for the ab            let n = subArray[0];                                        // set n to the first byte
+            subArray.subarray(1).forEach((b) => n = (n << 8) + b);     // start shifting (e.g. times the base 256) and adding of all other bytesility to add a charset and 
             change the default version.
         */
 
