@@ -10,19 +10,27 @@
 class Base16 {
     /*
         En-/decoding to and from base16 (hexadecimal).
-        (Requires "BaseExUtils")
+        (Requires "BaseExConv", "BaseExUtils")
     */
 
-    constructor(input="str", output="str") {
+    constructor(version="default", input="str", output="str") {
+        this.charsets = {
+            default: "0123456789abcdef" 
+        }
+
+        this.padding = false;
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
+        
+        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        [this.defaultInput, this.defaultOutput] = this.utils.validateArgs([input, output]);
+        this.converter = new BaseExConv(16, 1, 2);
+        this.converter.padAmount = [0]
     }
 
     encode(input, ...args) {
         /* 
-            Hex encoder from string or bytes.
+            Hex string encoder from string or bytes.
             --------------------------------
 
             @input: string or (typed) array of bytes
@@ -34,15 +42,15 @@ class Base16 {
         // argument validation and input settings
         args = this.utils.validateArgs(args);
         const inputType = this.utils.setIOType(args, "in");
+        const version = this.utils.getVersion(args);
         input = this.utils.validateInput(input, inputType);
 
         // convert to an array of bytes if necessary
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         
-        // convert all bytes to hex and join to a string
-        const output = Array.from(inputBytes).map(
-            b => b.toString(16).padStart(2, "0")
-        ).join("");
+        // Convert to Base16 string
+        let output;
+        output = this.converter.encode(inputBytes, this.charsets[version])[0];
 
         return output;
     }
@@ -56,42 +64,29 @@ class Base16 {
             @args:
                 "str"       :  tells the encoder, that output should be a utf8-string (default)
                 "bytes"     :  tells the encoder, that output should be an array of bytes
-            ___________
-            inspired by:
-            https://gist.github.com/don/871170d88cf6b9007f7663fdbc23fe09
         */
         
         // Argument validation and output settings
         args = this.utils.validateArgs(args);
+        const version = this.utils.getVersion(args);
         const outputType = this.utils.setIOType(args, "out");
         
         // Remove the leading 0x if present
         input = String(input).replace(/^0x/, '');
         
-        // Test if valid hex
-        if (Boolean(input.match(/[^0-9A-Fa-f]/g))) {
-            throw new TypeError("The provided input is not a valid hexadecimal string.");
-        }
-
         // Ensure even number of characters
         if (Boolean(input.length % 2)) {
             input = "0".concat(input);
         }
         
-        // Split the string into pairs of octets,
-        // convert to integers (bytes) and create
-        // an Uint8array from the output.
-
-        const uInt8 = Uint8Array.from(
-            input.match(/../g).map(
-                octets => parseInt(octets, 16)
-            )
-        );
-
+        // Run the decoder
+        const output = this.converter.decode(input, this.charsets[version]);
+        
+        // Return the output, convert to utf8-string if requested
         if (outputType === "bytes") {
-            return uInt8;
+            return output;
         } else {
-            return new TextDecoder().decode(uInt8);
+            return new TextDecoder().decode(output);
         }
     }
 }
@@ -104,6 +99,7 @@ class Base32 {
 
         Uses RFC standard 4658 by default (as used e.g
         for (t)otp keys), RFC 3548 is also supported.
+        
         (Requires "BaseExConv", "BaseExUtils")
     */
     
@@ -698,6 +694,7 @@ class BaseExConv {
     pow(radix, n) {
         // Precaluclated powers for each radix
         const powList = {
+             16: [16**0, 16**1, 16**2],
              32: [32**0, 32**1, 32**2, 32**3, 32**4, 32**5, 32**6, 32**7],
              64: [64**0, 64**1, 64**2, 64**3],
              85: [85**0, 85**1, 85**2, 85**3, 85**4 ],
