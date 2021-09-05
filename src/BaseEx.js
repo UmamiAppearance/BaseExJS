@@ -686,13 +686,12 @@ class BaseExConv {
         return output;
     }
 
-
     divmod(x, y) {
         return [Math.floor(x / y), x % y];
     }
 
     pow(radix, n) {
-        // Precaluclated powers for each radix
+        // Precalculated powers for each radix
         const powList = {
              16: [16**0, 16**1],
              32: [32**0, 32**1, 32**2, 32**3, 32**4, 32**5, 32**6, 32**7],
@@ -894,4 +893,6 @@ class BaseEx {
     }
 }
 
-//export {Base16, Base32, Base64, Base85, BaseEx}
+export {Base16, Base32, Base64, Base85, BaseEx};
+
+// base92 chars - "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
