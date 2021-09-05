@@ -19,8 +19,7 @@ const randArray = (nullBytes) => {
     return array
 }
 
-const randChar = () => String.fromCharCode(randInt(32, 127));
-
+// Random string of printable ascii-chars including space
 const randStr = (len) => {
     const array = new Uint8Array(len);
     array.forEach((b, i) => array[i] = randInt(32, 127));
