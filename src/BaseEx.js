@@ -468,6 +468,210 @@ class Base85 {
 }
 
 
+class Base91 {
+    /*
+        En-/decoding to and from Base91.
+        -------------------------------
+        
+        This is an implementation of Joachim Henkes method to
+        encode binary data as ASCII characters -> basE91
+        http://base91.sourceforge.net/
+
+        As this method requires to split the bytes, the default
+        conversion class "BaseExConv" is not used in this case.
+        (Requires "BaseExUtils")
+    */
+    constructor(version="default", input="str", output="str") {
+        /*
+            The default charset gets initilized, as well as
+            some utilities.
+        */
+        this.charsets = {
+            default: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
+        }
+        
+        this.IOtypes = ["str", "bytes"];
+
+        this.utils = new BaseExUtils(this);
+        this.utils.binPow = {
+            13: 2**13,
+            14: 2**14
+        }
+        this.utils.divmod = (x, y) => [Math.floor(x / y), x % y];
+        
+        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
+    }
+
+    encode(input, ...args) {
+        /* 
+            Encode from string or bytes to base92.
+            -------------------------------------
+
+            @input: string or (typed) array of bytes
+            @args:
+                "str"       :  tells the encoder, that input is a string (default)
+                "bytes"     :  tells the encoder, that input is an array
+                "default"   :  default charset 
+        */
+       
+        // Argument validation and input settings
+        args = this.utils.validateArgs(args);
+        const inputType = this.utils.setIOType(args, "in");
+        const version = this.utils.getVersion(args);
+        input = this.utils.validateInput(input, inputType);
+
+        // Convert to bytes if input is a string
+        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+
+        // As this base representation splits the bytes
+        // the read bits need to be stores somewhere. 
+        // This is done in "bitCount". "n", similar to 
+        // other solutions here, holds the integer which
+        // is converted to the desired base.
+
+        let bitCount = 0;
+        let n = 0;
+        let output = "";
+
+        // Shortcut
+        const chars = this.charsets[version];
+
+        inputBytes.forEach(byte => {
+            //n = n + byte * 2^bitcount;
+            n += (byte << bitCount);
+
+            // Add 8 bits forEach byte
+            bitCount += 8;
+            
+            // If the count exceeds 13 bits, base convert the
+            // current frame.
+
+            if (bitCount > 13) {
+
+                // Set bit amount "count" to 13, check the
+                // remainder of n % 2^13. If it is 88 or 
+                // lower. Take one more bit from the stream
+                // and calculate the remainder for n % 2^14.
+
+                let count = 13;
+                let rN = n % this.utils.binPow[13];
+
+                if (rN < 89) {
+                    count = 14;
+                    rN = n % this.utils.binPow[14];
+                }
+
+                // Remove 13 or 14 bits from the integer,
+                // decrease the bitCount by the the same 
+                // amount.
+                n >>= count;
+                bitCount -= count;
+                
+                // Calculate quotient and remainder from
+                // the before calculated remainder of n 
+                // -> "rN"
+                let q, r;
+                [q, r] = this.utils.divmod(rN, 91);
+
+                // Lookup the corresponding characters for
+                // "r" and "q" in the set, append it to the 
+                // output string.
+                output = `${output}${chars[r]}${chars[q]}`;
+            }
+        });
+        
+        // If the bitCount is not zero at the end,
+        // calculate quotient and remainer of 91
+        // once more.
+        if (Boolean(bitCount)) {
+            let q, r;
+            [q, r] = this.utils.divmod(n, 91);
+
+            // The remainder is concatinated in any case
+            output = output.concat(chars[r]);
+
+            // The quotient is also appendend, but only
+            // if the bitCount still has the size of a byte
+            // or n can still represent 91 conditions.
+            if (bitCount > 7 || n > 90) {
+                output = output.concat(chars[q]);
+            }
+        }
+        
+        return output;
+    }
+
+    decode(input, ...args) {
+        /* 
+            Decode from base91 string to utf8-string or bytes.
+            -------------------------------------------------
+
+            @input: base91-string
+            @args:
+                "str"       :  tells the encoder, that output should be a string (default)
+                "bytes"     :  tells the encoder, that output should be an array
+                "default"   :  sets the used charset to this variant
+        */
+
+        // Argument validation and output settings
+        args = this.utils.validateArgs(args);
+        const version = this.utils.getVersion(args);
+        const outputType = this.utils.setIOType(args, "out");
+        input = input.replace(/\s/g,'');        //remove all whitespace from input
+        
+        const l = input.length;
+
+        // Zeropad uneven strings (this way it is easier
+        // to loop through the string in steps of two.).
+        let zeroPadding = false;
+        if (Boolean(l % 2)) {
+            input = input.concat("A");
+            zeroPadding = true;
+        }
+
+        // Set again integer n for base conversion.
+        // Also initilaize a bitCount(er)
+
+        let n = 0;
+        let bitCount = 0;
+        const chars = this.charsets[version];
+        
+        // Initialize an ordinary array
+        const b256Array = new Array();
+        
+        // Walk through the string in steps of two
+        // (aka collect remainder- and quotient-pairs)
+        for (let i=0; i<l; i+=2) {
+
+            // Calculate back the ramainder of the integer "n"
+            const rN = chars.indexOf(input[i]) + chars.indexOf(input[i+1]) * 91;
+            n = (rN << bitCount) + n;
+            bitCount += (rN % this.utils.binPow[13] > 88) ? 13 : 14;
+
+            // calculate back the individual bytes (base256)
+            do {
+                b256Array.push(n % 256);
+                n >>= 8;
+                bitCount -= 8;
+            } while (bitCount > 7);
+        };
+
+        // Pop the the null-byte if padded
+        if (zeroPadding) b256Array.pop();
+
+        const output = Uint8Array.from(b256Array);
+
+        // Return the output, convert to utf8-string if requested
+        if (outputType === "bytes") {
+            return output;
+        } else {
+            return new TextDecoder().decode(output);
+        }
+
+    }
+}
+
+
 class BaseExConv {
     /*
         Core class for base-convertion and substitution
@@ -496,7 +700,7 @@ class BaseExConv {
         
         // The blocksize defines the size of the corresponding
         // interger, calculated for base conversion. Values 
-        // above 6 lead to number that are higher than the 
+        // above 6 lead to numbers that are higher than the 
         // "MAX_SAFE_INTEGER" (2^bs*8).
 
         if (bs > 6) {
@@ -893,6 +1097,4 @@ class BaseEx {
     }
 }
 
-export {Base16, Base32, Base64, Base85, BaseEx};
-
-// base92 chars - "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
+//export {Base16, Base32, Base64, Base85, BaseEx};
