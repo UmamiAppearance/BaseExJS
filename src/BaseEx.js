@@ -1094,7 +1094,8 @@ class BaseEx {
         this.base85adobe = new Base85("adobe");
         this.base85ascii = new Base85("ascii85");
         this.base85_z85 = new Base85("z85");
+        this.base91 = new Base91();
     }
 }
 
-//export {Base16, Base32, Base64, Base85, BaseEx};
+export {Base16, Base32, Base64, Base85, Base91, BaseEx};
