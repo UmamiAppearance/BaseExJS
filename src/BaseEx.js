@@ -738,7 +738,6 @@ class BaseExConv {
             // Convert the subarray into a bs*8-bit binary 
             // number "n", most significant byte first (big endian).
 
-
             let n = 0;
             subArray.forEach((b, j) => n += b * this.pow(256, (bs-1-j)));
 
@@ -862,12 +861,12 @@ class BaseExConv {
             subArray.forEach(
                 (b, j) => n += b * this.pow(this.radix, bs-1-j)
             );
-            
+
             // Initialize quotient and remainder for base convertion
             let q = n, r;
 
             // Divide n until the quotient is less than 256.
-            while (q > 256) {
+            while (q >= 256) {
                 [q, r] = this.divmod(q, 256);
                 subArray256.unshift(r);
             }
@@ -1106,14 +1105,3 @@ class BaseEx {
 }
 
 export {Base16, Base32, Base64, Base85, Base91, BaseEx};
-/*
-
-Found error while testing class Base85
-
-input: 222,24,213,21,23,249,203,173,216,142,34,168,208,164,140,101,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,135,245,53,232,33,174,113,251,44,241,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-output: 222,24,213,21,23,249,203,173,216,142,34,168,208,164,140,101,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,135,245,53,232,33,174,113,251,44,241,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-
-expected: same as input
-
-*/

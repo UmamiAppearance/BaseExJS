@@ -1,6 +1,6 @@
 import {Base16, Base32, Base64, Base85, Base91, BaseEx} from "../src/BaseEx.js"
 
-// Testdata
+// +++++++++++++ Testdata +++++++++++++ //
 
 // Random integer
 const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
@@ -24,16 +24,6 @@ const randStr = (len) => {
     const array = new Uint8Array(len);
     array.forEach((b, i) => array[i] = randInt(32, 127));
     return new TextDecoder("ascii").decode(array);
-}
-
-// Prepare random string and bytes
-const testBytesNullStart = new Uint8Array([...randArray(true), ...randArray(false), ...randArray(true), ...randArray(false)]);
-const testBytesNullEnd = new Uint8Array([...randArray(false), ...randArray(true), ...randArray(false), ...randArray(true)]);
-const str16 = randStr(32);
-const str32 = randStr(32);
-const IOtests = {
-    str: [str16, str32],
-    bytes: [testBytesNullStart, testBytesNullEnd]
 }
 
 // Generated predecoded strings for each base
@@ -126,88 +116,104 @@ encodingList.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L");
 encodingList.Base91.set("Hello World!!!",    ">OwJh>Io0Tv!8P7LhA");
 
 
-const testList = {
+// +++++++++++++ Utilities +++++++++++++ //
+
+// Initialize object to store test data
+const tests = {
     totalTests: 0,
     totalErrors: 0
 }
 
+// In the case of a error run this function to store it and alert 
 function makeError(className, unit, input, output, expected) {
-    if (!(unit in testList[className].errorList)) testList[className].errorList[unit] = new Object();
-    testList[className].errorList[unit].input = input;
-    testList[className].errorList[unit].output = output;
-    testList[className].errorList[unit].expected = expected;
+    if (!(unit in tests[className].errorList)) tests[className].errorList[unit] = new Object();
+    tests[className].errorList[unit].input = input;
+    tests[className].errorList[unit].output = output;
+    tests[className].errorList[unit].expected = expected;
     console.error(`Found error while testing class ${className}\n\ninput: ${input}\n\noutput: ${output}\n\nexpected: ${expected}`);
 }
 
+// +++++++++++++ Running the tests +++++++++++++ //
+const IOtestRounds = 100;
 
 for (const base of [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()]) {
     
     const name = base.constructor.name;
-    let unit = "hello";
 
-    testList[name] = new Object();
-    testList[name].errorList = new Object();
-    testList[name].testCount = 0;
-    testList[name].passed = 0;
-    testList[name].failed = 0;
-    testList[name].strTests = new Object();
+    tests[name] = new Object();
+    tests[name].errorList = new Object();
+    tests[name].testCount = 0;
+    tests[name].passed = 0;
+    tests[name].failed = 0;
+    tests[name].strTests = new Object();
     
     let testStr = ""; 
     helloWorldArray.forEach(c => {
-        testList[name].testCount += 2;
-        testList.totalTests += 2;
+        tests[name].testCount += 2;
+        tests.totalTests += 2;
 
         testStr = testStr.concat(c);
         const encoded = base.encode(testStr);
         const expectedResult = encodingList[name].get(testStr);
         
         if (encoded === expectedResult) {
-            testList[name].passed++;
+            tests[name].passed++;
         } else {
-            testList[name].failed++;
-            testList.totalErrors++;
-            makeError(name, unit, testStr, encoded, expectedResult);
+            tests[name].failed++;
+            tests.totalErrors++;
+            makeError(name, "hello", testStr, encoded, expectedResult);
         }
 
         const decoded = base.decode(encoded);
 
         if (decoded === testStr) {
-            testList[name].passed++;
+            tests[name].passed++;
         } else {
-            testList[name].failed++;
-            testList.totalErrors++;
-            makeError(name, unit, testStr, decoded, testStr);
+            tests[name].failed++;
+            tests.totalErrors++;
+            makeError(name, "hello", testStr, decoded, testStr);
         }
+    });
 
+    for (let i=0; i<IOtestRounds; i++) {
+        // Prepare random string and bytes
+        const testBytesNullStart = new Uint8Array([...randArray(true), ...randArray(false), ...randArray(true), ...randArray(false)]);
+        const testBytesNullEnd = new Uint8Array([...randArray(false), ...randArray(true), ...randArray(false), ...randArray(true)]);
+        const str16 = randStr(32);
+        const str32 = randStr(32);
+        const IOtests = {
+            str: [str16, str32],
+            bytes: [testBytesNullStart, testBytesNullEnd]
+        }
+    
         // Test available charsets with string and byte en-/decoding
-        unit = "IO";
         for (const charset in base.charsets) {
             for (const IOtype of base.IOtypes) {
                 for (const input of IOtests[IOtype]) {
-                    testList[name].testCount++;
-                    testList.totalTests++;
+                    tests[name].testCount++;
+                    tests.totalTests++;
 
                     const encoded = base.encode(input, charset, IOtype);
                     const decoded = base.decode(encoded, charset, IOtype);
 
                     const passed = (IOtype === "bytes") ? (input.join("") === decoded.join("")) : (input === decoded);
                     if (passed) {
-                        testList[name].passed++;
+                        tests[name].passed++;
                     } else {
-                        testList[name].failed++;
-                        testList.totalErrors++;
-                        makeError(name, `${unit}-${charset}-${IOtype}`, input, decoded, "same as input");
+                        tests[name].failed++;
+                        tests.totalErrors++;
+                        makeError(name, `IO-${charset}-${IOtype}`, input, decoded, "same as input");
                     }
                 }
             }    
         }
-    });
+    }
 }
 
-if (!Boolean(testList.totalErrors)) {
-    testList.successRate = 100;
+if (!Boolean(tests.totalErrors)) {
+    tests.successRate = 100;
 } else {
-    testList.successRate = ((1 - testList.totalErrors / testList.totalTests) * 100).toFixed(2);
+    tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
 }
 
-console.log(testList);
+console.log(tests);
