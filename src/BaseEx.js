@@ -619,14 +619,15 @@ class Base91 {
         const outputType = this.utils.setIOType(args, "out");
         input = input.replace(/\s/g,'');        //remove all whitespace from input
         
-        const l = input.length;
+        let l = input.length;
 
-        // Zeropad uneven strings (this way it is easier
-        // to loop through the string in steps of two.).
-        let zeroPadding = false;
+        // For starters leave the last char behind
+        // if the lenght of the input string is odd.
+
+        let odd = false;
         if (Boolean(l % 2)) {
-            input = input.concat("A");
-            zeroPadding = true;
+            odd = true;
+            l--;
         }
 
         // Set again integer n for base conversion.
@@ -656,8 +657,13 @@ class Base91 {
             } while (bitCount > 7);
         };
 
-        // Pop the the null-byte if padded
-        if (zeroPadding) b256Array.pop();
+        // Calaculate the last byte if the input is odd
+        // and add it
+        if (odd) {
+            const lastChar = input.charAt(l);
+            const rN = chars.indexOf(lastChar);
+            b256Array.push(((rN << bitCount) + n) % 256);
+        }
 
         const output = Uint8Array.from(b256Array);
 
@@ -1081,7 +1087,7 @@ class BaseExUtils {
 
 class BaseEx {
     /*
-        Collection of commen converters. Ready to use
+        Collection of common converters. Ready to use
         instances.
     */
    

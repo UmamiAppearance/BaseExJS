@@ -31,6 +31,7 @@ const testBytesNullEnd = new Uint8Array([...randArray(false), ...randArray(true)
 
 // Generated predecoded strings for each base
 const encoded = new Object();
+const helloWorldArray = "Hello World!!!".split("");
 
 // Base16
 encoded.Base16 = new Map();
@@ -51,20 +52,20 @@ encoded.Base16.set("Hello World!!!",    "48656c6c6f20576f726c64212121");
 
 // Base32 (rfc3548)
 encoded.Base32 = new Map();
-encoded.Base32.set("H",                 "JA======");
-encoded.Base32.set("He",                "JBSQ====");
-encoded.Base32.set("Hel",               "JBSWY===");
-encoded.Base32.set("Hell",              "JBSWY3A=");
-encoded.Base32.set("Hello",             "JBSWY3DP");
-encoded.Base32.set("Hello ",            "JBSWY3DPEA======");
-encoded.Base32.set("Hello W",           "JBSWY3DPEBLQ====");
-encoded.Base32.set("Hello Wo",          "JBSWY3DPEBLW6===");
-encoded.Base32.set("Hello Wor",         "JBSWY3DPEBLW64Q=");
-encoded.Base32.set("Hello Worl",        "JBSWY3DPEBLW64TM");
-encoded.Base32.set("Hello World",       "JBSWY3DPEBLW64TMMQ======");
-encoded.Base32.set("Hello World!",      "JBSWY3DPEBLW64TMMQQQ====");
-encoded.Base32.set("Hello World!!",     "JBSWY3DPEBLW64TMMQQSC===");
-encoded.Base32.set("Hello World!!!",    "JBSWY3DPEBLW64TMMQQSCII=");
+encoded.Base32.set("H",                 "90======");
+encoded.Base32.set("He",                "91IG====");
+encoded.Base32.set("Hel",               "91IMO===");
+encoded.Base32.set("Hell",              "91IMOR0=");
+encoded.Base32.set("Hello",             "91IMOR3F");
+encoded.Base32.set("Hello ",            "91IMOR3F40======");
+encoded.Base32.set("Hello W",           "91IMOR3F41BG====");
+encoded.Base32.set("Hello Wo",          "91IMOR3F41BMU===");
+encoded.Base32.set("Hello Wor",         "91IMOR3F41BMUSG=");
+encoded.Base32.set("Hello Worl",        "91IMOR3F41BMUSJC");
+encoded.Base32.set("Hello World",       "91IMOR3F41BMUSJCCG======");
+encoded.Base32.set("Hello World!",      "91IMOR3F41BMUSJCCGGG====");
+encoded.Base32.set("Hello World!!",     "91IMOR3F41BMUSJCCGGI2===");
+encoded.Base32.set("Hello World!!!",    "91IMOR3F41BMUSJCCGGI288=");
 
 // Base64
 encoded.Base64 = new Map();
@@ -117,3 +118,48 @@ encoded.Base91.set("Hello World!",      ">OwJh>Io0Tv!8PE");
 encoded.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L");
 encoded.Base91.set("Hello World!!!",    ">OwJh>Io0Tv!8P7LhA");
 
+
+const testList = new Object();
+
+for (const base of [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()]) {
+    
+    const name = base.constructor.name;
+    testList[name] = new Object();
+    testList[name].errorList = new Array();
+    testList[name].testCount = 0;
+    testList[name].passed = 0;
+    testList[name].failed = 0;
+    testList[name].strTests = new Object();
+    
+    let testStr = ""; 
+    helloWorldArray.forEach(c => {
+        testList[name].testCount += 2;
+
+        testStr = testStr.concat(c);
+        console.log(testStr);
+        const encodedStr = base.encode(testStr);
+        const expectedResult = encoded[name].get(testStr);
+        console.log(encodedStr, expectedResult);
+        
+        if (encodedStr === expectedResult) {
+            testList[name].passed++;
+        } else {
+            testList[name].failed++;
+            testList[name].errorList.push(`Encoding '${testStr}'' failed. Expected result: '${expectedResult}', result: '${encodedStr}'`);
+        }
+
+        console.log("Covert back");
+
+        const decodedStr = base.decode(encodedStr);
+
+        console.log(encodedStr, decodedStr);
+        if (decodedStr === testStr) {
+            testList[name].passed++;
+        } else {
+            testList[name].failed++;
+            testList[name].errorList.push(`Decoding '${encodedStr}' failed. Expected result: '${testStr}', result: '${decodedStr}'`);
+        }
+    });
+}
+
+console.log(testList);
