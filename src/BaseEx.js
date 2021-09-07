@@ -386,7 +386,7 @@ class Base85 {
         // Initialize the replacing of null bytes for ascii85
         let replacer = null;
         if (Boolean(version.match(/adobe|ascii85/))) {
-            replacer = frame => (frame === "!!!!!") ? "z" : frame;
+            replacer = (frame, zPad) => (!Boolean(zPad) && frame === "!!!!!") ? "z" : frame;
         }
 
         // Convert to Base85 string        
@@ -776,7 +776,7 @@ class BaseExConv {
 
             // Ascii85 is replacing four consecutive "!" into "z"
             if (Boolean(replacer)) {
-                frame = replacer(frame);
+                frame = replacer(frame, zeroPadding);
             }
 
             output = output.concat(frame);
