@@ -112,7 +112,7 @@ encodingList.Base91.set("Hello Wor",         ">OwJh>Io0T5");
 encodingList.Base91.set("Hello Worl",        ">OwJh>Io0Tv!B");
 encodingList.Base91.set("Hello World",       ">OwJh>Io0Tv!lE");
 encodingList.Base91.set("Hello World!",      ">OwJh>Io0Tv!8PE");
-encodingList.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L");
+encodingList.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L ");
 encodingList.Base91.set("Hello World!!!",    ">OwJh>Io0Tv!8P7LhA");
 
 
@@ -205,41 +205,35 @@ async function test(base, IOtestRounds) {
             }    
         }
     }
+    return true;
 }
 
-async function runTests() {
-    const IOtestRounds = 100;
+async function runTests(e, IOtestRounds=200) {
     const classes = [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()];
     let stage = 1;
         
     async function testGroup() {
-        const base = classes.pop();
+        const base = classes.shift();
         if (base) {
-            await test(base, IOtestRounds);
-            await updateDOM(stage++);
-            window.requestAnimationFrame(testGroup);
+            test(base, IOtestRounds).then(() =>
+                updateDOM(stage++).then(() =>
+                    window.requestAnimationFrame(testGroup)
+                )
+            )
+        } else {
+            finishTests();
         }
     };
 
     testGroup();
 
-    if (!Boolean(tests.totalErrors)) {
-        tests.successRate = 100;
-    } else {
-        tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
-    }
-
-    showResults(tests);
 }
 
-
 async function updateDOM(stage) {
-    console.log("stage-", stage);
     const main = document.querySelector("main");
     main.className = `stage-${stage}`;
     
     const oldStage = main.querySelector(`.stage-${stage-1}`);
-    console.log(oldStage);
     oldStage.classList.remove("pending");
 
     if (stage === 5) {
@@ -247,7 +241,13 @@ async function updateDOM(stage) {
     };
 }
 
-function showResults(tests) {
+function finishTests() {
+    if (!Boolean(tests.totalErrors)) {
+        tests.successRate = 100;
+    } else {
+        tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
+    }
+
     console.log(tests);
 }
 

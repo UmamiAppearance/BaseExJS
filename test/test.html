@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>BaseEx Test Suite</title>
-        <script type="module" src="test.js"></script>
+
         <!--<link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">-->
         <link href="../MSG.css" rel="stylesheet">
         <style>
@@ -43,6 +43,8 @@
             }
             
         </style>
+
+        <script type="module" src="test.js"></script>
     </head>
     <body>
         <main class="stage-0">
@@ -74,7 +76,7 @@
                             <span class="done">[done]</span>
                         </li>
                         <li class="stage-4 pending">
-                            <span>Testing Base92...</span>
+                            <span>Testing Base91...</span>
                             <span><span class="loading"></span>
                             <span class="done">[done]</span>
                         </li>
@@ -84,10 +86,44 @@
                     <h2>Results:</h2>
                     <table>
                         <thead>
-                            
+                            <tr>
+                                <th></th>
+                                <td class="passed">passed</td>
+                                <td class="failed">failed</td>
+                                <td class="total">total</td>
+                            </tr>
                         </thead>
                         <tbody>
-
+                            <tr class="b16">
+                                <th>Base16</th>
+                                <td class="passed"></td>
+                                <td class="failed"></td>
+                                <td class="total"></td>
+                            </tr>
+                            <tr class="b32">
+                                <th>Base32</th>
+                                <td class="passed"></td>
+                                <td class="failed"></td>
+                                <td class="total"></td>
+                            </tr>
+                            <tr class="b64">
+                                <th>Base64</th>
+                                <td class="passed"></td>
+                                <td class="failed"></td>
+                                <td class="total"></td>
+                            </tr>
+                            <tr class="b85">
+                                <th>Base85</th>
+                                <td class="passed"></td>
+                                <td class="failed"></td>
+                                <td class="total"></td>
+                            </tr>
+                            <tr class="b91">
+                                <th>Base91</th>
+                                <td class="passed"></td>
+                                <td class="failed"></td>
+                                <td class="total"></td>
+                            </tr>
                         </tbody>
                     </table>
                 </article>
