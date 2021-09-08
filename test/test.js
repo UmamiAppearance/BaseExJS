@@ -8,11 +8,11 @@ const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 // Random byte value
 const randByte = () => randInt(0, 256);
 
-// Random array with a lenght between 8 and 24
-const randArray = (nullBytes) => {
+// Random array with a lenght (between 8 and 24 by default)
+const randArray = (nullBytes, start=8, end=24) => {
     const array = new Array();
     const dataGenerator = (nullBytes) ? () => 0 : () => randByte();
-    let i = randInt(8, 24);
+    let i = randInt(start, end);
     while (i--) {
         array.push(dataGenerator());
     }
@@ -112,7 +112,7 @@ encodingList.Base91.set("Hello Wor",         ">OwJh>Io0T5");
 encodingList.Base91.set("Hello Worl",        ">OwJh>Io0Tv!B");
 encodingList.Base91.set("Hello World",       ">OwJh>Io0Tv!lE");
 encodingList.Base91.set("Hello World!",      ">OwJh>Io0Tv!8PE");
-encodingList.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L ");
+encodingList.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L");
 encodingList.Base91.set("Hello World!!!",    ">OwJh>Io0Tv!8P7LhA");
 
 
@@ -135,6 +135,9 @@ function makeError(className, unit, input, output, expected) {
 
 // +++++++++++++ Running the tests +++++++++++++ //
 async function test(base, IOtestRounds) {
+    // main test function, builds one
+    // set of tests for one class
+
     const name = base.constructor.name;
 
     tests[name] = new Object();
@@ -144,6 +147,7 @@ async function test(base, IOtestRounds) {
     tests[name].failed = 0;
     tests[name].strTests = new Object();
     
+    // encoding-list comparison
     let testStr = ""; 
     helloWorldArray.forEach(c => {
         tests[name].testCount += 2;
@@ -172,15 +176,22 @@ async function test(base, IOtestRounds) {
         }
     });
 
+
+    // test en- and decoding of random strings and bytes
     for (let i=0; i<IOtestRounds; i++) {
+
         // Prepare random string and bytes
         const testBytesNullStart = new Uint8Array([...randArray(true), ...randArray(false), ...randArray(true), ...randArray(false)]);
         const testBytesNullEnd = new Uint8Array([...randArray(false), ...randArray(true), ...randArray(false), ...randArray(true)]);
-        const str16 = randStr(32);
+        const testBytesX = new Uint8Array(randArray(false, 0, randInt(1, 512)));
+
+        const str16 = randStr(16);
         const str32 = randStr(32);
+        const strX = randStr(randInt(0, 512));
+
         const IOtests = {
-            str: [str16, str32],
-            bytes: [testBytesNullStart, testBytesNullEnd]
+            str: [str16, str32, strX],
+            bytes: [testBytesNullStart, testBytesNullEnd, testBytesX]
         }
     
         // Test available charsets with string and byte en-/decoding
@@ -208,7 +219,8 @@ async function test(base, IOtestRounds) {
     return true;
 }
 
-async function runTests(e, IOtestRounds=200) {
+async function runTests(e, IOtestRounds=randInt(42, 72)) {
+    // call the set of test for each class
     const classes = [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()];
     let stage = 1;
         
@@ -224,12 +236,11 @@ async function runTests(e, IOtestRounds=200) {
             finishTests();
         }
     };
-
     testGroup();
-
 }
 
 async function updateDOM(stage) {
+    // visual feedback
     const main = document.querySelector("main");
     main.className = `stage-${stage}`;
     
@@ -237,18 +248,58 @@ async function updateDOM(stage) {
     oldStage.classList.remove("pending");
 
     if (stage === 5) {
+        const results = main.querySelector(`article.stage-${stage}`);
         main.querySelector(".pending").classList.remove("pending");
+        results.classList.add("show-results");
     };
 }
 
 function finishTests() {
+    // final function after tests are done
     if (!Boolean(tests.totalErrors)) {
         tests.successRate = 100;
     } else {
         tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
     }
+    makeTable();
 
-    console.log(tests);
 }
 
+function makeTable() {
+    // visualize the data in a table
+
+    const table = document.querySelector("table");
+
+    for (const className of ["Base16", "Base32", "Base64", "Base85", "Base91"]) {
+        const row = table.querySelector(`.${className}`);
+        const cells = row.querySelectorAll("td");
+        
+        console.log(tests);
+        cells[0].textContent = tests[className].passed;
+        cells[1].textContent = tests[className].failed;
+        cells[2].textContent = tests[className].testCount;
+    }
+
+    const total = table.querySelector(".totalRow");
+    const tCells = total.querySelectorAll("td");
+    tCells[0].textContent = tests.totalTests - tests.totalErrors;
+    tCells[1].textContent = tests.totalErrors;
+    tCells[2].textContent = tests.totalTests;
+
+    document.querySelector("#rate").textContent = `${tests.successRate}%`;
+}
+
+async function newTest() {
+    const main = document.querySelector("main");
+    main.className = "stage-0";
+
+    main.querySelector("h2").className = "pending";
+    main.querySelectorAll("li").forEach((li, i) => li.className = `stage-${i} pending`);
+    main.querySelector(".show-results").classList.remove("show-results");
+
+    setTimeout(runTests);
+}
+
+
 document.addEventListener("DOMContentLoaded", runTests, false);
+document.querySelector("button").addEventListener("click", newTest, false);

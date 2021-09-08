@@ -2,28 +2,38 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <title>BaseEx Test Suite</title>
 
         <!--<link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">-->
         <link href="../MSG.css" rel="stylesheet">
         <style>
-            .stage-0 .stage-1, .stage-0 .stage-2, .stage-0 .stage-3, .stage-0 .stage-4, .stage-0 .stage-5, 
-            .stage-1 .stage-2, .stage-1 .stage-3, .stage-1 .stage-4, .stage-1 .stage-5,
-            .stage-2 .stage-3, .stage-2 .stage-4, .stage-2 .stage-5,
-            .stage-3 .stage-4, .stage-3 .stage-5,
-            .stage-4 .stage-5,
+            .stage-0 .stage-1, .stage-0 .stage-2, .stage-0 .stage-3, .stage-0 .stage-4, 
+            .stage-1 .stage-2, .stage-1 .stage-3, .stage-1 .stage-4,
+            .stage-2 .stage-3, .stage-2 .stage-4,
+            .stage-3 .stage-4,
             .pending .done,
             li:not(.pending) .loading, h2:not(.pending) .loading {
                 display: none;
             }
-
+            article.stage-5 {
+                visibility: hidden;
+                opacity: 0;
+                transform: rotateX(100deg) translateY(-120px);
+                transition: all cubic-bezier(.18,.89,.32,1.28) 500ms;
+            }
+            article.stage-5.show-results {
+                visibility: visible;
+                transform: rotateX(0) translateY(0);
+                opacity: 1;
+            }
             article:not(:first-child) {
                 border: 1px solid #333;
                 padding: 10px;
                 border-radius: 10px;
                 min-width: 380px;
             }
-
             ul {
                 padding: 0 0 0 20px;
             }
@@ -41,7 +51,20 @@
             li {
                 margin: 0.8em 0;
             }
-            
+            tr.totalRow {
+                border-top: 1px #ddd solid;
+            }
+            tr.totalRow td {
+                padding-top: 6px;
+            }
+            div#closing {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            #closing button {
+                margin-right: 0;
+            }
         </style>
 
         <script type="module" src="test.js"></script>
@@ -94,38 +117,49 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="b16">
+                            <tr class="Base16">
                                 <th>Base16</th>
                                 <td class="passed"></td>
                                 <td class="failed"></td>
                                 <td class="total"></td>
                             </tr>
-                            <tr class="b32">
+                            <tr class="Base32">
                                 <th>Base32</th>
                                 <td class="passed"></td>
                                 <td class="failed"></td>
                                 <td class="total"></td>
                             </tr>
-                            <tr class="b64">
+                            <tr class="Base64">
                                 <th>Base64</th>
                                 <td class="passed"></td>
                                 <td class="failed"></td>
                                 <td class="total"></td>
                             </tr>
-                            <tr class="b85">
+                            <tr class="Base85">
                                 <th>Base85</th>
                                 <td class="passed"></td>
                                 <td class="failed"></td>
                                 <td class="total"></td>
                             </tr>
-                            <tr class="b91">
+                            <tr class="Base91">
                                 <th>Base91</th>
+                                <td class="passed"></td>
+                                <td class="failed"></td>
+                                <td class="total"></td>
+                            </tr>
+                            <tr class="totalRow">
+                                <th>Total</th>
                                 <td class="passed"></td>
                                 <td class="failed"></td>
                                 <td class="total"></td>
                             </tr>
                         </tbody>
                     </table>
+                    <div id="closing">
+                        <span>Success rate: </span>
+                        <span id="rate"></span>
+                        <button>Test again!</button>
+                    </div>
                 </article>
             </section>
         </main>
