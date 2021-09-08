@@ -25,11 +25,21 @@
             }
 
             ul {
-                padding: 0;
+                padding: 0 0 0 20px;
+            }
+            li::before {
+                position: absolute;
+                content: "\279C";
+                margin-left: -20px;
+                font-size: 1.2em;
+                margin-top: -0.1em;
             }
             li, h2 {
                 display: flex;
                 justify-content: space-between;
+            }
+            li {
+                margin: 0.8em 0;
             }
             
         </style>
