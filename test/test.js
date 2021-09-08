@@ -134,10 +134,7 @@ function makeError(className, unit, input, output, expected) {
 }
 
 // +++++++++++++ Running the tests +++++++++++++ //
-const IOtestRounds = 100;
-
-for (const base of [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()]) {
-    
+async function test(base, IOtestRounds) {
     const name = base.constructor.name;
 
     tests[name] = new Object();
@@ -202,7 +199,7 @@ for (const base of [new Base16(), new Base32(), new Base64(), new Base85(), new 
                     } else {
                         tests[name].failed++;
                         tests.totalErrors++;
-                        makeError(name, `IO-${charset}-${IOtype}`, input, decoded, "same as input");
+                        makeError(name, `IO-${charset}-${IOtype} #${tests.totalErrors}`, input, decoded, "<=input");
                     }
                 }
             }    
@@ -210,10 +207,48 @@ for (const base of [new Base16(), new Base32(), new Base64(), new Base85(), new 
     }
 }
 
-if (!Boolean(tests.totalErrors)) {
-    tests.successRate = 100;
-} else {
-    tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
+async function runTests() {
+    const IOtestRounds = 100;
+    const classes = [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()];
+    let stage = 1;
+        
+    async function testGroup() {
+        const base = classes.pop();
+        if (base) {
+            await test(base, IOtestRounds);
+            await updateDOM(stage++);
+            window.requestAnimationFrame(testGroup);
+        }
+    };
+
+    testGroup();
+
+    if (!Boolean(tests.totalErrors)) {
+        tests.successRate = 100;
+    } else {
+        tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
+    }
+
+    showResults(tests);
 }
 
-console.log(tests);
+
+async function updateDOM(stage) {
+    console.log("stage-", stage);
+    const main = document.querySelector("main");
+    main.className = `stage-${stage}`;
+    
+    const oldStage = main.querySelector(`.stage-${stage-1}`);
+    console.log(oldStage);
+    oldStage.classList.remove("pending");
+
+    if (stage === 5) {
+        main.querySelector(".pending").classList.remove("pending");
+    };
+}
+
+function showResults(tests) {
+    console.log(tests);
+}
+
+document.addEventListener("DOMContentLoaded", runTests, false);
