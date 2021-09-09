@@ -1,12 +1,68 @@
 <!DOCTYPE html>
-<html lang="">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <header></header>
-    <main></main>
-    <footer></footer>
-  </body>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>BaseEx Demo Page</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+        <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
+
+        <script type="module">
+            import {BaseEx} from "./src/BaseEx.js"
+            import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js"
+            //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
+
+            const baseEx = new BaseEx();
+            const inOutOptions = ["text", "bytes", ...Object.keys(baseEx)];
+                
+            Vue.component('in-out-form', {
+            data: function () {
+                return {
+                    choices: inOutOptions,
+                    selected: inOutOptions[0],
+                    message: "Hello Vue!"
+                }
+            },
+                template: document.querySelector('template').innerHTML
+            })
+
+            new Vue({ el: '#input' });
+            new Vue({ el: '#output' });
+
+        </script>
+        <!--<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>-->
+    </head>
+    <body>
+        <main>
+            <template>
+                <form>
+                    <select v-model="selected">
+                        <option v-for="choice in choices">{{ choice }}</option>
+                    </select>
+                    <textarea v-model="message" placeholder="add multiple lines"></textarea>
+                </form>
+            </template>
+
+            <section>
+
+                <article>
+                    <h1>BaseEx Demo Page</h1>
+                    <p>To demonstrate the capabilities of BaseEx it is used on this demopage to implement an online base converter.</p>
+                </article>
+
+                <article id="input">
+                    <h3>input</h3>
+                    <in-out-form></in-out-form>
+                </article>
+                
+                <article id="control">
+                </article>
+                
+                <article id="output">
+                    <h3>output</h3>
+                    <in-out-form></in-out-form>
+                </article>
+            </section>
+        </main>  
+    </body>
 </html>

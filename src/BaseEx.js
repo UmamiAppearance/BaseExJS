@@ -18,7 +18,6 @@ class Base16 {
             default: "0123456789abcdef" 
         }
 
-        this.padding = false;
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
         
