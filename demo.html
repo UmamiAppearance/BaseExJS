@@ -23,7 +23,7 @@
                     message: "Hello Vue!"
                 }
             },
-                template: document.querySelector('template').innerHTML
+                template: document.querySelector("#in-out-form").innerHTML
             })
 
             new Vue({ el: '#input' });
@@ -34,7 +34,7 @@
     </head>
     <body>
         <main>
-            <template>
+            <template id="in-out-form">
                 <form>
                     <select v-model="selected">
                         <option v-for="choice in choices">{{ choice }}</option>
