@@ -44,17 +44,16 @@
                                 encode: "Hello World!",
                                 decode: "SGVsbG8gV29ybGQh"
                             };
-                            return initial[this.method]
+                            return initial[this._method]
                         },
                         set: convert
                     },
-                    method: function() {
-                        console.log(this._type);
-                        const outMode = (control.mode === "encode") ? "decode" : "encode"; 
+                    _method: function() {
+                        console.log(this._type); 
                         if (this._type === "input") {
                             return control.mode;
                         } else {
-                            return outMode;
+                            return (control.mode === "encode") ? "decode" : "encode";
                         }
                     }
                 },
@@ -88,8 +87,8 @@
         <main>
             <template id="in-out-form">
                 <form>
-                    <select v-on:change="runConverter" v-model="defaultSelection[method]">
-                        <option v-for="option in types[method]">{{ option }}</option>
+                    <select v-on:change="runConverter" v-model="defaultSelection[_method]">
+                        <option v-for="option in types[_method]">{{ option }}</option>
                     </select>
                     <textarea v-model="message" placeholder="add multiple lines"></textarea>
                 </form>
