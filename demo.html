@@ -13,17 +13,27 @@
             //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
 
             const baseEx = new BaseEx();
-                
+            
+            const control = new Vue({ 
+                el: "#control",
+                data: {
+                    mode: "encode",
+                },
+                methods: {
+                    runConverter: convert,
+                },
+            });
+
             Vue.component('in-out-form', {
                 data() {
                     return {
                         types: {
-                            input: ["str", "bytes"],
-                            output: Object.keys(baseEx),
+                            encode: ["str", "bytes"],
+                            decode: Object.keys(baseEx),
                         },
                         defaultSelection: {
-                            input: "str",
-                            output: "base64",
+                            encode: "str",
+                            decode: "base64",
                         }
                     }
                 },
@@ -31,12 +41,21 @@
                     message: {
                         get: function() {
                             const initial = {
-                                input: "Hello World!",
-                                output: "SGVsbG8gV29ybGQh"
-                            }
-                            return initial[this._type]
+                                encode: "Hello World!",
+                                decode: "SGVsbG8gV29ybGQh"
+                            };
+                            return initial[this.method]
                         },
                         set: convert
+                    },
+                    method: function() {
+                        console.log(this._type);
+                        const outMode = (control.mode === "encode") ? "decode" : "encode"; 
+                        if (this._type === "input") {
+                            return control.mode;
+                        } else {
+                            return outMode;
+                        }
                     }
                 },
                 props: {
@@ -50,16 +69,6 @@
                 },
                 template: document.querySelector("#in-out-form").innerHTML
             })
-
-            const control = new Vue({ 
-                el: "#control",
-                data: {
-                    mode: "encode",
-                },
-                methods: {
-                    runConverter: convert,
-                },
-            });
 
             const input = new Vue({ 
                 el: "#input",
@@ -79,8 +88,8 @@
         <main>
             <template id="in-out-form">
                 <form>
-                    <select v-on:change="runConverter" v-model="defaultSelection[_type]">
-                        <option v-for="option in types[_type]">{{ option }}</option>
+                    <select v-on:change="runConverter" v-model="defaultSelection[method]">
+                        <option v-for="option in types[method]">{{ option }}</option>
                     </select>
                     <textarea v-model="message" placeholder="add multiple lines"></textarea>
                 </form>
@@ -94,7 +103,7 @@
                 </article>
 
                 <article id="input">
-                    <h3>input</h3>
+                    <h3>input</h3>output
                     <in-out-form
                         _type="input"
                     ></in-out-form>
