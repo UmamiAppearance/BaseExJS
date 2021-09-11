@@ -13,6 +13,13 @@
             //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
 
             const baseEx = new BaseEx();
+            const data = new Object();
+            data.input = "Hello World!";
+            data.fromType = "str";
+            data.base = "base64";
+            data.mode = "encode"
+            data.output = baseEx[data.base][data.mode](data.input);
+            
             
             const control = new Vue({ 
                 el: "#control",
@@ -40,13 +47,14 @@
                 computed: {
                     message: {
                         get: function() {
-                            const initial = {
-                                encode: "Hello World!",
-                                decode: "SGVsbG8gV29ybGQh"
-                            };
-                            return initial[this._method]
+                            return data[this._type]
                         },
-                        set: convert
+                        set: function(input) {
+                            if (this._type === "input") {
+                                data.input = input;
+                                convert();
+                            }
+                        },
                     },
                     _method: function() {
                         console.log(this._type); 
@@ -64,7 +72,12 @@
                     },
                 },
                 methods: {
-                    runConverter: convert,
+                    runConverter: function() {
+                        if (this._type === input) {
+                            //data.fromType = 
+                            console.log("in");
+                        }
+                    },
                 },
                 template: document.querySelector("#in-out-form").innerHTML
             })
@@ -77,10 +90,11 @@
             });
 
             function convert() {
-                console.log("go");
+                data.output = baseEx[data.base][data.mode](data.input);
+                output.$el.querySelector("textarea").value = data.output;
             }
 
-            console.log(input);
+            console.log(output);
         </script>
     </head>
     <body>
