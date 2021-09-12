@@ -15,8 +15,8 @@
             const baseEx = new BaseEx();
 
             const byteConverter = {
-                toBytes: input => new TextEncoder().encode(input).join(" "),
-                toString: input => new TextDecoder().decode(new Uint8Array(input.split(" "))), 
+                bytes: input => new TextEncoder().encode(input).join(" "),
+                str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))), 
             }
 
             const Data = {
@@ -33,8 +33,6 @@
                 },
             };
             Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
-
-
             
             const control = new Vue({ 
                 el: "#control",
@@ -53,18 +51,31 @@
                             return (this.mode === "encode") ? "decode" : "encode";
                         }
                     },
-                    encDecType: function() {
-                        return this.curTypes[this._method];
+                    encDecType: {
+                        get: function() {
+                            return this.curTypes[this._method];
+                        },
+                        set: function(val) {
+                            const method = this._method;
+                            this.curTypes[method] = val;
+                            this[this._type] = byteConverter[val](this.input);   // convert this.input or this.output
+                        },
                     },
                     message: {
                         get: function() {
-                            return this[this._type];
+                            return this[this._type];        //this.input or this.output
                         },
                         set: function(val) {
-                            this.output = baseEx[this.curTypes.decode][this.mode](val, this.curTypes.encode);
-                            console.log(this.output);
-                        }
-                    }
+                            if (this._type === "input") {
+                                let input = val;
+                                if (this.curTypes.encode === "bytes") {
+                                    input = new Uint8Array(val.split(" "));
+                                }
+                                this.input = val;
+                                this.output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode, this.curTypes.encode);
+                            }
+                        },
+                    },
                 },
                 props: {
                     _type: {
@@ -81,17 +92,6 @@
             const output = new Vue({ 
                 el: "#output",
             });
-
-            function convert() {
-                let dataInput = data.input
-                if (data.mode === "encode" && data.fromType === "bytes") {
-                    dataInput = new Uint8Array(data.input.split(" "));
-                } 
-                data.output = baseEx[data.base][data.mode](dataInput, data.fromType);
-                output.$el.querySelector("textarea").value = data.output;
-            }
-
-            console.log(output);
         </script>
     </head>
     <body>
