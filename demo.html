@@ -62,6 +62,7 @@
                             return this.curTypes[this._method];
                         },
                         set: function(val) {
+                            // lead ro problems if val is a base!! --> :FIXME: <--
                             const method = this._method;
                             this.curTypes[method] = val;
                             this[this._type] = byteConverter[val](this.input);   // convert this.input or this.output to bytes/str
