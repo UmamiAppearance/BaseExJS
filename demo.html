@@ -14,12 +14,17 @@
 
             const baseEx = new BaseEx();
             const data = new Object();
+
             data.input = "Hello World!";
             data.fromType = "str";
             data.base = "base64";
             data.mode = "encode"
             data.output = baseEx[data.base][data.mode](data.input);
             
+            const byteConverter = {
+                toBytes: input => new TextEncoder().encode(input).join(" "),
+                toString: input => new TextDecoder().decode(new Uint8Array(input.split(" "))), 
+            }
             
             const control = new Vue({ 
                 el: "#control",
@@ -27,7 +32,11 @@
                     mode: "encode",
                 },
                 methods: {
-                    runConverter: convert,
+                    runConverter: function() {
+                        data.mode = (data.mode === "encode") ? "decode": "encode";
+                        [data.input, data.output] = [data.output, data.input];
+                        convert();
+                    },
                 },
             });
 
@@ -38,10 +47,6 @@
                             encode: ["str", "bytes"],
                             decode: Object.keys(baseEx),
                         },
-                        defaultSelection: {
-                            encode: "str",
-                            decode: "base64",
-                        }
                     }
                 },
                 computed: {
@@ -56,8 +61,29 @@
                             }
                         },
                     },
+                    fromTypeToBase: {
+                        set: function(val) {
+                            if (this._type === "input" && data.mode === "encode") {
+                                if (data.fromType !== val) {
+                                    data.fromType = val;
+                                    data.input = (val === "str") ? byteConverter.toString(data.input) : byteConverter.toBytes(data.input);
+                                }
+                                this.$el.querySelector("textarea").value = data.input;
+                                
+                            } else {
+                                data.base = val;
+                                convert();
+                            }
+                        },
+                        get: function() {
+                            if (this._method === "encode") {
+                                return data.fromType;
+                            } else {
+                                return data.base;
+                            }
+                        },
+                    },
                     _method: function() {
-                        console.log(this._type); 
                         if (this._type === "input") {
                             return control.mode;
                         } else {
@@ -90,18 +116,23 @@
             });
 
             function convert() {
-                data.output = baseEx[data.base][data.mode](data.input);
+                let dataInput = data.input
+                if (data.mode === "encode" && data.fromType === "bytes") {
+                    dataInput = new Uint8Array(data.input.split(" "));
+                } 
+                data.output = baseEx[data.base][data.mode](dataInput, data.fromType);
                 output.$el.querySelector("textarea").value = data.output;
             }
 
             console.log(output);
+            console.log(data.base);
         </script>
     </head>
     <body>
         <main>
             <template id="in-out-form">
                 <form>
-                    <select v-on:change="runConverter" v-model="defaultSelection[_method]">
+                    <select v-model="fromTypeToBase">
                         <option v-for="option in types[_method]">{{ option }}</option>
                     </select>
                     <textarea v-model="message" placeholder="add multiple lines"></textarea>
