@@ -16,7 +16,8 @@
 
             const byteConverter = {
                 bytes: input => new TextEncoder().encode(input).join(" "),
-                str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))), 
+                str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))),
+                toUint: input => new Uint8Array(input.split(" ")),
             }
 
             const Data = {
@@ -37,6 +38,11 @@
             const control = new Vue({ 
                 el: "#control",
                 data: Data,
+                methods: {
+                    switchInOut: function() {
+                        [this.input, this.output] = [this.output, this.input];
+                    },
+                },
             });
 
             Vue.component('in-out-form', {
@@ -58,7 +64,7 @@
                         set: function(val) {
                             const method = this._method;
                             this.curTypes[method] = val;
-                            this[this._type] = byteConverter[val](this.input);   // convert this.input or this.output
+                            this[this._type] = byteConverter[val](this.input);   // convert this.input or this.output to bytes/str
                         },
                     },
                     message: {
@@ -69,7 +75,7 @@
                             if (this._type === "input") {
                                 let input = val;
                                 if (this.curTypes.encode === "bytes") {
-                                    input = new Uint8Array(val.split(" "));
+                                    input = byteConverter.toUint(val);
                                 }
                                 this.input = val;
                                 this.output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode, this.curTypes.encode);
@@ -120,7 +126,7 @@
                 </article>
                 
                 <article id="control">
-                    <form>
+                    <form v-on:change="switchInOut">
                         <input type="radio" id="encode" value="encode" v-model="mode">
                         <label for="encode">Encode</label>
                         <br>
