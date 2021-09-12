@@ -21,7 +21,7 @@
 
             const Data = {
                 input: "Hello World!",
-                output: "",
+                output: null,
                 mode: "encode",
                 curTypes: { 
                     encode: "str",
@@ -32,6 +32,8 @@
                     decode: Object.keys(baseEx),
                 },
             };
+            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
+
 
             
             const control = new Vue({ 
@@ -54,12 +56,13 @@
                     encDecType: function() {
                         return this.curTypes[this._method];
                     },
-                    message: function() {
-                        if (this._type === "input") {
-                            return this.input;
-                        } else {
-                            this.output = baseEx[this.curTypes.decode][this.mode](this.input, this.curTypes.encode)
-                            return this.output;
+                    message: {
+                        get: function() {
+                            return this[this._type];
+                        },
+                        set: function(val) {
+                            this.output = baseEx[this.curTypes.decode][this.mode](val, this.curTypes.encode);
+                            console.log(this.output);
                         }
                     }
                 },
@@ -89,7 +92,6 @@
             }
 
             console.log(output);
-            console.log(data.base);
         </script>
     </head>
     <body>
