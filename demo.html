@@ -7,6 +7,8 @@
     
         <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
 
+        <!--    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>-->
+
         <script type="module">
             import {BaseEx} from "./src/BaseEx.js"
             import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js"
@@ -42,7 +44,7 @@
             
             // Object to switch the modes from encode 
             // to decode and vice versa
-            const control = new Vue({ 
+            new Vue({ 
                 el: "#control",
                 data: Data,
                 methods: {
@@ -219,9 +221,59 @@
 
 
             new Vue({ el: "#input" });
-
             new Vue({ el: "#output" });
+
+            //const prettyprint = document.querySelector(".prettyprint");
+            new Vue({ 
+                el: "#codeblock",
+                data: Data,
+                computed: {
+                    code: function() {
+                        //prettyprint.innerHTML = "";
+                        //prettyprint.classList.remove("prettyprinted");
+                        const max56Inpt = this.input.replace(/(.{56})..+/, "$1…");
+                        const input = (this.mode === "encode" && this.curTypes.encode === "bytes") ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
+                        const subFNName = baseEx[this.curTypes.decode].constructor.name;
+                        const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
+
+// codeblock >>>
+
+const codeContent = `                               
+// Main class BaseEx
+const baseEx = new BaseEx();
+const input = ${input};
+const output = baseEx.${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
+
+// Direct use of the required base converter
+const ${this.curTypes.decode} = new ${subFNName}(${version});
+const input = ${input};
+const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
+
+` // <<< codeblock
+
+                        return codeContent;
+                    },
+                },
+            });
         </script>
+
+        <style>
+            form, code {
+                background-color: powderblue;
+            }
+            section {
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: baseline;
+                flex-wrap: wrap;
+            }
+            h3, pre {
+                margin: 0.1rem 0;
+            }
+            form {
+                padding: 20px;
+            }
+        </style>
     </head>
     <body>
         <main>
@@ -241,8 +293,13 @@
                     <p>To demonstrate the capabilities of BaseEx it is used on this demopage to implement an online base converter.</p>
                 </article>
 
+            </section>
+
+            <hr>
+
+            <section style="flex-direction: row;">
                 <article id="input">
-                    <h3>input</h3>output
+                    <h3>input</h3>
                     <in-out-form
                         _type="input"
                         v-bind:readonly="false"
@@ -250,13 +307,13 @@
                 </article>
                 
                 <article id="control">
+                    <h3>method</h3>
                     <form v-on:change="switchInOut">
                         <input type="radio" id="encode" value="encode" v-model="mode">
                         <label for="encode">Encode</label>
                         <br>
                         <input type="radio" id="decode" value="decode" v-model="mode">
                         <label for="decode">Decode</label>
-                        <p>{{ mode}} </p>
                     </form>
                 </article>
                 
@@ -266,6 +323,15 @@
                         _type="output"
                         v-bind:readonly="true"
                     ></in-out-form>
+                </article>
+            </section>
+
+            <hr>
+
+            <section>
+                <article id="codeblock">
+                    <h3>possible implementation</h3>
+                    <pre><code>{{ code }}</code></pre>
                 </article>
             </section>
         </main>  
