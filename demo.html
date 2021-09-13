@@ -259,7 +259,7 @@ const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.enco
 
         <style>
             form, code {
-                background-color: powderblue;
+                background-color: aliceblue;
             }
             section {
                 flex-direction: row;
@@ -273,6 +273,13 @@ const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.enco
             form {
                 padding: 20px;
             }
+            select, textarea {
+                resize: none;
+                font-size: 1rem;
+                border: 0 none;
+                box-shadow: 0px 0px 2px 0 #333;
+                padding: 10px;
+            }
         </style>
     </head>
     <body>
@@ -282,7 +289,7 @@ const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.enco
                     <select v-model="encDecType">
                         <option v-for="option in dataTypes[_method]">{{ option }}</option>
                     </select>
-                    <textarea v-model="message" placeholder="add multiple lines" :readonly="readonly"></textarea>
+                    <textarea v-model="message" placeholder="add multiple lines" :readonly="readonly" cols="32" rows="8"></textarea>
                 </form>
             </template>
 
