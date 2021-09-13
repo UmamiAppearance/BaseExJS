@@ -85,7 +85,7 @@
                                 }
                                 this.input = val;
                             } else {
-                                input = this.input;
+                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input): this.input;
                             }
                             this.output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode, this.curTypes.encode);
                         },
