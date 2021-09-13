@@ -62,25 +62,32 @@
                             return this.curTypes[this._method];
                         },
                         set: function(val) {
-                            // lead ro problems if val is a base!! --> :FIXME: <--
-                            const method = this._method;
-                            this.curTypes[method] = val;
-                            this[this._type] = byteConverter[val](this.input);   // convert this.input or this.output to bytes/str
+                            if (this.dataTypes.encode.includes(val)) {
+                                this.curTypes.encode = val;
+                                this[this._type] = byteConverter[val](this[this._type]);   // convert this.input or this.output to bytes/str
+                            } else {
+                                this.curTypes.decode = val;
+                                this.message = this.output;
+                            }
                         },
                     },
                     message: {
                         get: function() {
+                            console.log("get");
                             return this[this._type];        //this.input or this.output
                         },
                         set: function(val) {
+                            let input;
                             if (this._type === "input") {
-                                let input = val;
+                                input = val;
                                 if (this.curTypes.encode === "bytes") {
                                     input = byteConverter.toUint(val);
                                 }
                                 this.input = val;
-                                this.output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode, this.curTypes.encode);
+                            } else {
+                                input = this.input;
                             }
+                            this.output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode, this.curTypes.encode);
                         },
                     },
                 },
@@ -99,6 +106,7 @@
             const output = new Vue({ 
                 el: "#output",
             });
+            console.log(input);
         </script>
     </head>
     <body>
