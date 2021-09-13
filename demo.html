@@ -12,130 +12,225 @@
             import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js"
             //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
 
+            // Initialize main BaseEx class
             const baseEx = new BaseEx();
-            const data = new Object();
 
-            data.input = "Hello World!";
-            data.fromType = "str";
-            data.base = "base64";
-            data.mode = "encode"
-            data.output = baseEx[data.base][data.mode](data.input);
-            
+            // Provide some functions to convert bytes
             const byteConverter = {
-                toBytes: input => new TextEncoder().encode(input).join(" "),
-                toString: input => new TextDecoder().decode(new Uint8Array(input.split(" "))), 
+                bytes: input => new TextEncoder().encode(input).join(" "),
+                str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))),
+                toStrBytes: input => input.join(" "),
+                toUint: input => new Uint8Array(input.split(" ")),
             }
+
+            // Data object (source of truth) for Vue
+            const Data = {
+                input: "Hello World!",
+                output: null,
+                mode: "encode",
+                curTypes: { 
+                    encode: "str",
+                    decode: "base64",
+                },
+                dataTypes: {
+                    encode: ["str", "bytes"],
+                    decode: Object.keys(baseEx),
+                },
+            };
+            // Set the initial output
+            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
             
+            // Object to switch the modes from encode 
+            // to decode and vice versa
             const control = new Vue({ 
                 el: "#control",
-                data: {
-                    mode: "encode",
-                },
+                data: Data,
                 methods: {
-                    runConverter: function() {
-                        data.mode = (data.mode === "encode") ? "decode": "encode";
-                        [data.input, data.output] = [data.output, data.input];
-                        convert();
+                    switchInOut: function() {
+                        [this.input, this.output] = [this.output, this.input];
                     },
                 },
             });
 
+            // Vue component for the in an output field;
             Vue.component('in-out-form', {
+
                 data() {
-                    return {
-                        types: {
-                            encode: ["str", "bytes"],
-                            decode: Object.keys(baseEx),
-                        },
-                    }
+                    return Data;
                 },
+
+
                 computed: {
-                    message: {
-                        get: function() {
-                            return data[this._type]
-                        },
-                        set: function(input) {
-                            if (this._type === "input") {
-                                data.input = input;
-                                convert();
-                            }
-                        },
-                    },
-                    fromTypeToBase: {
-                        set: function(val) {
-                            if (this._type === "input" && data.mode === "encode") {
-                                if (data.fromType !== val) {
-                                    data.fromType = val;
-                                    data.input = (val === "str") ? byteConverter.toString(data.input) : byteConverter.toBytes(data.input);
-                                }
-                                this.$el.querySelector("textarea").value = data.input;
-                                
-                            } else {
-                                data.base = val;
-                                convert();
-                            }
-                        },
-                        get: function() {
-                            if (this._method === "encode") {
-                                return data.fromType;
-                            } else {
-                                return data.base;
-                            }
-                        },
-                    },
+
                     _method: function() {
+                        // Returns the method encode or decode,
+                        // but according to input or output
+                        // e.g. for mode: encode ->
+                        // In method: encode, Out method: decode
+                        // 
                         if (this._type === "input") {
-                            return control.mode;
+                            return this.mode;
                         } else {
-                            return (control.mode === "encode") ? "decode" : "encode";
+                            return (this.mode === "encode") ? "decode" : "encode";
                         }
-                    }
+                    },
+
+                    encDecType: {
+                        // Refers to select field on in-/outpzt
+
+                        get: function() {
+                            // Returns the current encoding type
+                            // to select from the options, according
+                            // to the specific _method.
+
+                            return this.curTypes[this._method];
+                        },
+
+                        set: function(val) {
+                            // If the user changes the selection, the
+                            // first decision is wether it is a base
+                            // change or str/bytes switches. The latter
+                            // is the first route below.
+
+                            if (this.dataTypes.encode.includes(val)) {
+                                // Change the current value (str/bytes)
+                                // on the Data object 
+                                this.curTypes.encode = val;
+
+                                // Convert this.input or this.output to bytes/str
+                                // according to the select field from in- or output
+                                this[this._type] = byteConverter[val](this[this._type]);
+
+                            } else {
+                                // Change the currend base type on the 
+                                // Data object
+                                this.curTypes.decode = val;
+
+                                if (this._type === "output") {
+                                    // If the base was changed on the output
+                                    // simply refresh it.
+                                    this.message = this.output;
+
+                                } else {
+                                    // If the base change appeares on input
+                                    // the current mode is "decode". In this
+                                    // case the input field needs to change its 
+                                    // base. To achieve this, the output value
+                                    // gets encoded back and refreshes on input. 
+
+                                    const input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.output) : this.output;
+                                    this.input = baseEx[val].encode(input, this.curTypes.encode);
+                                }
+                            }
+                        },
+                    },
+
+                    message: {
+                        // message provides the actual value
+                        // for the textarea.
+
+                        get: function() {
+                            // Returns this.input or this.output
+                            // according to the _type 
+                            return this[this._type];
+                        },
+
+                        set: function(val) {
+                            // Gets called if the user changes the input
+                            // (also after a select field changes)
+
+                            // The actual input, that feeds the BaseEx
+                            // class can vary. Therefore a local var "input"
+                            // gets initialized.
+                            let input;
+
+                            // If the output type is set to bytes it gets
+                            // converted to a string where each byte value
+                            // is seperated by a space. To activate this case
+                            // "toStrBytes" needs to be set to true.
+                            let toStrBytes = false;
+
+                            // First determine if the textarea was changed
+                            // on in- or output. (As output is set to 
+                            // readonly it can not get changed directly,
+                            // but it can switch by changing the base or
+                            // str/bytes)
+
+                            if (this._type === "input") {
+                                // Store the current value of the textarea
+                                // on the Data object.
+                                this.input = val;
+
+                                // Also set "input" to this value for starters
+                                input = val;
+
+                                if (this.curTypes.encode === "bytes") {
+                                    // If there are bytes involved either ...
+                                    if (this.mode === "encode") {
+                                        // ... convert the bytestring to actual 
+                                        // bytes (typed uInt8array) ...
+
+                                        input = byteConverter.toUint(val);
+                                    } else {
+                                        
+                                        // ... or convert the output to a
+                                        // bytestring as a last step 
+                                        // (depends on mode [en-/decode]).
+                                        toStrBytes = true;
+                                    }
+                                }
+                            } else {
+                                // The type of the textarea is output
+                                // use this.input directly or convert
+                                // to bytes if necessary.
+
+                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
+                            }
+                            
+                            // Generate output by runnig the
+                            // specified conversion.
+                            const output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
+
+                            // As explained above.
+                            this.output = (toStrBytes) ? byteConverter.toStrBytes(output) : output;
+                        },
+                    },
                 },
+
+
                 props: {
                     _type: {
+                        // input and output
                         type: String,
                         required: true,
                     },
+
+                    readonly: {
+                        // true for input, false for output
+                        type: Boolean,
+                        required: true,
+                    }
                 },
-                methods: {
-                    runConverter: function() {
-                        if (this._type === input) {
-                            //data.fromType = 
-                            console.log("in");
-                        }
-                    },
-                },
-                template: document.querySelector("#in-out-form").innerHTML
+
+
+                template: document.querySelector("#in-out-form").innerHTML,
+            
             })
 
-            const input = new Vue({ 
-                el: "#input",
-            });
-            const output = new Vue({ 
-                el: "#output",
-            });
 
-            function convert() {
-                let dataInput = data.input
-                if (data.mode === "encode" && data.fromType === "bytes") {
-                    dataInput = new Uint8Array(data.input.split(" "));
-                } 
-                data.output = baseEx[data.base][data.mode](dataInput, data.fromType);
-                output.$el.querySelector("textarea").value = data.output;
-            }
+            new Vue({ el: "#input" });
 
-            console.log(output);
-            console.log(data.base);
+            new Vue({ el: "#output" });
         </script>
     </head>
     <body>
         <main>
             <template id="in-out-form">
                 <form>
-                    <select v-model="fromTypeToBase">
-                        <option v-for="option in types[_method]">{{ option }}</option>
+                    <select v-model="encDecType">
+                        <option v-for="option in dataTypes[_method]">{{ option }}</option>
                     </select>
-                    <textarea v-model="message" placeholder="add multiple lines"></textarea>
+                    <textarea v-model="message" placeholder="add multiple lines" :readonly="readonly"></textarea>
                 </form>
             </template>
 
@@ -150,11 +245,12 @@
                     <h3>input</h3>output
                     <in-out-form
                         _type="input"
+                        v-bind:readonly="false"
                     ></in-out-form>
                 </article>
                 
                 <article id="control">
-                    <form v-on:change="runConverter">
+                    <form v-on:change="switchInOut">
                         <input type="radio" id="encode" value="encode" v-model="mode">
                         <label for="encode">Encode</label>
                         <br>
@@ -168,6 +264,7 @@
                     <h3>output</h3>
                     <in-out-form
                         _type="output"
+                        v-bind:readonly="true"
                     ></in-out-form>
                 </article>
             </section>
