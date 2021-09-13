@@ -12,7 +12,7 @@
             import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js"
             //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
 
-            // Initialize main converter class
+            // Initialize main BaseEx class
             const baseEx = new BaseEx();
 
             // Provide some functions to convert bytes
@@ -78,7 +78,8 @@
                                 if (this._type === "output") {
                                     this.message = this.output;
                                 } else {
-                                    console.log("change type");
+                                    const input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.output) : this.output;
+                                    this.input = baseEx[val].encode(input, this.curTypes.encode);
                                 }
                             }
                         },
@@ -89,26 +90,22 @@
                         },
                         set: function(val) {
                             let input;
-                            let strBytes = false;
+                            let adjustOutput = false;
                             if (this._type === "input") {
+                                this.input = val;
                                 input = val;
                                 if (this.curTypes.encode === "bytes") {
                                     if (this.mode === "encode") {
                                         input = byteConverter.toUint(val);
                                     } else {
-                                        strBytes = true;
-                                        console.log("here am i");
+                                        adjustOutput = true;
                                     }
-                                } 
-                                this.input = val;
+                                }
                             } else {
-                                input = this.input;
-                                console.log("case", (this.curTypes.encode === "bytes" && this.mode === "decode"));
+                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
                             }
-                            console.log(this.curTypes.decode, this.mode, input, this.curTypes.encode);
                             const output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
-                            this.output = (strBytes) ? byteConverter.toStrBytes(output) : output;
-                            console.log(this.output);
+                            this.output = (adjustOutput) ? byteConverter.toStrBytes(output) : output;
                         },
                     },
                 },
@@ -118,7 +115,7 @@
                         required: true,
                     },
                     readonly: {
-                        type: String,
+                        type: Boolean,
                         required: true,
                     }
                 },
@@ -131,7 +128,6 @@
             const output = new Vue({ 
                 el: "#output",
             });
-            console.log(input);
         </script>
     </head>
     <body>
@@ -141,7 +137,7 @@
                     <select v-model="encDecType">
                         <option v-for="option in dataTypes[_method]">{{ option }}</option>
                     </select>
-                    <textarea v-model="message" placeholder="add multiple lines"></textarea>
+                    <textarea v-model="message" placeholder="add multiple lines" :readonly="readonly"></textarea>
                 </form>
             </template>
 
@@ -156,7 +152,7 @@
                     <h3>input</h3>output
                     <in-out-form
                         _type="input"
-                        readonly="false"
+                        v-bind:readonly="false"
                     ></in-out-form>
                 </article>
                 
@@ -175,7 +171,7 @@
                     <h3>output</h3>
                     <in-out-form
                         _type="output"
-                        readonly="true"
+                        v-bind:readonly="true"
                     ></in-out-form>
                 </article>
             </section>
