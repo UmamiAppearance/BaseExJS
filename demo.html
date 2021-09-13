@@ -12,14 +12,18 @@
             import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js"
             //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
 
+            // Initialize main converter class
             const baseEx = new BaseEx();
 
+            // Provide some functions to convert bytes
             const byteConverter = {
                 bytes: input => new TextEncoder().encode(input).join(" "),
                 str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))),
+                toStrBytes: input => input.join(" "),
                 toUint: input => new Uint8Array(input.split(" ")),
             }
 
+            // Data object (source of truth) for Vue
             const Data = {
                 input: "Hello World!",
                 output: null,
@@ -33,8 +37,11 @@
                     decode: Object.keys(baseEx),
                 },
             };
+            // Set the initial output
             Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
             
+            // Object to switch the modes from encode 
+            // to decode and vice versa
             const control = new Vue({ 
                 el: "#control",
                 data: Data,
@@ -45,6 +52,7 @@
                 },
             });
 
+            // Vue component for the in an output field;
             Vue.component('in-out-form', {
                 data() {
                     return Data;
@@ -67,27 +75,40 @@
                                 this[this._type] = byteConverter[val](this[this._type]);   // convert this.input or this.output to bytes/str
                             } else {
                                 this.curTypes.decode = val;
-                                this.message = this.output;
+                                if (this._type === "output") {
+                                    this.message = this.output;
+                                } else {
+                                    console.log("change type");
+                                }
                             }
                         },
                     },
                     message: {
                         get: function() {
-                            console.log("get");
                             return this[this._type];        //this.input or this.output
                         },
                         set: function(val) {
                             let input;
+                            let strBytes = false;
                             if (this._type === "input") {
                                 input = val;
                                 if (this.curTypes.encode === "bytes") {
-                                    input = byteConverter.toUint(val);
-                                }
+                                    if (this.mode === "encode") {
+                                        input = byteConverter.toUint(val);
+                                    } else {
+                                        strBytes = true;
+                                        console.log("here am i");
+                                    }
+                                } 
                                 this.input = val;
                             } else {
-                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input): this.input;
+                                input = this.input;
+                                console.log("case", (this.curTypes.encode === "bytes" && this.mode === "decode"));
                             }
-                            this.output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode, this.curTypes.encode);
+                            console.log(this.curTypes.decode, this.mode, input, this.curTypes.encode);
+                            const output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
+                            this.output = (strBytes) ? byteConverter.toStrBytes(output) : output;
+                            console.log(this.output);
                         },
                     },
                 },
@@ -96,6 +117,10 @@
                         type: String,
                         required: true,
                     },
+                    readonly: {
+                        type: String,
+                        required: true,
+                    }
                 },
                 template: document.querySelector("#in-out-form").innerHTML
             })
@@ -131,6 +156,7 @@
                     <h3>input</h3>output
                     <in-out-form
                         _type="input"
+                        readonly="false"
                     ></in-out-form>
                 </article>
                 
@@ -149,6 +175,7 @@
                     <h3>output</h3>
                     <in-out-form
                         _type="output"
+                        readonly="true"
                     ></in-out-form>
                 </article>
             </section>
