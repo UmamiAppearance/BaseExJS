@@ -207,11 +207,17 @@
                         required: true,
                     },
 
+                    placeholder: {
+                        // placeholder value
+                        type: String,
+                        required: true,
+                    },
+
                     readonly: {
                         // true for input, false for output
                         type: Boolean,
                         required: true,
-                    }
+                    },
                 },
 
 
@@ -228,16 +234,18 @@
                 data: Data,
                 computed: {
                     code: function() {
-                        //prettyprint.querySelectorAll("span").forEach(elem => elem.remove());
-                        //prettyprint.classList.remove("prettyprinted");
                         const isBytes = this.curTypes.encode === "bytes";
+                        
                         const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
                         const max56Inpt = preIn.replace(/(.{56})..+/, "$1…");
                         const input = (this.mode === "encode" && isBytes) ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
+                        
                         const subFNName = baseEx[this.curTypes.decode].constructor.name;
+                        
                         const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
                         const fixedType = (isBytes) ? `, "${this.curTypes.encode}", "${this.curTypes.encode}"` : "";
-
+                        const use = (isBytes) ? "setting as default:" : "making use of default";
+                        
 // codeblock >>>
 
 const codeContent = `                               
@@ -251,8 +259,8 @@ const ${this.curTypes.decode} = new ${subFNName}(${version});
 const input = ${input};
 const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
 
-// Direct use of the base converter with fixed ${this.curTypes.encode}-type ("str" is default)
-const ${this.curTypes.decode} = new ${subFNName}(${version}${fixedType});
+// Direct use of the base converter, ${use} ${this.curTypes.encode}-type
+const ${this.curTypes.decode} = new ${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
 const input = ${input};
 const output = ${this.curTypes.decode}.${this.mode}(input);
 
@@ -268,18 +276,21 @@ const output = ${this.curTypes.decode}.${this.mode}(input);
         <style>
             form, code {
                 background-color: aliceblue;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
             section {
-                flex-direction: row;
-                justify-content: space-around;
-                align-items: baseline;
-                flex-wrap: wrap;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            @media screen and (min-width: 1100px) {
+                section {
+                    flex-direction: row;
+                    align-items: flex-start;
+                }
             }
             h3, pre {
                 margin: 0.1rem 0;
-            }
-            form {
-                padding: 20px;
             }
             select, textarea {
                 resize: none;
@@ -287,7 +298,46 @@ const output = ${this.curTypes.decode}.${this.mode}(input);
                 border: 0 none;
                 box-shadow: 0px 0px 2px 0 #333;
                 padding: 10px;
+                background-color: #fff;
             }
+            textarea {
+                margin-bottom: 8px;
+            }
+            select:focus, textarea:focus {
+                outline: 2px solid #000;
+            }
+            select {
+                cursor: pointer;
+            }
+            #control form > div {
+                display: flex;
+                width: max-content;
+                margin: 10px;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: space-evenly;
+                box-shadow: 0px 0px 2px 0 #333;
+                background-color: #fff;
+            }
+            input[type=radio] {
+                display: none;
+            }
+            input[type=radio] + label {
+                cursor: pointer;
+                background-color:rgba(230, 230, 255, 0.1);
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+                padding: 10px;
+                font-weight: 500;
+            }
+            input[type=radio]:hover + label {
+                background-color:rgba(200, 200, 255, 0.1);
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            }
+            input[type=radio]:checked + label {
+                background-color: cadetblue;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+                color: #fff;
+            } 
         </style>
     </head>
     <body>
@@ -297,7 +347,7 @@ const output = ${this.curTypes.decode}.${this.mode}(input);
                     <select v-model="encDecType">
                         <option v-for="option in dataTypes[_method]">{{ option }}</option>
                     </select>
-                    <textarea v-model="message" placeholder="add multiple lines" :readonly="readonly" cols="32" rows="8"></textarea>
+                    <textarea v-model="message" :readonly="readonly" :placeholder="placeholder" cols="32" rows="8" spellcheck="false"></textarea>
                 </form>
             </template>
 
@@ -312,23 +362,26 @@ const output = ${this.curTypes.decode}.${this.mode}(input);
 
             <hr>
 
-            <section style="flex-direction: row;">
+            <section>
                 <article id="input">
                     <h3>input</h3>
                     <in-out-form
                         _type="input"
+                        placeholder="Input text/bytes goes here..."
                         v-bind:readonly="false"
                     ></in-out-form>
                 </article>
                 
                 <article id="control">
-                    <h3>method</h3>
+                    <h3>mode</h3>
                     <form v-on:change="switchInOut">
-                        <input type="radio" id="encode" value="encode" v-model="mode">
-                        <label for="encode">Encode</label>
-                        <br>
-                        <input type="radio" id="decode" value="decode" v-model="mode">
-                        <label for="decode">Decode</label>
+                        <div class="radio-wrapper">
+                            <input type="radio" id="encode" value="encode" v-model="mode">
+                            <label for="encode">Encode</label>
+                            <br>
+                            <input type="radio" id="decode" value="decode" v-model="mode">
+                            <label for="decode">Decode</label>
+                        </div>
                     </form>
                 </article>
                 
@@ -336,6 +389,7 @@ const output = ${this.curTypes.decode}.${this.mode}(input);
                     <h3>output</h3>
                     <in-out-form
                         _type="output"
+                        placeholder="...output will show up automatically."
                         v-bind:readonly="true"
                     ></in-out-form>
                 </article>
@@ -343,7 +397,7 @@ const output = ${this.curTypes.decode}.${this.mode}(input);
 
             <hr>
 
-            <section>
+            <section style="margin-bottom: 50px;">
                 <article id="codeblock">
                     <h3>possible implementation</h3>
                     <pre><code v-html="code"></code></pre>
