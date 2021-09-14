@@ -239,10 +239,11 @@
                         // generate a bytestring, that is seperated by kommas
                         const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
 
-                        // escape double quotes and trim output after 56 characters
-                        let max56Inpt = preIn.replace('"', '\\"');
-                        let copyPasteInfo = "You can copy this output as it is to your environment";
+                        // escape double quotes and escape char 
+                        let max56Inpt = preIn.replace(/[\"\\]/g, '\\$&');
+                        let copyPasteInfo = "You can copy this code as it is to your environment";
                         
+                        // trim output after 56 characters
                         if (max56Inpt.length > 56) {
                             max56Inpt = max56Inpt.replace(/(.{56})..+/, "$1…");
                             copyPasteInfo = "Your input was shortened for this demonstration purpose.\n// You can either use shorter input if you want to copy and\n// test it or you need to adjust it in your environment.";
@@ -258,26 +259,24 @@
                         const use = (isBytes) ? "setting as default:" : "making use of default";        
 // codeblock >>>
                         const codeContent = `
+ 
+const input = ${input};
 
 // Main class BaseEx
 const baseExA = new BaseEx();
-const inputA = ${input};
-const outputA = baseExA.${this.curTypes.decode}.${this.mode}(inputA, "${this.curTypes.encode}");
+const outputA = baseExA.${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
 
 // Main class BaseEx, ${use} ${this.curTypes.encode}-type
 const baseExB = new BaseEx(${fixedType.substr(2)});
-const inputB = ${input};
-const outputB = baseExB.${this.curTypes.decode}.${this.mode}(inputB);
+const outputB = baseExB.${this.curTypes.decode}.${this.mode}(input);
 
 // Direct use of the required base converter
-const ${this.curTypes.decode}A = new ${subFNName}(${version});
-const inputC = ${input};
-const outputC = ${this.curTypes.decode}A.${this.mode}(inputC, "${this.curTypes.encode}");
+const ${this.curTypes.decode}a = new ${subFNName}(${version});
+const outputC = ${this.curTypes.decode}a.${this.mode}(input, "${this.curTypes.encode}");
 
 // Direct use of the base converter, ${use} ${this.curTypes.encode}-type
-const ${this.curTypes.decode}B = new ${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
-const inputD = ${input};
-const outputD = ${this.curTypes.decode}B.${this.mode}(inputD);
+const ${this.curTypes.decode}b = new ${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
+const outputD = ${this.curTypes.decode}b.${this.mode}(input);
 
 // ${copyPasteInfo}
                         `.trim();
@@ -388,7 +387,10 @@ const outputD = ${this.curTypes.decode}B.${this.mode}(inputD);
 
                 <article>
                     <h1>BaseEx Demo Page</h1>
-                    <p>To demonstrate the capabilities of BaseEx it is used on this demopage to implement an online base converter.</p>
+                    <p>
+                        To demonstrate the capabilities of BaseEx it is used on this demopage to implement an online base converter.<br>
+                        <a href="#codeblock">At the end</a> of the page you can find a codeblock with possible implementations to generate the provided output.
+                    </p>
                 </article>
 
             </section>
