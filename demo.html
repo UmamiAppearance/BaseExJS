@@ -7,7 +7,7 @@
     
         <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
 
-        <!--    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>-->
+        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
         <script type="module">
             import {BaseEx} from "./src/BaseEx.js"
@@ -223,18 +223,20 @@
             new Vue({ el: "#input" });
             new Vue({ el: "#output" });
 
-            //const prettyprint = document.querySelector(".prettyprint");
             new Vue({ 
                 el: "#codeblock",
                 data: Data,
                 computed: {
                     code: function() {
-                        //prettyprint.innerHTML = "";
+                        //prettyprint.querySelectorAll("span").forEach(elem => elem.remove());
                         //prettyprint.classList.remove("prettyprinted");
-                        const max56Inpt = this.input.replace(/(.{56})..+/, "$1…");
-                        const input = (this.mode === "encode" && this.curTypes.encode === "bytes") ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
+                        const isBytes = this.curTypes.encode === "bytes";
+                        const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
+                        const max56Inpt = preIn.replace(/(.{56})..+/, "$1…");
+                        const input = (this.mode === "encode" && isBytes) ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
                         const subFNName = baseEx[this.curTypes.decode].constructor.name;
                         const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
+                        const fixedType = (isBytes) ? `, "${this.curTypes.encode}", "${this.curTypes.encode}"` : "";
 
 // codeblock >>>
 
@@ -249,9 +251,15 @@ const ${this.curTypes.decode} = new ${subFNName}(${version});
 const input = ${input};
 const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
 
+// Direct use of the base converter with fixed ${this.curTypes.encode}-type ("str" is default)
+const ${this.curTypes.decode} = new ${subFNName}(${version}${fixedType});
+const input = ${input};
+const output = ${this.curTypes.decode}.${this.mode}(input);
+
+
 ` // <<< codeblock
 
-                        return codeContent;
+                        return PR.prettyPrintOne(codeContent, "js");
                     },
                 },
             });
@@ -338,7 +346,7 @@ const output = ${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.enco
             <section>
                 <article id="codeblock">
                     <h3>possible implementation</h3>
-                    <pre><code>{{ code }}</code></pre>
+                    <pre><code v-html="code"></code></pre>
                 </article>
             </section>
         </main>  
