@@ -2,4 +2,17 @@
 
 ## Description
 **BaseEx** is a collection of classes for data representation from Base16 (hex) to BasE91.
-The **Ex** in the name stands for **Ex**ponent (of n) or as read out loud for an **X**.
+The idea is, to provide those representations for the browser.
+There are other good solutions for e.g. Base32, Base64, Base85, but BaseEx has them all in one place.
+The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - for an **X**.
+
+## Converters
+* ``Base16``
+* ``Base32 (rfc3548 and rfc4648``
+* ``Base64 (standard and urlsafe``
+* ``Base85 (adobe/ascii85 and z85)``
+* ``Base91``
+
+## Demopage
+Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html).
+You'll find an online base converter and code examples.
