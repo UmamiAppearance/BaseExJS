@@ -61,7 +61,6 @@
                     return Data;
                 },
 
-
                 computed: {
 
                     _method: function() {
@@ -199,7 +198,6 @@
                     },
                 },
 
-
                 props: {
                     _type: {
                         // input and output
@@ -220,11 +218,9 @@
                     },
                 },
 
-
                 template: document.querySelector("#in-out-form").innerHTML,
             
             })
-
 
             new Vue({ el: "#input" });
             new Vue({ el: "#output" });
@@ -257,7 +253,7 @@
                         const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
                         const fixedType = (isBytes) ? `, "${this.curTypes.encode}", "${this.curTypes.encode}"` : "";
                         const use = (isBytes) ? "setting as default:" : "making use of default";        
-// codeblock >>>
+// codeblock output >>>
                         const codeContent = `
  
 const input = ${input};
@@ -280,7 +276,7 @@ const outputD = ${this.curTypes.decode}b.${this.mode}(input);
 
 // ${copyPasteInfo}
                         `.trim();
-// <<< codeblock
+// <<< codeblock end
                         return PR.prettyPrintOne(codeContent, "js");
                     },
                 },

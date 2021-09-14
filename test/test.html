@@ -72,9 +72,20 @@
     <body>
         <main class="stage-0">
             <section>
+
                 <article>
                     <h1>BaseEx Test Suite</h1>
                 </article>
+
+<!-- 
+    Tests
+    -----
+
+    There is a lot of hardcoding following. Could be better(=>dynamically) designed.
+    On the other hand is this a very fast developed approach and the tests are not
+    expected to change regularly.
+    
+-->
                 <article>
                     <h2 class="pending">Running unit tests... <span><span class="loading"></span></span><span class="done">[done]</span></h2>
                     <ul>
@@ -105,8 +116,25 @@
                         </li>
                     </ul>
                 </article>
+
+<!-- 
+    Results
+    -------
+
+    (Harcoding on fleek again....)
+-->
                 <article class="stage-5">
-                    <h2>Results:</h2>
+                    <h2>
+                        <span>Results:</span>
+                        <a id="download" title="download results as json file">
+                            <svg viewBox="0 0 100 100" width="24" height="24">
+                                <g style="fill: #000; stroke: none;">
+                                    <path d="M 42,5 V 58 L 20,47 V 62 L 50,78 80,62 V 47 L 58,58 V 5" />
+                                    <rect width="80" height="15" x="10" y="80" />
+                                </g>
+                            </svg>
+                        </a>
+                    </h2>
                     <table>
                         <thead>
                             <tr>
@@ -132,7 +160,7 @@
                             <tr class="Base64">
                                 <th>Base64</th>
                                 <td class="passed"></td>
-                                <td class="failed"></td>
+                                <td clasregularlys="failed"></td>
                                 <td class="total"></td>
                             </tr>
                             <tr class="Base85">
@@ -156,13 +184,12 @@
                         </tbody>
                     </table>
                     <div id="closing">
-                        <span>Success rate: </span>
+                        <span>Success rate:</span>
                         <span id="rate"></span>
                         <button>Test again!</button>
                     </div>
                 </article>
             </section>
         </main>
-        <footer></footer>
     </body>
 </html>

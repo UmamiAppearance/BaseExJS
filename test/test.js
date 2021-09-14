@@ -1,4 +1,4 @@
-import {Base16, Base32, Base64, Base85, Base91, BaseEx} from "../src/BaseEx.js"
+import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
 
 // +++++++++++++ Testdata +++++++++++++ //
 
@@ -145,7 +145,6 @@ async function test(base, IOtestRounds) {
     tests[name].testCount = 0;
     tests[name].passed = 0;
     tests[name].failed = 0;
-    tests[name].strTests = new Object();
     
     // encoding-list comparison
     let testStr = ""; 
@@ -273,8 +272,7 @@ function makeTable() {
     for (const className of ["Base16", "Base32", "Base64", "Base85", "Base91"]) {
         const row = table.querySelector(`.${className}`);
         const cells = row.querySelectorAll("td");
-        
-        console.log(tests);
+
         cells[0].textContent = tests[className].passed;
         cells[1].textContent = tests[className].failed;
         cells[2].textContent = tests[className].testCount;
@@ -287,9 +285,16 @@ function makeTable() {
     tCells[2].textContent = tests.totalTests;
 
     document.querySelector("#rate").textContent = `${tests.successRate}%`;
+
+    //write results to console 
+    console.log(tests);
+
+    // generate a downloadable json file
+    makeFile();
 }
 
 async function newTest() {
+    // re-run tests
     const main = document.querySelector("main");
     main.className = "stage-0";
 
@@ -300,6 +305,14 @@ async function newTest() {
     setTimeout(runTests);
 }
 
+function makeFile() {
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}${String(d.getSeconds()).padStart(2, "0")}`
+    const downloadBtn = document.querySelector("#download");
+    const jsonObj = JSON.stringify(tests, null, 4);
+    downloadBtn.setAttribute("href", `data:text/plain;charset=utf-8,${encodeURIComponent(jsonObj)}`);
+    downloadBtn.setAttribute("download", `BaseEx-TestSuite-${dateStr}.json`);
+  }
 
 document.addEventListener("DOMContentLoaded", runTests, false);
 document.querySelector("button").addEventListener("click", newTest, false);
