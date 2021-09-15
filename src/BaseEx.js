@@ -333,7 +333,7 @@ class Base85 {
         
     */
 
-    constructor(version="ascii85", input="str", output="str") {
+    constructor(version="ascii85", input="str", output="str", debug=false) {
         /*
             The charset defined here is used by de- and encoder.
             This can still be overwritten during the call of the
@@ -350,7 +350,7 @@ class Base85 {
         
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
-        this.expandUtils();
+        this.expandUtils(debug);
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
@@ -444,23 +444,25 @@ class Base85 {
         }
     }
 
-    expandUtils() {        
+    expandUtils(debug) {        
         this.utils.announce = () => {
-            const date = new Date();
-            if (date.getMonth() === 3 && date.getDate() === 1) {
-                console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
-            } else {
-                const ts = date.getTime();
-                date.setMonth(3, 1);
-                date.setHours(0, 0, 0);
-                if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
-                const dist = date - ts;
-                const d = Math.floor(dist / 86400000);
-                const H = Math.floor((dist % 86400000) / 3600000);
-                const M = Math.floor((dist % 3600000) / 60000);
-                const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                this.utils.warning(msg);
+            if (!debug) {
+                const date = new Date();
+                if (date.getMonth() === 3 && date.getDate() === 1) {
+                    console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
+                } else {
+                    const ts = date.getTime();
+                    date.setMonth(3, 1);
+                    date.setHours(0, 0, 0);
+                    if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
+                    const dist = date - ts;
+                    const d = Math.floor(dist / 86400000);
+                    const H = Math.floor((dist % 86400000) / 3600000);
+                    const M = Math.floor((dist % 3600000) / 60000);
+                    const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
+                    this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                    this.utils.warning(msg);
+                }
             }
         }
     }

@@ -1,0 +1,81 @@
+import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
+import {test, testData, roundUpTests} from "./test.js"
+
+async function runTests(IOtestRounds, verbose) {
+    // call the set of test for each class
+    const classes = [new Base16(), new Base32(), new Base64(), new Base85("ascii85", "str", "str", true), new Base91()];
+        
+    async function testGroup() {
+        const base = classes.shift();
+        if (base) {
+            test(base, IOtestRounds, verbose).then(() =>
+                testGroup()
+            )
+        } else {
+            roundUpTests(exitFN);
+        }
+    };
+    testGroup();
+}
+
+function exitFN() {
+    if (testData.totalErrors === 0) {
+        console.log("Everything seems to work fine.");
+        process.exit(0);
+    } else {
+        console.log(`${testData.totalErrors} errors occured.`);
+        process.exit(1);
+    }
+}
+
+function main() {
+    const args = process.argv.slice(2); 
+    const isDefined = v => (typeof v !== "undefined");
+    const testOption = (arg, o) => {
+        if (isDefined(o)) {
+            return true;
+        } else {
+            throw new Error(`Option '${arg}' needs an argument.`);
+        }
+    }
+    
+    let IOtests = 1;
+    let verbose = false;
+
+
+    function getArgs() {
+        const arg = args.shift();
+        let option;
+
+        if (isDefined(arg)) {
+            switch (arg) {
+                case "-iotests":
+                    option = args.shift();
+                    testOption(arg, option);
+                    IOtests = option|0;
+                        if (Number.isInteger(IOtests)) {
+                            if (IOtests < 1) {
+                                IOtests = 1;
+                                console.log("Your argument for IOtests is less than one and will be ignored.");
+                            }
+                        } else {
+                            IOtests = 1;
+                            console.log("Your argument for IOtests is no integer and will be ignored.");                            
+                        }
+                    break;
+                case "--verbose":
+                    verbose = true;
+                    break;
+                default:
+                    throw new Error(`Unknown argument: ${arg}`);
+            }
+            getArgs();
+        }
+
+    }
+    getArgs();
+    
+    runTests(IOtests, verbose);
+}
+
+main();
