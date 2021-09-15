@@ -1,0 +1,30 @@
+{
+  "type": "module",
+  "name": "base-ex",
+  "version": "0.1.0",
+  "description": "A collection of classes for data representation from Base16 (hex) to BasE91 written in JavaScript.",
+  "main": "src/BaseEx.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UmamiAppearance/BaseExJS.git"
+  },
+  "keywords": [
+    "Base16",
+    "Base32",
+    "Base64",
+    "Base85",
+    "Base91"
+  ],
+  "author": "UmamiAppearance",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/UmamiAppearance/BaseExJS/issues"
+  },
+  "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme"
+}

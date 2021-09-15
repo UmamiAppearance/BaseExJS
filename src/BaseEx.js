@@ -1,9 +1,9 @@
 /*
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.1
+ * @version 0.1.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL3
+ * @license GPL-3.0
  */
 
 
