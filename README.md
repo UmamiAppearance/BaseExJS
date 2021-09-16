@@ -1,6 +1,7 @@
 # BaseEx
 
-![GitHub](https://img.shields.io/github/license/UmamiAppearance/BaseExJs?color=%23009911&style=for-the-badge)
+[![License](https://img.shields.io/github/license/UmamiAppearance/BaseExJs?color=%23009911&style=for-the-badge)](https://github.com/UmamiAppearance/BaseExJS/blob/main/LICENSE)
+
 
 **BaseEx** is a collection of classes for data representation from Base16 (hex) to BasE91.
 BaseEx is completely standalone and works client and serverside, with all these common representations in one place.
