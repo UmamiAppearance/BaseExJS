@@ -1,6 +1,8 @@
 import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
 import {test, testData, roundUpTests} from "./test.js"
 
+process.env.NODE_ENV = 'production';
+
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class
     const classes = [new Base16(), new Base32(), new Base64(), new Base85("ascii85", "str", "str", true), new Base91()];
@@ -23,7 +25,7 @@ function exitFN() {
         console.log("Everything seems to work fine.");
         process.exit(0);
     } else {
-        console.log(`${testData.totalErrors} errors occured.`);
+        console.log(`${testData.totalErrors} error(s) occured.`);
         process.exit(1);
     }
 }
@@ -57,6 +59,12 @@ function main() {
                             if (IOtests < 1) {
                                 IOtests = 1;
                                 console.log("Your argument for IOtests is less than one and will be ignored.");
+                            } else if (IOtests > 1999) {
+                                console.log("Get yourself a coffee. This is a big amount of tests. (ctrl+c to the rescue)");
+                            } else if (IOtests > 499) {
+                                console.log("You are running a lot of tests. Be patient.");
+                            } else if (IOtests > 99) {
+                                console.log("This might take a while.");
                             }
                         } else {
                             IOtests = 1;
@@ -66,8 +74,11 @@ function main() {
                 case "--verbose":
                     verbose = true;
                     break;
+                case "--help":
+                    console.log(helpText);
+                    process.exit(0);
                 default:
-                    throw new Error(`Unknown argument: ${arg}`);
+                    throw new Error(`Unknown argument: '${arg}'\n Call this programm with "--help" for some advice.`);
             }
             getArgs();
         }
@@ -77,5 +88,22 @@ function main() {
     
     runTests(IOtests, verbose);
 }
+
+const helpText = `
+
+Arguments:
+    -iotests        Takes a positive integer.
+                    IO tests produces randomized input,
+                    converts it to the currently tested
+                    base, converts it back and compares
+                    the output of the decoding with the
+                    initial input. This happens once by
+                    default, but can be repeated n times.
+
+    --verbose       Extra verbose console output.
+    
+    --help          This help page.
+
+`.trim();
 
 main();

@@ -128,7 +128,7 @@ function makeError(className, unit, input, output, expected) {
     testData[className].errorList[unit].input = input;
     testData[className].errorList[unit].output = output;
     testData[className].errorList[unit].expected = expected;
-    console.error(`___\nFound error while testing class: '${className}' / unit: '${unit}'\n\ninput: ${input}\noutput: ${output}\nexpected: ${expected}\n`);
+    console.error(`___\nFound error while testing class: '${className}', unit: '${unit}'\n\ninput: ${input}\noutput: ${output}\nexpected: ${expected}\n`);
 }
 
 // +++++++++++++ Running the tests +++++++++++++ //
@@ -179,13 +179,15 @@ async function test(base, IOtestRounds, verbose=false) {
 
     const intermediate = [testData[name].testCount, testData[name].failed];
     if (verbose) {
-        console.log(`_______\n> Tests: ${testData[name].testCount}, failed: ${testData[name].failed}`);
-        console.log(`> Starting IOtest, rounds: ${IOtestRounds}`);
+        console.log(`< Tests: ${testData[name].testCount}, failed: ${testData[name].failed}\n`);
+        console.log(`> Starting IO tests`);
     };
 
 
     // test en- and decoding of random strings and bytes
     for (let i=0; i<IOtestRounds; i++) {
+
+        if (verbose) console.log(`>> Iteration [${i+1}/${IOtestRounds}]`);
 
         // Prepare random string and bytes
         const testBytesNullStart = new Uint8Array([...randArray(true), ...randArray(false), ...randArray(true), ...randArray(false)]);
@@ -204,11 +206,17 @@ async function test(base, IOtestRounds, verbose=false) {
         // Test available charsets with string and byte en-/decoding
         for (const charset in base.charsets) {
 
-            if (verbose) console.log(`> Testing charset: ${charset}`);
+            if (verbose) console.log(`>>> Testing charset: ${charset}`);
 
             for (const IOtype of base.IOtypes) {
+
+                if (verbose) console.log(`>>>> Testing type: ${IOtype}`);
+
+                let curCount = 0;
+                let curErrors = 0;
+
                 for (const input of IOtests[IOtype]) {
-                    testData[name].testCount++;
+                    curCount++;
                     testData.totalTests++;
 
                     const encoded = base.encode(input, charset, IOtype);
@@ -218,16 +226,21 @@ async function test(base, IOtestRounds, verbose=false) {
                     if (passed) {
                         testData[name].passed++;
                     } else {
-                        testData[name].failed++;
+
+                        curErrors++;
                         testData.totalErrors++;
                         makeError(name, `IO-${charset}-${IOtype} #${testData.totalErrors}`, input, decoded, "<=input");
                     }
                 }
+                if (verbose) console.log(`<<<< Tests: ${curCount}, failed: ${curErrors}\n`);
+                testData[name].testCount += curCount;
+                testData[name].failed += curErrors;
             } 
         }
 
-        if (verbose) console.log(`_______\n> Tests: ${testData[name].testCount-intermediate[0]}, failed: ${testData[name].failed-intermediate[1]}\n`)
+        if (verbose) console.log(`_______\n< Tests: ${testData[name].testCount-intermediate[0]}, failed: ${testData[name].failed-intermediate[1]}\n`)
     }
+    if (verbose) console.log(`____________\nTotal Result:\nTests: ${testData.totalTests}, failed: ${testData.totalErrors}\n`)
     return true;
 }
 

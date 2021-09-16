@@ -152,6 +152,9 @@
                 main.querySelectorAll("li").forEach((li, i) => li.className = `stage-${i} pending`);
                 main.querySelector(".show-results").classList.remove("show-results");
 
+                testData.totalTests = 0;
+                testData.totalErrors = 0;
+
                 setTimeout(runTests);
             }
 
