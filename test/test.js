@@ -1,5 +1,3 @@
-import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
-
 // +++++++++++++ Testdata +++++++++++++ //
 
 // Random integer
@@ -119,65 +117,77 @@ encodingList.Base91.set("Hello World!!!",    ">OwJh>Io0Tv!8P7LhA");
 // +++++++++++++ Utilities +++++++++++++ //
 
 // Initialize object to store test data
-const tests = {
+const testData = {
     totalTests: 0,
     totalErrors: 0
 }
 
 // In the case of a error run this function to store it and alert 
 function makeError(className, unit, input, output, expected) {
-    if (!(unit in tests[className].errorList)) tests[className].errorList[unit] = new Object();
-    tests[className].errorList[unit].input = input;
-    tests[className].errorList[unit].output = output;
-    tests[className].errorList[unit].expected = expected;
-    console.error(`Found error while testing class ${className}\n\ninput: ${input}\n\noutput: ${output}\n\nexpected: ${expected}`);
+    if (!(unit in testData[className].errorList)) testData[className].errorList[unit] = new Object();
+    testData[className].errorList[unit].input = input;
+    testData[className].errorList[unit].output = output;
+    testData[className].errorList[unit].expected = expected;
+    console.error(`___\nFound error while testing class: '${className}', unit: '${unit}'\n\ninput: ${input}\noutput: ${output}\nexpected: ${expected}\n`);
 }
 
 // +++++++++++++ Running the tests +++++++++++++ //
-async function test(base, IOtestRounds) {
+async function test(base, IOtestRounds, verbose=false) {
     // main test function, builds one
     // set of tests for one class
 
     const name = base.constructor.name;
 
-    tests[name] = new Object();
-    tests[name].errorList = new Object();
-    tests[name].testCount = 0;
-    tests[name].passed = 0;
-    tests[name].failed = 0;
+    if (verbose) console.log(`Testing ${name}...`);
+
+    testData[name] = new Object();
+    testData[name].errorList = new Object();
+    testData[name].testCount = 0;
+    testData[name].passed = 0;
+    testData[name].failed = 0;
     
+    if (verbose) console.log(`> Testing 'Hello World!!!' output.`);
+
     // encoding-list comparison
     let testStr = ""; 
     helloWorldArray.forEach(c => {
-        tests[name].testCount += 2;
-        tests.totalTests += 2;
+        testData[name].testCount += 2;
+        testData.totalTests += 2;
 
         testStr = testStr.concat(c);
         const encoded = base.encode(testStr);
         const expectedResult = encodingList[name].get(testStr);
         
         if (encoded === expectedResult) {
-            tests[name].passed++;
+            testData[name].passed++;
         } else {
-            tests[name].failed++;
-            tests.totalErrors++;
+            testData[name].failed++;
+            testData.totalErrors++;
             makeError(name, "hello", testStr, encoded, expectedResult);
         }
 
         const decoded = base.decode(encoded);
 
         if (decoded === testStr) {
-            tests[name].passed++;
+            testData[name].passed++;
         } else {
-            tests[name].failed++;
-            tests.totalErrors++;
+            testData[name].failed++;
+            testData.totalErrors++;
             makeError(name, "hello", testStr, decoded, testStr);
         }
     });
 
+    const intermediate = [testData[name].testCount, testData[name].failed];
+    if (verbose) {
+        console.log(`< Tests: ${testData[name].testCount}, failed: ${testData[name].failed}\n`);
+        console.log(`> Starting IO tests`);
+    };
+
 
     // test en- and decoding of random strings and bytes
     for (let i=0; i<IOtestRounds; i++) {
+
+        if (verbose) console.log(`>> Iteration [${i+1}/${IOtestRounds}]`);
 
         // Prepare random string and bytes
         const testBytesNullStart = new Uint8Array([...randArray(true), ...randArray(false), ...randArray(true), ...randArray(false)]);
@@ -195,124 +205,53 @@ async function test(base, IOtestRounds) {
     
         // Test available charsets with string and byte en-/decoding
         for (const charset in base.charsets) {
+
+            if (verbose) console.log(`>>> Testing charset: ${charset}`);
+
             for (const IOtype of base.IOtypes) {
+
+                if (verbose) console.log(`>>>> Testing type: ${IOtype}`);
+
+                let curCount = 0;
+                let curErrors = 0;
+
                 for (const input of IOtests[IOtype]) {
-                    tests[name].testCount++;
-                    tests.totalTests++;
+                    curCount++;
+                    testData.totalTests++;
 
                     const encoded = base.encode(input, charset, IOtype);
                     const decoded = base.decode(encoded, charset, IOtype);
 
                     const passed = (IOtype === "bytes") ? (input.join("") === decoded.join("")) : (input === decoded);
                     if (passed) {
-                        tests[name].passed++;
+                        testData[name].passed++;
                     } else {
-                        tests[name].failed++;
-                        tests.totalErrors++;
-                        makeError(name, `IO-${charset}-${IOtype} #${tests.totalErrors}`, input, decoded, "<=input");
+
+                        curErrors++;
+                        testData.totalErrors++;
+                        makeError(name, `IO-${charset}-${IOtype} #${testData.totalErrors}`, input, decoded, "<=input");
                     }
                 }
-            }    
+                if (verbose) console.log(`<<<< Tests: ${curCount}, failed: ${curErrors}\n`);
+                testData[name].testCount += curCount;
+                testData[name].failed += curErrors;
+            } 
         }
+
+        if (verbose) console.log(`_______\n< Tests: ${testData[name].testCount-intermediate[0]}, failed: ${testData[name].failed-intermediate[1]}\n`)
     }
+    if (verbose) console.log(`____________\nTotal Result:\nTests: ${testData.totalTests}, failed: ${testData.totalErrors}\n`)
     return true;
 }
 
-async function runTests(e, IOtestRounds=randInt(42, 72)) {
-    // call the set of test for each class
-    const classes = [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()];
-    let stage = 1;
-        
-    async function testGroup() {
-        const base = classes.shift();
-        if (base) {
-            test(base, IOtestRounds).then(() =>
-                updateDOM(stage++).then(() =>
-                    window.requestAnimationFrame(testGroup)
-                )
-            )
-        } else {
-            finishTests();
-        }
-    };
-    testGroup();
-}
-
-async function updateDOM(stage) {
-    // visual feedback
-    const main = document.querySelector("main");
-    main.className = `stage-${stage}`;
-    
-    const oldStage = main.querySelector(`.stage-${stage-1}`);
-    oldStage.classList.remove("pending");
-
-    if (stage === 5) {
-        const results = main.querySelector(`article.stage-${stage}`);
-        main.querySelector(".pending").classList.remove("pending");
-        results.classList.add("show-results");
-    };
-}
-
-function finishTests() {
+function roundUpTests(callback) {
     // final function after tests are done
-    if (!Boolean(tests.totalErrors)) {
-        tests.successRate = 100;
+    if (!Boolean(testData.totalErrors)) {
+        testData.successRate = 100;
     } else {
-        tests.successRate = ((1 - tests.totalErrors / tests.totalTests) * 100).toFixed(2);
+        testData.successRate = ((1 - testData.totalErrors / testData.totalTests) * 100).toFixed(2);
     }
-    makeTable();
-
+    callback();
 }
 
-function makeTable() {
-    // visualize the data in a table
-
-    const table = document.querySelector("table");
-
-    for (const className of ["Base16", "Base32", "Base64", "Base85", "Base91"]) {
-        const row = table.querySelector(`.${className}`);
-        const cells = row.querySelectorAll("td");
-
-        cells[0].textContent = tests[className].passed;
-        cells[1].textContent = tests[className].failed;
-        cells[2].textContent = tests[className].testCount;
-    }
-
-    const total = table.querySelector(".totalRow");
-    const tCells = total.querySelectorAll("td");
-    tCells[0].textContent = tests.totalTests - tests.totalErrors;
-    tCells[1].textContent = tests.totalErrors;
-    tCells[2].textContent = tests.totalTests;
-
-    document.querySelector("#rate").textContent = `${tests.successRate}%`;
-
-    //write results to console 
-    console.log(tests);
-
-    // generate a downloadable json file
-    makeFile();
-}
-
-async function newTest() {
-    // re-run tests
-    const main = document.querySelector("main");
-    main.className = "stage-0";
-
-    main.querySelector("h2").className = "pending";
-    main.querySelectorAll("li").forEach((li, i) => li.className = `stage-${i} pending`);
-    main.querySelector(".show-results").classList.remove("show-results");
-
-    setTimeout(runTests);
-}
-
-function makeFile() {
-    const d = new Date();
-    const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}${String(d.getSeconds()).padStart(2, "0")}`
-    const downloadBtn = document.querySelector("#download");
-    const jsonObj = JSON.stringify(tests, null, 4);
-    downloadBtn.setAttribute("href", `data:text/plain;charset=utf-8,${encodeURIComponent(jsonObj)}`);
-    downloadBtn.setAttribute("download", `BaseEx-TestSuite-${dateStr}.json`);
-  }
-
-document.addEventListener("DOMContentLoaded", runTests, false);
-document.querySelector("button").addEventListener("click", newTest, false);
+export {test, testData, randInt, roundUpTests};

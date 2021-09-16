@@ -8,6 +8,7 @@
 
         <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
 
+
         <style>
             main {
                 min-height: calc(100vh - 32px);
@@ -74,10 +75,107 @@
             }
         </style>
 
-        <script type="module" src="test.js"></script>
+        <script type="module">
+            import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
+            import {test, testData, randInt, roundUpTests} from "./test.js"
+
+            async function runTests(e, IOtestRounds=randInt(42, 72)) {
+                // call the set of test for each class
+                const classes = [new Base16(), new Base32(), new Base64(), new Base85("ascii85", "str", "str", true), new Base91()];
+                let stage = 1;
+                    
+                async function testGroup() {
+                    const base = classes.shift();
+                    if (base) {
+                        test(base, IOtestRounds).then(() =>
+                            updateDOM(stage++).then(() =>
+                                window.requestAnimationFrame(testGroup)
+                            )
+                        )
+                    } else {
+                        roundUpTests(makeTable);
+                    }
+                };
+                testGroup();
+            }
+
+            async function updateDOM(stage) {
+                // visual feedback
+                const main = document.querySelector("main");
+                main.className = `stage-${stage}`;
+                
+                const oldStage = main.querySelector(`.stage-${stage-1}`);
+                oldStage.classList.remove("pending");
+
+                if (stage === 5) {
+                    const results = main.querySelector(`article.stage-${stage}`);
+                    main.querySelector(".pending").classList.remove("pending");
+                    results.classList.add("show-results");
+                };
+            }
+
+            function makeTable() {
+                // visualize the data in a table
+
+                const table = document.querySelector("table");
+
+                for (const className of ["Base16", "Base32", "Base64", "Base85", "Base91"]) {
+                    const row = table.querySelector(`.${className}`);
+                    const cells = row.querySelectorAll("td");
+
+                    cells[0].textContent = testData[className].passed;
+                    cells[1].textContent = testData[className].failed;
+                    cells[2].textContent = testData[className].testCount;
+                }
+
+                const total = table.querySelector(".totalRow");
+                const tCells = total.querySelectorAll("td");
+                tCells[0].textContent = testData.totalTests - testData.totalErrors;
+                tCells[1].textContent = testData.totalErrors;
+                tCells[2].textContent = testData.totalTests;
+
+                document.querySelector("#rate").textContent = `${testData.successRate}%`;
+
+                //write results to console 
+                console.log(testData);
+
+                // generate a downloadable json file
+                makeFile();
+            }
+
+            async function newTest() {
+                // re-run tests
+                const main = document.querySelector("main");
+                main.className = "stage-0";
+
+                main.querySelector("h2").className = "pending";
+                main.querySelectorAll("li").forEach((li, i) => li.className = `stage-${i} pending`);
+                main.querySelector(".show-results").classList.remove("show-results");
+
+                testData.totalTests = 0;
+                testData.totalErrors = 0;
+
+                setTimeout(runTests);
+            }
+
+            function makeFile() {
+                const d = new Date();
+                const dateStr = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${String(d.getHours()).padStart(2, "0")}${String(d.getMinutes()).padStart(2, "0")}${String(d.getSeconds()).padStart(2, "0")}`
+                const downloadBtn = document.querySelector("#download");
+                const jsonObj = JSON.stringify(testData, null, 4);
+                downloadBtn.setAttribute("href", `data:text/plain;charset=utf-8,${encodeURIComponent(jsonObj)}`);
+                downloadBtn.setAttribute("download", `BaseEx-TestSuite-${dateStr}.json`);
+            }
+
+            document.addEventListener("DOMContentLoaded", runTests, false);
+            document.querySelector("button").addEventListener("click", newTest, false);
+        </script>
     </head>
+
     <body>
+    
         <main class="stage-0">
+    
             <section>
 
                 <article>
@@ -85,9 +183,6 @@
                 </article>
 
 <!-- 
-    Tests
-    -----
-
     There is a lot of hardcoding following. Could be better(=>dynamically) designed.
     On the other hand is this a very fast developed approach and the tests are not
     expected to change regularly.
@@ -131,6 +226,7 @@
     (Harcoding on fleek again....)
 -->
                 <article class="stage-5">
+
                     <h2>
                         <span>Results:</span>
                         <a id="download" title="download results as json file">
@@ -142,6 +238,7 @@
                             </svg>
                         </a>
                     </h2>
+                
                     <table>
                         <thead>
                             <tr>
@@ -190,12 +287,15 @@
                             </tr>
                         </tbody>
                     </table>
+
                     <div id="closing">
                         <span>Success rate:</span>
                         <span id="rate"></span>
                         <button>Test again!</button>
                     </div>
+                
                 </article>
+            
             </section>
         </main>
         <footer>
