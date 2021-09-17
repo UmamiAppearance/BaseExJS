@@ -1,6 +1,6 @@
 # BaseEx
 
-[![License](https://img.shields.io/github/license/UmamiAppearance/BaseExJs?color=%23009911&style=for-the-badge)](./LICENSE)
+[![License](https://img.shields.io/github/license/UmamiAppearance/BaseExJs?color=009911&style=for-the-badge)](./LICENSE)
 
 
 **BaseEx** is a collection of classes for data representation from Base16 (hex) to BasE91.
@@ -56,14 +56,16 @@ import {BaseEx} from "base-ex"
 
 // explicit converter (e.g. Base32)
 import {Base32} from "base-ex"
-```
+```kquotes
 
 ### Working with it (Browser/Node)
 Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html).  
 You'll find an online base converter and code examples that will work independently from your environment (assuming the used class is imported)
 
 ## License
-This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).  
+This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
+
+### 3rd Party License
 
 The basE91 en-/decoder relies on the work of Joachim Henke. His work is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
