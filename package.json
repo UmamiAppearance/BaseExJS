@@ -2,7 +2,7 @@
   "name": "base-ex",
   "version": "0.1.0",
   "description": "A collection of classes for data representation from Base16 (hex) to BasE91 written in JavaScript.",
-  "main": "dist/BaseEx.min.mjs",
+  "main": "dist/BaseEx.esm.min.js",
   "type": "module",
   "directories": {
     "dist": "dist",

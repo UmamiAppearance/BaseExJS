@@ -10,76 +10,9 @@
 
         <link rel="shortcut icon" href="#">
 
-        <style>
-            main {
-                min-height: calc(100vh - 40px);
-            }
-            .stage-0 .stage-1, .stage-0 .stage-2, .stage-0 .stage-3, .stage-0 .stage-4, 
-            .stage-1 .stage-2, .stage-1 .stage-3, .stage-1 .stage-4,
-            .stage-2 .stage-3, .stage-2 .stage-4,
-            .stage-3 .stage-4,
-            .pending .done,
-            li:not(.pending) .loading, h2:not(.pending) .loading {
-                display: none;
-            }
-            article.stage-5 {
-                visibility: hidden;
-                opacity: 0;
-                transform: rotateX(100deg) translateY(-120px);
-                transition: all cubic-bezier(.18,.89,.32,1.28) 500ms;
-            }
-            article.stage-5.show-results {
-                visibility: visible;
-                transform: rotateX(0) translateY(0);
-                opacity: 1;
-            }
-            article:not(:first-child) {
-                border: 1px solid #333;
-                padding: 10px;
-                border-radius: 10px;
-                min-width: 380px;
-            }
-            ul {
-                padding: 0 0 0 20px;
-            }
-            li::before {
-                position: absolute;
-                content: "\279C";
-                margin-left: -20px;
-                font-size: 1.2em;
-                margin-top: -0.1em;
-            }
-            li, h2 {
-                display: flex;
-                justify-content: space-between;
-            }
-            li {
-                margin: 0.8em 0;
-            }
-            tr.totalRow {
-                border-top: 1px #ddd solid;
-            }
-            tr.totalRow td {
-                padding-top: 6px;
-            }
-            div#closing {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            #closing button {
-                margin-right: 0;
-            }
-            footer {
-                text-align: right;
-                margin-right: 6px;
-                height: 40px;
-            }
-        </style>
-
         <script type="module">
-            import {Base16, Base32, Base64, Base85, Base91} from "../dist/BaseEx.min.mjs"
-            import {test, testData, randInt, roundUpTests} from "./test.js"
+            import {Base16, Base32, Base64, Base85, Base91} from "../dist/BaseEx.esm.min.js"
+            import {test, testData, randInt, roundUpTests} from "./test.esm.js"
 
             async function runTests(e, IOtestRounds=randInt(42, 72)) {
                 // call the set of test for each class
@@ -173,6 +106,74 @@
             document.addEventListener("DOMContentLoaded", runTests, false);
             document.querySelector("button").addEventListener("click", newTest, false);
         </script>
+
+        <style>
+            main {
+                min-height: calc(100vh - 40px);
+            }
+            .stage-0 .stage-1, .stage-0 .stage-2, .stage-0 .stage-3, .stage-0 .stage-4, 
+            .stage-1 .stage-2, .stage-1 .stage-3, .stage-1 .stage-4,
+            .stage-2 .stage-3, .stage-2 .stage-4,
+            .stage-3 .stage-4,
+            .pending .done,
+            li:not(.pending) .loading, h2:not(.pending) .loading {
+                display: none;
+            }
+            article.stage-5 {
+                visibility: hidden;
+                opacity: 0;
+                transform: rotateX(100deg) translateY(-120px);
+                transition: all cubic-bezier(.18,.89,.32,1.28) 500ms;
+            }
+            article.stage-5.show-results {
+                visibility: visible;
+                transform: rotateX(0) translateY(0);
+                opacity: 1;
+            }
+            article:not(:first-child) {
+                border: 1px solid #333;
+                padding: 10px;
+                border-radius: 10px;
+                min-width: 380px;
+            }
+            ul {
+                padding: 0 0 0 20px;
+            }
+            li::before {
+                position: absolute;
+                content: "\279C";
+                margin-left: -20px;
+                font-size: 1.2em;
+                margin-top: -0.1em;
+            }
+            li, h2 {
+                display: flex;
+                justify-content: space-between;
+            }
+            li {
+                margin: 0.8em 0;
+            }
+            tr.totalRow {
+                border-top: 1px #ddd solid;
+            }
+            tr.totalRow td {
+                padding-top: 6px;
+            }
+            div#closing {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            #closing button {
+                margin-right: 0;
+            }
+            footer {
+                text-align: right;
+                margin-right: 6px;
+                height: 40px;
+            }
+        </style>
+
     </head>
 
     <body>
