@@ -68,7 +68,7 @@ This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
 
 ### 3rd Party License
 
-The basE91 en-/decoder relies on the work of Joachim Henke. His work is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
+The basE91 en-/decoder relies on the work of Joachim Henke. The original code is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause).
 
 ```
 Copyright (c) 2000-2006 Joachim Henke
