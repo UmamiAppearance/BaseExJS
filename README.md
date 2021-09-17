@@ -59,10 +59,8 @@ import {BaseEx} from "base-ex"
 import {Base32} from "base-ex"
 ```
 
-
 ### Working with it (Browser/Node)
-Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html).  
-You'll find an online base converter and code examples that will work independently from your environment (assuming the used class is imported)
+Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html). You'll find an online base converter and code examples that will work independently from your environment (assuming the used class is imported).
 
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
