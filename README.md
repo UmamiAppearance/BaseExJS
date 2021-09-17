@@ -1,7 +1,7 @@
 # BaseEx
 
 [![License](https://img.shields.io/github/license/UmamiAppearance/BaseExJs?color=009911&style=for-the-badge)](./LICENSE)
-[![npm](https://img.shields.io/npm/v/base-ex?color=%23009911&style=for-the-badge)(https://www.npmjs.com/package/base-ex)
+[![npm](https://img.shields.io/npm/v/base-ex?color=%23009911&style=for-the-badge)](https://www.npmjs.com/package/base-ex)
 
 
 **BaseEx** is a collection of classes for data representation from Base16 (hex) to BasE91.
