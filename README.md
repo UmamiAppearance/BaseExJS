@@ -35,6 +35,7 @@ nmp install base-ex
 ### Importing
 
 #### Browser
+
 ```html
 <!-- the classic -->
 <script src="path/BaseEx.min.js"></script>
@@ -56,7 +57,8 @@ import {BaseEx} from "base-ex"
 
 // explicit converter (e.g. Base32)
 import {Base32} from "base-ex"
-```kquotes
+```
+
 
 ### Working with it (Browser/Node)
 Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html).  
