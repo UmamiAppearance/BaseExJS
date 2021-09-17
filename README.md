@@ -21,7 +21,7 @@ Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html).
 You'll find an online base converter and code examples.
 
 ## License
-This work is licensed under [GPL-3.0-only](https://opensource.org/licenses/GPL-3.0).
+This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
 The basE91 en-/decoder relies on the work of Joachim Henke. His work is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 `SPDX-License-Identifier: GPL-3.0-only AND BSD-3-Clause`
