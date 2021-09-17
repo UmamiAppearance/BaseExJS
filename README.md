@@ -5,7 +5,7 @@
 
 
 **BaseEx** is a collection of classes for data representation from Base16 (hex) to BasE91.
-BaseEx is completely standalone and works client and serverside, with all these common representations in one place.
+BaseEx is completely standalone and works client and serverside.
 There are other good solutions for e.g. Base32, Base64, Base85, but BaseEx has them all in one place.
 The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - for an **X**.
 
