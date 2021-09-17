@@ -60,6 +60,12 @@ import {BaseEx} from "base-ex"
 import {Base32} from "base-ex"
 ```
 
+#### Available imports Browser/Node
+The classic import via script tag has them all available without further ado. Full import for ES6 modules:  
+```js
+import {Base16, Base32, Base64, Base85, BaseEx} from "base-ex"
+```
+
 ### Working with it (Browser/Node)
 Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html). You'll find an online base converter and code examples that will work independently from your environment (assuming the used class is imported).
 
