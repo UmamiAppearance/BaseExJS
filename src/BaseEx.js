@@ -3,7 +3,7 @@
  *
  * @version 0.1.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
+ * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
 
@@ -1105,4 +1105,5 @@ class BaseEx {
     }
 }
 
+// This export statement needs to be deactivated for non-modular js
 export {Base16, Base32, Base64, Base85, Base91, BaseEx};

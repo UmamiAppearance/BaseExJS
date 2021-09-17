@@ -1,7 +1,5 @@
-import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
+import {Base16, Base32, Base64, Base85, Base91} from "../dist/BaseEx.min.mjs"
 import {test, testData, roundUpTests} from "./test.js"
-
-process.env.NODE_ENV = 'production';
 
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class
@@ -106,4 +104,6 @@ Arguments:
 
 `.trim();
 
+
+process.env.NODE_ENV = 'production';
 main();
