@@ -44,6 +44,7 @@ nmp install base-ex
 
 ```js
 // ESM6 module
+
 // main class
 import {BaseEx} from "./path/BaseEx.esm.min.js"
 
