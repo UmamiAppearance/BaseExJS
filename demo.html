@@ -369,10 +369,12 @@ const outputD = ${this.curTypes.decode}b.${this.mode}(input);
 
             <template id="in-out-form">
                 <form>
-                    <select v-model="encDecType">
-                        <option v-for="option in dataTypes[_method]">{{ option }}</option>
-                    </select>
-                    <textarea v-model="message" :readonly="readonly" :placeholder="placeholder" cols="32" rows="8" spellcheck="false"></textarea>
+                    <p>
+                        <select v-model="encDecType">
+                            <option v-for="option in dataTypes[_method]">{{ option }}</option>
+                        </select>
+                        <textarea v-model="message" :readonly="readonly" :placeholder="placeholder" cols="32" rows="8" spellcheck="false"></textarea>
+                    </p>
                 </form>
             </template>
 
