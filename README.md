@@ -63,7 +63,7 @@ import {Base32} from "base-ex"
 #### Available imports Browser/Node
 The classic import via script tag has them all available without further ado. Full import for ES6 modules:  
 ```js
-import {Base16, Base32, Base64, Base85, BaseEx} from "base-ex"
+import {Base16, Base32, Base64, Base85, Base91, BaseEx} from "base-ex"
 ```
 
 ### Working with it (Browser/Node)
