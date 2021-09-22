@@ -1,7 +1,7 @@
 /*
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.1.0
+ * @version 0.2.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
@@ -48,8 +48,7 @@ class Base16 {
         const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
         
         // Convert to Base16 string
-        let output;
-        output = this.converter.encode(inputBytes, this.charsets[version])[0];
+        const output = this.converter.encode(inputBytes, this.charsets[version])[0];
 
         return output;
     }
@@ -321,7 +320,7 @@ class Base85 {
         the <~wrapping~>.
         
         Z85 is an important variant, because of the 
-        more interpreter-friendly characterset.
+        more interpreter-friendly character set.
         
         The RFC 1924 version is a hybrid. It is not using
         the mandatory 128 bit calculation. Instead only 
@@ -484,7 +483,7 @@ class Base91 {
     */
     constructor(version="default", input="str", output="str") {
         /*
-            The default charset gets initilized, as well as
+            The default charset gets initialized, as well as
             some utilities.
         */
         this.charsets = {
@@ -563,8 +562,7 @@ class Base91 {
                 }
 
                 // Remove 13 or 14 bits from the integer,
-                // decrease the bitCount by the the same 
-                // amount.
+                // decrease the bitCount by the same amount.
                 n >>= count;
                 bitCount -= count;
                 
@@ -582,16 +580,16 @@ class Base91 {
         });
         
         // If the bitCount is not zero at the end,
-        // calculate quotient and remainer of 91
+        // calculate quotient and remainder of 91
         // once more.
         if (Boolean(bitCount)) {
             let q, r;
             [q, r] = this.utils.divmod(n, 91);
 
-            // The remainder is concatinated in any case
+            // The remainder is concatenated in any case
             output = output.concat(chars[r]);
 
-            // The quotient is also appendend, but only
+            // The quotient is also appended, but only
             // if the bitCount still has the size of a byte
             // or n can still represent 91 conditions.
             if (bitCount > 7 || n > 90) {
@@ -618,12 +616,14 @@ class Base91 {
         args = this.utils.validateArgs(args);
         const version = this.utils.getVersion(args);
         const outputType = this.utils.setIOType(args, "out");
-        input = input.replace(/\s/g,'');        //remove all whitespace from input
+        
+        //remove all whitespace from input
+        input = input.replace(/\s/g,'');
         
         let l = input.length;
 
         // For starters leave the last char behind
-        // if the lenght of the input string is odd.
+        // if the length of the input string is odd.
 
         let odd = false;
         if (Boolean(l % 2)) {
@@ -632,7 +632,7 @@ class Base91 {
         }
 
         // Set again integer n for base conversion.
-        // Also initilaize a bitCount(er)
+        // Also initialize a bitCount(er)
 
         let n = 0;
         let bitCount = 0;
@@ -645,7 +645,7 @@ class Base91 {
         // (aka collect remainder- and quotient-pairs)
         for (let i=0; i<l; i+=2) {
 
-            // Calculate back the ramainder of the integer "n"
+            // Calculate back the remainder of the integer "n"
             const rN = chars.indexOf(input[i]) + chars.indexOf(input[i+1]) * 91;
             n = (rN << bitCount) + n;
             bitCount += (rN % this.utils.binPow[13] > 88) ? 13 : 14;
@@ -658,7 +658,7 @@ class Base91 {
             } while (bitCount > 7);
         };
 
-        // Calaculate the last byte if the input is odd
+        // Calculate the last byte if the input is odd
         // and add it
         if (odd) {
             const lastChar = input.charAt(l);
@@ -681,7 +681,7 @@ class Base91 {
 
 class BaseExConv {
     /*
-        Core class for base-convertion and substitution
+        Core class for base-conversion and substitution
         based on a given charset.
     */
 
@@ -706,7 +706,7 @@ class BaseExConv {
         const bs = this.bsEnc;
         
         // The blocksize defines the size of the corresponding
-        // interger, calculated for base conversion. Values 
+        // integer, calculated for base conversion. Values 
         // above 6 lead to numbers that are higher than the 
         // "MAX_SAFE_INTEGER" (2^bs*8).
 
@@ -726,7 +726,7 @@ class BaseExConv {
             // is a change that the subarray has a length
             // less than bs. If this is the case, padding is
             // required. All missing bytes are filled with
-            // zeros. The amout of zeros is stored in
+            // zeros. The amount of zeros is stored in
             // "zeroPadding".
 
             if (subArray.length < bs) {
@@ -746,10 +746,10 @@ class BaseExConv {
             // store the digits with the given radix  
             const bXarray = new Array();
 
-            // Initialize quotient and remainder for base convertion
+            // Initialize quotient and remainder for base conversion
             let q = n, r;
 
-            // Divide n until the quotient becommes less than the radix.
+            // Divide n until the quotient becomes less than the radix.
             while (q >= this.radix) {
                 [q, r] = this.divmod(q, this.radix);
                 bXarray.unshift(r);
@@ -768,7 +768,7 @@ class BaseExConv {
 
             // Each digit is used as an index to pick a 
             // corresponding char from the charset. The 
-            // chars get concatinated and stored in "frame".
+            // chars get concatenated and stored in "frame".
 
             let frame = "";
             bXarray.forEach(
@@ -816,7 +816,7 @@ class BaseExConv {
             })
         );
         
-        // The amount of pading characters is not equal
+        // The amount of padding characters is not equal
         // to the amount of padded zeros. This the
         // defined by the specific class and gets
         // converted.
@@ -840,8 +840,8 @@ class BaseExConv {
             // It is possible for this group of algorithms, that
             // the last subarray has a length which is less than
             // the bs. This is padded with the highest possible
-            // value, which is radix-1 (=> 84 or char "u"). The amout 
-            // of padding is stored in "padding".
+            // value, which is radix-1 (=> 84 or char "u").
+            // The amount of padding is stored in "padding".
             
             if (subArray.length < bs) {
                 padding = bs - subArray.length;
@@ -863,7 +863,7 @@ class BaseExConv {
                 (b, j) => n += b * this.pow(this.radix, bs-1-j)
             );
 
-            // Initialize quotient and remainder for base convertion
+            // Initialize quotient and remainder for base conversion
             let q = n, r;
 
             // Divide n until the quotient is less than 256.
@@ -872,10 +872,10 @@ class BaseExConv {
                 subArray256.unshift(r);
             }
 
-            // Append the remaning quotient to the array
+            // Append the remaining quotient to the array
             subArray256.unshift(q);
             
-            // If the lenght of the array is less than the required
+            // If the length of the array is less than the required
             // bs after decoding it gets filled up with zeros.
             // (Again, this happens with null bytes.)
 
@@ -883,7 +883,7 @@ class BaseExConv {
                 subArray256.unshift(0);
             }
             
-            // The subarray gets concatianted with the
+            // The subarray gets concatenated with the
             // main array.
             b256Array = b256Array.concat(subArray256);
         }
@@ -934,7 +934,7 @@ class BaseExUtils {
 
     charsetUserToolsConstructor() {
         /*
-            Contructor for the ability to add a charset and 
+            Constructor for the ability to add a charset and 
             change the default version.
         */
 
@@ -944,14 +944,14 @@ class BaseExUtils {
                 ----------------------------
 
                 @name: string that represents the key for the new charset
-                @charset: string, array or Set of chars - the lenght must fit to the accoding class 
+                @charset: string, array or Set of chars - the length must fit to the according class 
             */
                 
             if (typeof name !== "string") {
                 throw new TypeError("The charset name must be a string.");
             }
 
-            // Get the approprite length for the charset
+            // Get the appropriate length for the charset
             // from the name of the parent function.
             // (Which is a little hacky...)
 
@@ -963,8 +963,8 @@ class BaseExUtils {
                 // Store the input length of the input
                 inputLen = charset.length;
                 
-                // Convert to "Set" -> eliminate dublicates
-                // If duvlicates are found the length of the
+                // Convert to "Set" -> eliminate duplicates
+                // If duplicates are found the length of the
                 // Set and the length of the initial input
                 // differ.
 
@@ -1015,7 +1015,7 @@ class BaseExUtils {
 
     getVersion(args) {
         /*
-            Test which version (charset) shoult be used.
+            Test which version (charset) should be used.
             Sets either the default or overwrites it if
             requested.
         */
@@ -1069,7 +1069,7 @@ class BaseExUtils {
         } else {
             if (typeof input === "string") {
                 throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-            } else if (typeof input !== 'object') {
+            } else if (!(ArrayBuffer.isView(input) || Array.isArray(input))) {
                 throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
             }
             return input; 

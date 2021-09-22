@@ -1,4 +1,4 @@
-// +++++++++++++ Testdata +++++++++++++ //
+// +++++++++++++ Test data +++++++++++++ //
 
 // Random integer
 const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
@@ -6,7 +6,7 @@ const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 // Random byte value
 const randByte = () => randInt(0, 256);
 
-// Random array with a lenght (between 8 and 24 by default)
+// Random array with a length (between 8 and 24 by default)
 const randArray = (nullBytes, start=8, end=24) => {
     const array = new Array();
     const dataGenerator = (nullBytes) ? () => 0 : () => randByte();
@@ -24,7 +24,7 @@ const randStr = (len) => {
     return new TextDecoder("ascii").decode(array);
 }
 
-// Generated predecoded strings for each base
+// Generated pre decoded strings for each base
 const encodingList = new Object();
 const helloWorldArray = "Hello World!!!".split("");
 

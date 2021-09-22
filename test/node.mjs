@@ -23,7 +23,7 @@ function exitFN() {
         console.log("Everything seems to work fine.");
         process.exit(0);
     } else {
-        console.log(`${testData.totalErrors} error(s) occured.`);
+        console.log(`${testData.totalErrors} error(s) occurred.`);
         process.exit(1);
     }
 }
@@ -76,7 +76,7 @@ function main() {
                     console.log(helpText);
                     process.exit(0);
                 default:
-                    throw new Error(`Unknown argument: '${arg}'\n Call this programm with "--help" for some advice.`);
+                    throw new Error(`Unknown argument: '${arg}'\n Call this program with "--help" for some advice.`);
             }
             getArgs();
         }
