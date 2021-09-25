@@ -1,4 +1,4 @@
-import {Base16, Base32, Base64, Base85, Base91} from "../dist/BaseEx.esm.min.js"
+import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
 import {test, testData, roundUpTests} from "./test.esm.js"
 
 async function runTests(IOtestRounds, verbose) {

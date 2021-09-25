@@ -13,7 +13,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 ### Available converters:
 * ``Base16``
 * ``Base32 (RFC 3548 and RFC 4648``
-* ``Base64 (standard and urlsafe``
+* ``Base64 (standard and urlsafe)``
 * ``Base85 (adobe/ascii85 and z85)``
 * ``Base91``
 
