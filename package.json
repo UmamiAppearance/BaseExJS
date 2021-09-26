@@ -9,8 +9,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node test/node.mjs",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "lint": "eslint ./",
+    "test": "node test/node.mjs"
   },
   "repository": {
     "type": "git",
