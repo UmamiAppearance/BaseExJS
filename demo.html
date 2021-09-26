@@ -78,7 +78,7 @@
                     },
 
                     encDecType: {
-                        // Refers to select field on in-/outpzt
+                        // Refers to select field on in-/output
 
                         get: function() {
                             // Returns the current encoding type
@@ -104,7 +104,7 @@
                                 this[this._type] = byteConverter[val](this[this._type]);
 
                             } else {
-                                // Change the currend base type on the 
+                                // Change the current base type on the 
                                 // Data object
                                 this.curTypes.decode = val;
 
@@ -114,7 +114,7 @@
                                     this.message = this.output;
 
                                 } else {
-                                    // If the base change appeares on input
+                                    // If the base change appearers on input
                                     // the current mode is "decode". In this
                                     // case the input field needs to change its 
                                     // base. To achieve this, the output value
@@ -148,7 +148,7 @@
 
                             // If the output type is set to bytes it gets
                             // converted to a string where each byte value
-                            // is seperated by a space. To activate this case
+                            // is separated by a space. To activate this case
                             // "toStrBytes" needs to be set to true.
                             let toStrBytes = false;
 
@@ -169,14 +169,14 @@
                                 if (this.curTypes.encode === "bytes") {
                                     // If there are bytes involved either ...
                                     if (this.mode === "encode") {
-                                        // ... convert the bytestring to actual 
+                                        // ... convert the byte string to actual 
                                         // bytes (typed uInt8array) ...
 
                                         input = byteConverter.toUint(val);
                                     } else {
                                         
                                         // ... or convert the output to a
-                                        // bytestring as a last step 
+                                        // byte string as a last step 
                                         // (depends on mode [en-/decode]).
                                         toStrBytes = true;
                                     }
@@ -189,7 +189,7 @@
                                 input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
                             }
                             
-                            // Generate output by runnig the
+                            // Generate output by running the
                             // specified conversion.
                             const output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
 
@@ -232,7 +232,7 @@
                     code: function() {
                         const isBytes = this.curTypes.encode === "bytes";
                         
-                        // generate a bytestring, that is seperated by kommas
+                        // generate a byte string, that is separated by commas
                         const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
 
                         // escape double quotes and escape char 

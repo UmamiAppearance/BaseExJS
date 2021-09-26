@@ -73,7 +73,7 @@ class Base16 {
         input = String(input).replace(/^0x/, '');
         
         // Ensure even number of characters
-        if (Boolean(input.length % 2)) {
+        if (input.length % 2) {
             input = "0".concat(input);
         }
         
@@ -180,7 +180,7 @@ class Base32 {
 
         // If the input is unpadded, pad it.
         const missingChars = input.length % 8;
-        if (Boolean(missingChars)) {
+        if (missingChars) {
             input = input.padEnd(input.length + 8-missingChars, "=");
         }
 
@@ -286,7 +286,7 @@ class Base64 {
  
         // If the input is unpadded, pad it.
         const missingChars = input.length % 4;
-        if (Boolean(missingChars)) {
+        if (missingChars) {
             input = input.padEnd(input.length + 4-missingChars, "=");
         }
 
@@ -383,8 +383,8 @@ class Base85 {
 
         // Initialize the replacing of null bytes for ascii85
         let replacer = null;
-        if (Boolean(version.match(/adobe|ascii85/))) {
-            replacer = (frame, zPad) => (!Boolean(zPad) && frame === "!!!!!") ? "z" : frame;
+        if (version.match(/adobe|ascii85/)) {
+            replacer = (frame, zPad) => (!zPad && frame === "!!!!!") ? "z" : frame;
         }
 
         // Convert to Base85 string        
@@ -425,7 +425,7 @@ class Base85 {
         input = input.replace(/\s/g,'');        //remove all whitespace from input
         
         // For default ascii85 convert "z" back to "!!!!!"
-        if (Boolean(version.match(/adobe|ascii85/))) {
+        if (version.match(/adobe|ascii85/)) {
             input = input.replace(/z/g, "!!!!!");
             if (version === "adobe") {
                 input = input.replace(/^<~|~>$/g, "");
@@ -448,6 +448,7 @@ class Base85 {
             if (!debug) {
                 const date = new Date();
                 if (date.getMonth() === 3 && date.getDate() === 1) {
+                    // eslint-disable-next-line no-useless-escape
                     console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
                 } else {
                     const ts = date.getTime();
@@ -582,7 +583,7 @@ class Base91 {
         // If the bitCount is not zero at the end,
         // calculate quotient and remainder of 91
         // once more.
-        if (Boolean(bitCount)) {
+        if (bitCount) {
             let q, r;
             [q, r] = this.utils.divmod(n, 91);
 
@@ -626,7 +627,7 @@ class Base91 {
         // if the length of the input string is odd.
 
         let odd = false;
-        if (Boolean(l % 2)) {
+        if (l % 2) {
             odd = true;
             l--;
         }
@@ -656,7 +657,7 @@ class Base91 {
                 n >>= 8;
                 bitCount -= 8;
             } while (bitCount > 7);
-        };
+        }
 
         // Calculate the last byte if the input is odd
         // and add it
@@ -776,7 +777,7 @@ class BaseExConv {
             );
 
             // Ascii85 is replacing four consecutive "!" into "z"
-            if (Boolean(replacer)) {
+            if (replacer) {
                 frame = replacer(frame, zeroPadding);
             }
 
@@ -970,7 +971,7 @@ class BaseExUtils {
 
                 charset = new Set(charset);
 
-            } else if (typeof charset !== "set") {
+            } else if (typeof charset !== "object") { // TODO: unprecise test
                 throw new TypeError("The charset must be one of the types:\n'str', 'set', 'array'.");
             }
             
@@ -1044,7 +1045,7 @@ class BaseExUtils {
             validArgs = this.root.IOtypes;
         }
 
-        if (Boolean(args.length)) {
+        if (args.length) {
             args.forEach(arg => {
                 arg = String(arg).toLowerCase();
                 if (!validArgs.includes(arg)) {
