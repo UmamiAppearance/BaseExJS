@@ -12,16 +12,15 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 
 ### Available converters:
 * ``Base16``
-* ``Base32 (RFC 3548 and RFC 4648``
+* ``Base32 (RFC 3548 and RFC 4648)``
 * ``Base64 (standard and urlsafe)``
 * ``Base85 (adobe/ascii85 and z85)``
 * ``Base91``
 
 
-
 ## Installation
 
-### Github
+### GitHub
 ```sh
 git clone https://github.com/UmamiAppearance/BaseExJS.git
 ```
@@ -31,6 +30,29 @@ git clone https://github.com/UmamiAppearance/BaseExJS.git
 nmp install base-ex
 ```
 
+## Build
+The GitHub repository has ready to use builds included. You can find them in [dist](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist). The npm package comes without pre build files. 
+
+_To be able to build, make sure to install the package with:_
+```sh
+npm i base-ex --save-dev
+```
+
+For building you have to run:
+
+```sh
+npm run build
+``` 
+
+Either way you have two builds available ([esm](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE)), plus a minified version of each. 
+* ``BaseEx.esm.js``
+* ``BaseEx.esm.min.js``
+* ``BaseEx.iife.js``
+* ``BaseEx.iife.min.js``
+
+If you need to use BaseEx in your browser with a classic script tag, use a ``iife`` version. For modular usage ``esm``.
+
+
 ## Usage
 
 ### Importing
@@ -39,7 +61,7 @@ nmp install base-ex
 
 ```html
 <!-- the classic -->
-<script src="path/BaseEx.min.js"></script>
+<script src="path/BaseEx.iife.min.js"></script>
 ```
 
 ```js
@@ -62,7 +84,15 @@ import {Base32} from "base-ex"
 ```
 
 #### Available imports Browser/Node
-The classic import via script tag has them all available without further ado. Full import for ES6 modules:  
+The classic import via script tag has them all available without further ado. As it is a [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE)), everything is available under the scope of ``BaseEx``.
+
+* ``BaseEx.Base16``
+* ``BaseEx.Base32``
+* ...
+* ``BaseEx.BaseEx``
+
+Full import for ES6 modules: 
+
 ```js
 // browser
 import {Base16, Base32, Base64, Base85, Base91, BaseEx} from "./path/BaseEx.esm.min.js"

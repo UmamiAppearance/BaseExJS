@@ -6,12 +6,12 @@ export default {
         {   
             format: "iife",
             name: "BaseEx",
-            file: "dist/BaseEx.js"
+            file: "dist/BaseEx.iife.js"
         },
         {   
             format: "iife",
             name: "BaseEx",
-            file: "dist/BaseEx.min.js",
+            file: "dist/BaseEx.iife.min.js",
             plugins: [terser()]
         },
         {   
