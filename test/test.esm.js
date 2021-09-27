@@ -181,7 +181,7 @@ async function test(base, IOtestRounds, verbose=false) {
     if (verbose) {
         console.log(`< Tests: ${testData[name].testCount}, failed: ${testData[name].failed}\n`);
         console.log(`> Starting IO tests`);
-    };
+    }
 
 
     // test en- and decoding of random strings and bytes
@@ -246,7 +246,7 @@ async function test(base, IOtestRounds, verbose=false) {
 
 function roundUpTests(callback) {
     // final function after tests are done
-    if (!Boolean(testData.totalErrors)) {
+    if (!testData.totalErrors) {
         testData.successRate = 100;
     } else {
         testData.successRate = ((1 - testData.totalErrors / testData.totalTests) * 100).toFixed(2);

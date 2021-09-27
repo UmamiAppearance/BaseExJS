@@ -971,7 +971,7 @@ class BaseExUtils {
 
                 charset = new Set(charset);
 
-            } else if (typeof charset !== "object") { // TODO: unprecise test
+            } else if (!(charset instanceof Set)) {
                 throw new TypeError("The charset must be one of the types:\n'str', 'set', 'array'.");
             }
             
@@ -1078,7 +1078,7 @@ class BaseExUtils {
     }
 
     warning(message) {
-        if (console.hasOwnProperty("warn")) {
+        if (Object.prototype.hasOwnProperty.call(console, "warn")) {
             console.warn(message);
         } else {
             console.log(`___\n${message}\n`);
