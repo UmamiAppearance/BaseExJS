@@ -5,7 +5,6 @@
   "main": "src/BaseEx.js",
   "type": "module",
   "directories": {
-    "dist": "dist",
     "test": "test"
   },
   "scripts": {
