@@ -1,5 +1,5 @@
 import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
-import {test, testData, roundUpTests} from "./test.esm.js"
+import {roundUpTests, test, testData} from "./test.esm.js"
 
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class
@@ -8,13 +8,11 @@ async function runTests(IOtestRounds, verbose) {
     async function testGroup() {
         const base = classes.shift();
         if (base) {
-            test(base, IOtestRounds, verbose).then(() =>
-                testGroup()
-            )
+            test(base, IOtestRounds, verbose).then(() => testGroup())
         } else {
             roundUpTests(exitFN);
         }
-    };
+    }
     testGroup();
 }
 
@@ -75,6 +73,7 @@ function main() {
                 case "--help":
                     console.log(helpText);
                     process.exit(0);
+                    break;
                 default:
                     throw new Error(`Unknown argument: '${arg}'\n Call this program with "--help" for some advice.`);
             }
@@ -104,6 +103,4 @@ Arguments:
 
 `.trim();
 
-
-process.env.NODE_ENV = 'production';
 main();
