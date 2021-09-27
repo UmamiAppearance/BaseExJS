@@ -84,14 +84,14 @@ import {Base32} from "base-ex"
 ```
 
 #### Available imports Browser/Node
-The classic import via script tag has them all available without further ado. As it is a [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE)), everything is available under the scope of ``BaseEx``.
+The **classic import** via script tag has them all available without further ado. As it is a [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE), everything is available under the scope of ``BaseEx``.
 
 * ``BaseEx.Base16``
 * ``BaseEx.Base32``
 * ...
 * ``BaseEx.BaseEx``
 
-Full import for ES6 modules: 
+Full **import** for **ES6** modules: 
 
 ```js
 // browser
