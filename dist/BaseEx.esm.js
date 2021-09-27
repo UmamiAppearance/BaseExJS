@@ -16,7 +16,7 @@ class Base16 {
     constructor(version="default", input="str", output="str") {
         this.charsets = {
             default: "0123456789abcdef" 
-        }
+        };
 
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
@@ -24,7 +24,7 @@ class Base16 {
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
         this.converter = new BaseExConv(16, 1, 2);
-        this.converter.padAmount = [0]
+        this.converter.padAmount = [0];
     }
 
     encode(input, ...args) {
@@ -110,7 +110,7 @@ class Base32 {
         this.charsets = {
             rfc3548: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
-        }
+        };
 
         this.padding = Boolean(padding);
         this.IOtypes = ["str", "bytes"];
@@ -216,7 +216,7 @@ class Base64 {
         this.charsets = {
             default: b62Chars.concat("+/"),
             urlsafe: b62Chars.concat("-_")
-        }
+        };
 
         this.padding = Boolean(padding);
         this.IOtypes = ["str", "bytes"];
@@ -345,7 +345,7 @@ class Base85 {
             adobe: asciiChars,
             rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
-        }
+        };
         
         this.IOtypes = ["str", "bytes"];
         this.utils = new BaseExUtils(this);
@@ -464,7 +464,7 @@ class Base85 {
                     this.utils.warning(msg);
                 }
             }
-        }
+        };
     }
 }
 
@@ -489,7 +489,7 @@ class Base91 {
         */
         this.charsets = {
             default: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
-        }
+        };
         
         this.IOtypes = ["str", "bytes"];
 
@@ -497,7 +497,7 @@ class Base91 {
         this.utils.binPow = {
             13: 2**13,
             14: 2**14
-        }
+        };
         this.utils.divmod = (x, y) => [Math.floor(x / y), x % y];
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
@@ -692,7 +692,7 @@ class BaseExConv {
         */
         this.radix = radix;
         this.bsEnc = bsEnc;
-        this.bsDec = bsDec
+        this.bsDec = bsDec;
     }
 
     encode(inputBytes, charset, replacer=null) {
@@ -910,7 +910,7 @@ class BaseExConv {
              64: [64**0, 64**1, 64**2, 64**3],
              85: [85**0, 85**1, 85**2, 85**3, 85**4 ],
             256: [256**0, 256**1, 256**2, 256**3, 256**4]
-        }
+        };
         return powList[radix][n];
     }
 }
@@ -983,7 +983,7 @@ class BaseExUtils {
             } else {
                 throw new Error(`The the length of the charset must be ${setLen}.`);
             }
-        }
+        };
 
         // Save method (argument gets validated) to 
         // change the default version.
@@ -1024,7 +1024,7 @@ class BaseExUtils {
             if (arg in this.root.charsets) {
                 version = arg; 
             }
-        })
+        });
         return version;
     }
 
@@ -1105,5 +1105,4 @@ class BaseEx {
     }
 }
 
-// This export statement needs to be deactivated for non-modular js
-export {Base16, Base32, Base64, Base85, Base91, BaseEx};
+export { Base16, Base32, Base64, Base85, Base91, BaseEx };

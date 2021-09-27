@@ -11,7 +11,7 @@
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
         <script type="module">
-            import {BaseEx} from "./dist/BaseEx.esm.min.js"
+            import {BaseEx} from "./src/BaseEx.js"
             import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js"
             //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js"
 
@@ -39,6 +39,8 @@
                     encode: ["str", "bytes"],
                     decode: Object.keys(baseEx),
                 },
+                importType: "esm",
+                importTypes: ["esm", "node", "iife"],
             };
             // Set the initial output
             Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
@@ -78,7 +80,7 @@
                     },
 
                     encDecType: {
-                        // Refers to select field on in-/outpzt
+                        // Refers to select field on in-/output
 
                         get: function() {
                             // Returns the current encoding type
@@ -104,7 +106,7 @@
                                 this[this._type] = byteConverter[val](this[this._type]);
 
                             } else {
-                                // Change the currend base type on the 
+                                // Change the current base type on the 
                                 // Data object
                                 this.curTypes.decode = val;
 
@@ -114,7 +116,7 @@
                                     this.message = this.output;
 
                                 } else {
-                                    // If the base change appeares on input
+                                    // If the base change appearers on input
                                     // the current mode is "decode". In this
                                     // case the input field needs to change its 
                                     // base. To achieve this, the output value
@@ -148,7 +150,7 @@
 
                             // If the output type is set to bytes it gets
                             // converted to a string where each byte value
-                            // is seperated by a space. To activate this case
+                            // is separated by a space. To activate this case
                             // "toStrBytes" needs to be set to true.
                             let toStrBytes = false;
 
@@ -169,14 +171,14 @@
                                 if (this.curTypes.encode === "bytes") {
                                     // If there are bytes involved either ...
                                     if (this.mode === "encode") {
-                                        // ... convert the bytestring to actual 
+                                        // ... convert the byte string to actual 
                                         // bytes (typed uInt8array) ...
 
                                         input = byteConverter.toUint(val);
                                     } else {
                                         
                                         // ... or convert the output to a
-                                        // bytestring as a last step 
+                                        // byte string as a last step 
                                         // (depends on mode [en-/decode]).
                                         toStrBytes = true;
                                     }
@@ -189,7 +191,7 @@
                                 input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
                             }
                             
-                            // Generate output by runnig the
+                            // Generate output by running the
                             // specified conversion.
                             const output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
 
@@ -225,6 +227,11 @@
             new Vue({ el: "#input" });
             new Vue({ el: "#output" });
 
+            new Vue({
+                el: "#import",
+                data: Data,
+            });
+
             new Vue({ 
                 el: "#codeblock",
                 data: Data,
@@ -232,7 +239,7 @@
                     code: function() {
                         const isBytes = this.curTypes.encode === "bytes";
                         
-                        // generate a bytestring, that is seperated by kommas
+                        // generate a byte string, that is separated by commas
                         const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
 
                         // escape double quotes and escape char 
@@ -252,29 +259,52 @@
                         
                         const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
                         const fixedType = (isBytes) ? `, "${this.curTypes.encode}", "${this.curTypes.encode}"` : "";
-                        const use = (isBytes) ? "setting as default:" : "making use of default";        
+                        const use = (isBytes) ? "setting as default:" : "making use of default";
+ 
+                        // import types
+                        const importComment = (this.importType !== "iife") ? `${this.importType}-module` : this.importType;
+                        let importStatement;
+                        let iife = "";
+                        let note = "// Note:\n// - It is not necessary to import both modules\n//   (use only what you need)";
+                        if (this.importType === "esm") {
+                            importStatement = `import { ${subFNName}, BaseEx } from "./path/BaseEx.esm.min.js";`;
+                            note += "\n// - remember to adjust the import path";
+                        } else if (this.importType === "node") {
+                            importStatement = `import { ${subFNName}, BaseEx } from "base-ex";`;
+                        } else {
+                            iife = "BaseEx.";
+                            importStatement = `// use the following line as your script tag:\n// &lt;script src="path/BaseEx.iise.min.js"&gt;&lt;/script&gt;`;
+                            note = "// Note:\n// - remember to adjust the path in your script tag";
+                        }
+
+
+
 // codeblock output >>>
                         const codeContent = `
- 
-const input = ${input};
+// importing as ${importComment}
+${importStatement}
+
+// setting input
+const input = ${input.replace("<", "&lt;").replace(">", "&gt;")};
 
 // Main class BaseEx
-const baseExA = new BaseEx();
+const baseExA = new ${iife}BaseEx();
 const outputA = baseExA.${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
 
 // Main class BaseEx, ${use} ${this.curTypes.encode}-type
-const baseExB = new BaseEx(${fixedType.substr(2)});
+const baseExB = new ${iife}BaseEx(${fixedType.substr(2)});
 const outputB = baseExB.${this.curTypes.decode}.${this.mode}(input);
 
 // Direct use of the required base converter
-const ${this.curTypes.decode}a = new ${subFNName}(${version});
-const outputC = ${this.curTypes.decode}a.${this.mode}(input, "${this.curTypes.encode}");
+const ${this.curTypes.decode}A = new ${iife}${subFNName}(${version});
+const outputC = ${this.curTypes.decode}A.${this.mode}(input, "${this.curTypes.encode}");
 
 // Direct use of the base converter, ${use} ${this.curTypes.encode}-type
-const ${this.curTypes.decode}b = new ${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
-const outputD = ${this.curTypes.decode}b.${this.mode}(input);
+const ${this.curTypes.decode}B = new ${iife}${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
+const outputD = ${this.curTypes.decode}B.${this.mode}(input);
 
 // ${copyPasteInfo}
+${note}
                         `.trim();
 // <<< codeblock end
                         return PR.prettyPrintOne(codeContent, "js");
@@ -349,6 +379,22 @@ const outputD = ${this.curTypes.decode}b.${this.mode}(input);
                 box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
                 color: #fff;
             }
+            #code-section {
+                margin-bottom: 24px
+            }
+            #code-section h3 {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+                border: 2px dashed #000;
+                padding: 5px;
+            }
+            #code-section select {
+                width: auto;
+                margin: 0;
+            }
             footer {
                 text-align: right;
                 margin-right: 6px;
@@ -391,7 +437,7 @@ const outputD = ${this.curTypes.decode}b.${this.mode}(input);
                     <h1>BaseEx Demo Page (Online Base Converter)</h1>
                     <p>
                         To demonstrate the capabilities of <b>BaseEx</b> it is used on this demopage to implement an online base converter.<br>
-                        <a href="#codeblock">At the end</a> of the page you can find a codeblock with possible implementations to generate the provided output.
+                        <a href="#code-section">At the end</a> of the page you can find a codeblock with possible implementations to generate the provided output.
                     </p>
                 </article>
 
@@ -438,10 +484,16 @@ const outputD = ${this.curTypes.decode}b.${this.mode}(input);
 
     <!-- Codeblock -->
 
-            <section style="margin-bottom: 24px;">
-                <article id="codeblock">
-                    <h3>possible implementations</h3>
-                    <pre><code v-html="code"></code></pre>
+            <section id="code-section">
+                <article>
+                    <h3>
+                        <span>possible implementations</span>
+                        <label for="import">as import type</label>
+                        <select id="import" v-model="importType">
+                            <option v-for="option in importTypes">{{ option }}</option>
+                        </select>
+                    </h3>
+                    <pre id="codeblock"><code v-html="code"></code></pre>
                 </article>
             </section>
        
@@ -457,4 +509,3 @@ const outputD = ${this.curTypes.decode}b.${this.mode}(input);
     </body>
 
 </html>
-

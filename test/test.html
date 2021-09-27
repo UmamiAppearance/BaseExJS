@@ -11,7 +11,7 @@
         <link rel="shortcut icon" href="#">
 
         <script type="module">
-            import {Base16, Base32, Base64, Base85, Base91} from "../dist/BaseEx.esm.min.js"
+            import {Base16, Base32, Base64, Base85, Base91} from "../src/BaseEx.js"
             import {test, testData, randInt, roundUpTests} from "./test.esm.js"
 
             async function runTests(e, IOtestRounds=randInt(42, 72)) {
@@ -187,7 +187,7 @@
                 </article>
 
 <!-- 
-    There is a lot of hardcoding following. Could be better(=>dynamically) designed.
+    There is a lot of hard coding following. Could be better(=>dynamically) designed.
     On the other hand is this a very fast developed approach and the tests are not
     expected to change regularly.
     
@@ -227,7 +227,7 @@
     Results
     -------
 
-    (Harcoding on fleek again....)
+    (Hard coding on fleek again....)
 -->
                 <article class="stage-5">
 
@@ -268,7 +268,7 @@
                             <tr class="Base64">
                                 <th>Base64</th>
                                 <td class="passed"></td>
-                                <td clasregularlys="failed"></td>
+                                <td class="failed"></td>
                                 <td class="total"></td>
                             </tr>
                             <tr class="Base85">
