@@ -953,10 +953,9 @@ class BaseExUtils {
             }
 
             // Get the appropriate length for the charset
-            // from the name of the parent function.
-            // (Which is a little hacky...)
-
-            const setLen = parseInt(this.root.constructor.name.replace(/[^0-9]/g, ""), 10);
+            // from the according converter
+            
+            const setLen = this.root.converter.radix;
             let inputLen = setLen;
             
             if (typeof charset === "string" || Array.isArray(charset)) {
