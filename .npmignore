@@ -1,2 +1,3 @@
 BaseEx.code-workspace
-dist
+dist/*
+!dist/BaseEx.cjs.js
