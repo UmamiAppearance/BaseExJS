@@ -40,7 +40,7 @@
                     decode: Object.keys(baseEx),
                 },
                 importType: "esm",
-                importTypes: ["esm", "node", "iife"],
+                importTypes: ["esm", "node-esm", "node-cjs", "iife"],
             };
             // Set the initial output
             Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
@@ -262,17 +262,21 @@
                         const use = (isBytes) ? "setting as default:" : "making use of default";
  
                         // import types
-                        const importComment = (this.importType !== "iife") ? `${this.importType}-module` : this.importType;
+                        const importComment = (this.importType.match(".*esm")) ? `${this.importType}-module` : this.importType;
                         let importStatement;
-                        let iife = "";
+                        let scopeVar = "";
                         let note = "// Note:\n// - It is not necessary to import both modules\n//   (use only what you need)";
                         if (this.importType === "esm") {
                             importStatement = `import { ${subFNName}, BaseEx } from "./path/BaseEx.esm.min.js";`;
                             note += "\n// - remember to adjust the import path";
-                        } else if (this.importType === "node") {
+                        } else if (this.importType === "node-esm") {
                             importStatement = `import { ${subFNName}, BaseEx } from "base-ex";`;
+                        } else if (this.importType === "node-cjs") {
+                            importStatement = `const BaseEx = require("base-ex");`;
+                            scopeVar = "BaseEx.";
+                            note = "";
                         } else {
-                            iife = "BaseEx.";
+                            scopeVar = "BaseEx.";
                             importStatement = `// use the following line as your script tag:\n// &lt;script src="path/BaseEx.iise.min.js"&gt;&lt;/script&gt;`;
                             note = "// Note:\n// - remember to adjust the path in your script tag";
                         }
@@ -288,19 +292,19 @@ ${importStatement}
 const input = ${input.replace("<", "&lt;").replace(">", "&gt;")};
 
 // Main class BaseEx
-const baseExA = new ${iife}BaseEx();
+const baseExA = new ${scopeVar}BaseEx();
 const outputA = baseExA.${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
 
 // Main class BaseEx, ${use} ${this.curTypes.encode}-type
-const baseExB = new ${iife}BaseEx(${fixedType.substr(2)});
+const baseExB = new ${scopeVar}BaseEx(${fixedType.substr(2)});
 const outputB = baseExB.${this.curTypes.decode}.${this.mode}(input);
 
 // Direct use of the required base converter
-const ${this.curTypes.decode}A = new ${iife}${subFNName}(${version});
+const ${this.curTypes.decode}A = new ${scopeVar}${subFNName}(${version});
 const outputC = ${this.curTypes.decode}A.${this.mode}(input, "${this.curTypes.encode}");
 
 // Direct use of the base converter, ${use} ${this.curTypes.encode}-type
-const ${this.curTypes.decode}B = new ${iife}${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
+const ${this.curTypes.decode}B = new ${scopeVar}${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
 const outputD = ${this.curTypes.decode}B.${this.mode}(input);
 
 // ${copyPasteInfo}
@@ -393,7 +397,7 @@ ${note}
             }
             #code-section select {
                 width: auto;
-                margin: 0;
+                margin: 0 0 0 1rem;
             }
             footer {
                 text-align: right;

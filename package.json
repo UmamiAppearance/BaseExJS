@@ -1,14 +1,15 @@
 {
   "name": "base-ex",
-  "version": "0.2.3",
-  "description": "A collection of classes for data representation from Base16 (hex) to BasE91 written in JavaScript.",
-  "main": "src/BaseEx.js",
-  "type": "module",
+  "version": "0.3.0",
+  "description": "A collection of classes for data representation from Base16 (hex) to basE91 written in JavaScript.",
+  "main": "dist/BaseEx.cjs.js",
+  "module": "src/BaseEx.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "build": "rollup -c",
+    "makeCJS": "rollup src/BaseEx.js --file dist/BaseEx.cjs.js --format cjs",
     "lint": "eslint ./",
     "test": "node test/node.mjs"
   },
