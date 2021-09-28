@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/base-ex?color=%23009911&style=for-the-badge)](https://www.npmjs.com/package/base-ex)
 
 
-**BaseEx** is a collection of classes for data representation from Base16 (hex) to BasE91.
+**BaseEx** is a collection of classes for data representation from Base16 (hex) to basE91.
 BaseEx is completely standalone and works client and server side.
 There are other good solutions for e.g. Base32, Base64, Base85, but BaseEx has them all in one place.
 The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - for an **X**.
@@ -30,7 +30,7 @@ git clone https://github.com/UmamiAppearance/BaseExJS.git
 nmp install base-ex
 ```
 
-## Build
+## Builds
 The GitHub repository has ready to use builds included. You can find them in [dist](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist). The npm package comes without pre build files. 
 
 For building you have to run:
@@ -71,11 +71,16 @@ import {Base32} from "./path/BaseEx.esm.min.js"
 
 #### Node
 ```js
+// ESM6 Module
+
 // main class
 import {BaseEx} from "base-ex"
 
-// explicit converter (e.g. Base32)
-import {Base32} from "base-ex"
+// explicit converter (e.g. Base64)
+import {Base64} from "base-ex"
+
+// CommonJS
+const BaseEx = require("base-ex"); 
 ```
 
 #### Available imports Browser/Node
@@ -85,6 +90,8 @@ The **classic import** via script tag has them all available without further ado
 * ``BaseEx.Base32``
 * ...
 * ``BaseEx.BaseEx``
+
+The same goes for the CommonJS import from Node. The only difference is, that the scope is not necessarily named ``BaseEx``, as this is defined by the user (``const myName = require("base-ex") --> myName.Base16...``).
 
 Full **import** for **ES6** modules: 
 
