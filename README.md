@@ -33,11 +33,6 @@ nmp install base-ex
 ## Build
 The GitHub repository has ready to use builds included. You can find them in [dist](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist). The npm package comes without pre build files. 
 
-_To be able to build, make sure to install the package with:_
-```sh
-npm i base-ex --save-dev
-```
-
 For building you have to run:
 
 ```sh
@@ -102,7 +97,7 @@ import {Base16, Base32, Base64, Base85, Base91, BaseEx} from "base-ex"
 ```
 
 ### Working with it (Browser/Node)
-Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html). You'll find an online base converter and code examples that will work independently from your environment (assuming the used class is imported).
+Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html). You'll find an online base converter and code examples that will work independently from your environment.
 
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
