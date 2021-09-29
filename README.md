@@ -91,7 +91,7 @@ The **classic import** via script tag has them all available without further ado
 * ...
 * ``BaseEx.BaseEx``
 
-The same goes for the CommonJS import from Node. The only difference is, that the scope is not necessarily named ``BaseEx``, as this is defined by the user (``const myName = require("base-ex") --> myName.Base16...``).
+The same goes for the **CommonJS import** from Node. The only difference is, that the scope is not necessarily named ``BaseEx``, as this is defined by the user (``const myName = require("base-ex") --> myName.Base16...``).
 
 Full **import** for **ES6** modules: 
 
