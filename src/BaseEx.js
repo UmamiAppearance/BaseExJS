@@ -1003,6 +1003,25 @@ class BaseExUtils {
         return args.map(s => `'${s}'`).join(", ")
     }
 
+    getInputType(input) {
+        let inputUint8;
+        
+        if (typeof(input) === "string" || input instanceof String) {
+            inputUint8 = new TextEncoder().encode(input);
+
+        } else if (ArrayBuffer.isView(input)) {
+            inputUint8 = new Uint8Array(input.buffer);
+
+        } else if (input instanceof ArrayBuffer) {
+            inputUint8 = new Uint8Array(input);
+
+        } else if ((typeof(input) === "number") {
+            //
+        }
+
+        return inputUint8;
+    }
+
     setIOType(args, IO) {
         /* 
             Set type for input or output (bytes or string).
