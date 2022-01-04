@@ -1006,17 +1006,40 @@ class BaseExUtils {
     getInputType(input) {
         let inputUint8;
         
-        if (typeof(input) === "string" || input instanceof String) {
+        // String:
+        if (typeof input === "string" || input instanceof String) {
             inputUint8 = new TextEncoder().encode(input);
 
+        // TypedArrays and DataViews:
         } else if (ArrayBuffer.isView(input)) {
             inputUint8 = new Uint8Array(input.buffer);
 
+        // Buffer:
         } else if (input instanceof ArrayBuffer) {
             inputUint8 = new Uint8Array(input);
 
-        } else if ((typeof(input) === "number") {
-            //
+        // Numbers:
+        } else if (typeof input === "number") {
+            
+            const littleEndian = () => {
+                const testInt = new Uint16Array([1]);
+                const byteRepresentation = new Uint8Array(testInt.buffer);
+                return byteRepresentation.at(0);
+            }
+
+            if (Number.isInteger(input)) {
+
+                if (!Number.isSafeInteger(input)) {
+                    this.warning(`The provided integer is bigger than MAX_SAFE_INTEGER: '${Number.MAX_SAFE_INTEGER}'\nData loss can not be ruled out. Use a BigInt to avoid this issue.`);
+                }
+
+                if (n < -4294967297 || )
+                let n = input;
+
+            }
+
+
+
         }
 
         return inputUint8;
