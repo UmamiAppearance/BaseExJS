@@ -7,16 +7,10 @@
  */
 
 
-const SYS_LITTLE_ENDIAN = (() => {
-    const testInt = new Uint16Array([1]);
-    const byteRepresentation = new Uint8Array(testInt.buffer);
-    return Boolean(byteRepresentation[0]);
-})();
-
-
 class Base16 {
     /*
         En-/decoding to and from base16 (hexadecimal).
+        For integers two's complement system is getting used.
         (Requires "BaseExConv", "BaseExUtils")
     */
 
@@ -752,7 +746,6 @@ class BaseExConv {
             
             // Convert the subarray into a bs*8-bit binary 
             // number "n", most significant byte first (big endian).
-            // FIXME: make this safe for BE systems
 
             let n = 0;
             subArray.forEach((b, j) => n += b * this.pow(256, (bs-1-j)));
@@ -1011,78 +1004,126 @@ class BaseExUtils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
-    getInputType(input) {
+    prepareInput(input) {
 
         let inputUint8;
         
-        // String:
-        if (typeof input === "string" || input instanceof String) {
-            inputUint8 = new TextEncoder().encode(input);
-
-        // TypedArrays and DataViews:
-        } else if (ArrayBuffer.isView(input)) {
-            inputUint8 = new Uint8Array(input.buffer);
-
         // Buffer:
-        } else if (input instanceof ArrayBuffer) {
-            inputUint8 = new Uint8Array(input);
+        if (input instanceof ArrayBuffer) {
+            inputUint8 = new Uint8Array(input)
+        }
 
-        // Numbers:
-        } else if (typeof input === "number" && !isNaN(input)) { 
+        // TypedArray or DataView:
+        else if (ArrayBuffer.isView(input)) {
+            inputUint8 = new Uint8Array(input.buffer);
+        }
+        
+        // String:
+        else if (typeof input === "string" || input instanceof String) {
+            inputUint8 = new TextEncoder().encode(input);
+        }
+        
+        // Number:
+        else if (typeof input === "number" && !isNaN(input)) { 
+            
+            let view;
 
-            // Integers
+            // Integer
             if (Number.isInteger(input)) {
 
+                const makeDataView = (byteLen) => {
+                    const buffer = new ArrayBuffer(byteLen);
+                    return new DataView(buffer);
+                }
+
                 if (!Number.isSafeInteger(input)) {
-                    this.warning(`The provided integer is bigger than MAX_SAFE_INTEGER: '${Number.MAX_SAFE_INTEGER}'\nData loss is possible. Use a BigInt to avoid this issue.`);
-                }
-
-                // Signed Integers
-                if (input < 0) {
-                    if (input < -2147483648) {
-                        const Int64 = new BigInt64Array([BigInt(input)]);
-                        inputUint8 = new Uint8Array(Int64.buffer);
-
-                    } else if (input < -32768) {
-                        const Int32 = new Int32Array([input]);
-                        inputUint8 = new Uint8Array(Int32.buffer);
                     
+                    let safeInt;
+                    let smallerOrBigger;
+                    let minMax;
+
+                    if (input < 0) {
+                        safeInt = Number.MIN_SAFE_INTEGER;
+                        smallerOrBigger = "smaller";
+                        minMax = "MIN";
                     } else {
-                        const Int16 = new Int16Array([input]);
-                        inputUint8 = new Uint8Array(Int16.buffer);
+                        safeInt = Number.MAX_SAFE_INTEGER;
+                        smallerOrBigger = "bigger";
+                        minMax = "MAX";
                     }
-                
-                // Unsigned Integers
-                } else if (input > 0) {
-                    if (input > 4294967295) {
-                        const Uint64 = new BigUint64Array([BigInt(input)]);
-                        inputUint8 = new Uint8Array(Uint64.buffer);
 
-                    } else if (input > 65535) {
-                        const Uint32 = new Uint32Array([input]);
-                        inputUint8 = new Uint8Array(Uint32.buffer);
-
-                    } else {
-                        const Uint16 = new Uint16Array([input]);
-                        inputUint8 = new Uint8Array(Uint16.buffer);
-
-                    }
-                
-                // Zero
-                } else {
-                    inputUint8 = new Uint8Array([0]);
+                    this.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
                 }
+
+                // Signed Integer
+                if (input < 0) {
+                    
+                    // 64 bit
+                    if (input < -2147483648) {
+                        view = makeDataView(8);
+                        view.setBigInt64(0, BigInt(input), false);
+                    }
+                    
+                    // 32 bit
+                    else if (input < -32768) {
+                        view = makeDataView(4);
+                        view.setInt32(0, input, false);
+                    }
+
+                    // 16 bit
+                    else {
+                        view = makeDataView(2);
+                        view.setInt16(0, input, false);
+                    }
+                }
+
+                // Unsigned Integer
+                else if (input > 0) {
+
+                    // 64 bit
+                    if (input > 4294967295) {
+                        view = makeDataView(8);
+                        view.setBigUint64(0, BigInt(input), false);
+                    }
+                    
+                    // 32 bit
+                    else if (input > 65535) {
+                        view = makeDataView(4);
+                        view.setUint32(0, input, false);
+                    }
+                    
+                    // 16 bit
+                    else {
+                        view = makeDataView(2);
+                        view.setInt16(0, input, false);
+                    }
+                }
+
+                // Zero
+                else {
+                    view = new Uint16Array([0]);
+                }
+            }
             
-            // Floating Point Values
-            } else {
+            // Floating Point Number
+            else {
                 // float
             }
 
-            // On little endian systems (almost always) the byte order
-            // has to be changed to big endian
-            if (SYS_LITTLE_ENDIAN) {
-                inputUint8.reverse();
+            inputUint8 = new Uint8Array(view.buffer);
+        }
+
+        // Array
+        else if (Array.isArray(input)) {
+            const collection = new Array();
+            for (const elem of input) {
+                collection.push(...this.prepareInput(elem));
             }
+            inputUint8 = Uint8Array.from(collection);
+        }
+
+        else {
+            throw new TypeError("The provided input type can not be processed.");
         }
 
         return inputUint8;
