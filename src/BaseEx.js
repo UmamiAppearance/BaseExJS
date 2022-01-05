@@ -1004,6 +1004,107 @@ class BaseExUtils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
+    prepareNumberInput(input) {
+        const makeDataView = (byteLen) => {
+            const buffer = new ArrayBuffer(byteLen);
+            return new DataView(buffer);
+        }
+
+        let view;
+
+        // Integer
+        if (Number.isInteger(input)) {
+
+            if (!Number.isSafeInteger(input)) {
+                
+                let safeInt;
+                let smallerOrBigger;
+                let minMax;
+
+                if (input < 0) {
+                    safeInt = Number.MIN_SAFE_INTEGER;
+                    smallerOrBigger = "smaller";
+                    minMax = "MIN";
+                } else {
+                    safeInt = Number.MAX_SAFE_INTEGER;
+                    smallerOrBigger = "bigger";
+                    minMax = "MAX";
+                }
+
+                this.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
+            }
+
+            // Signed Integer
+            if (input < 0) {
+                
+                // 64 bit
+                if (input < -2147483648) {
+                    view = makeDataView(8);
+                    view.setBigInt64(0, BigInt(input), false);
+                }
+                
+                // 32 bit
+                else if (input < -32768) {
+                    view = makeDataView(4);
+                    view.setInt32(0, input, false);
+                }
+
+                // 16 bit
+                else {
+                    view = makeDataView(2);
+                    view.setInt16(0, input, false);
+                }
+            }
+
+            // Unsigned Integer
+            else if (input > 0) {
+
+                // 64 bit
+                if (input > 4294967295) {
+                    view = makeDataView(8);
+                    view.setBigUint64(0, BigInt(input), false);
+                }
+                
+                // 32 bit
+                else if (input > 65535) {
+                    view = makeDataView(4);
+                    view.setUint32(0, input, false);
+                }
+                
+                // 16 bit
+                else {
+                    view = makeDataView(2);
+                    view.setInt16(0, input, false);
+                }
+            }
+
+            // Zero
+            else {
+                view = new Uint16Array([0]);
+            }
+        }
+        
+        // Floating Point Number
+        else {
+            
+            // 32 Bit
+            // eslint-disable-next-line no-lonely-if
+            if (input > 1.2e-38 && input < 3.4e+38) {
+                view = makeDataView(4);
+                view.setFloat32(0, input, false);
+            }
+
+            // 64 Bit
+            else {
+                view = makeDataView(8);
+                view.setFloat64(0, input, false);
+            }
+        }
+
+        return new Uint8Array(view.buffer);
+
+    }
+
     prepareInput(input) {
 
         let inputUint8;
@@ -1025,92 +1126,7 @@ class BaseExUtils {
         
         // Number:
         else if (typeof input === "number" && !isNaN(input)) { 
-            
-            let view;
-
-            // Integer
-            if (Number.isInteger(input)) {
-
-                const makeDataView = (byteLen) => {
-                    const buffer = new ArrayBuffer(byteLen);
-                    return new DataView(buffer);
-                }
-
-                if (!Number.isSafeInteger(input)) {
-                    
-                    let safeInt;
-                    let smallerOrBigger;
-                    let minMax;
-
-                    if (input < 0) {
-                        safeInt = Number.MIN_SAFE_INTEGER;
-                        smallerOrBigger = "smaller";
-                        minMax = "MIN";
-                    } else {
-                        safeInt = Number.MAX_SAFE_INTEGER;
-                        smallerOrBigger = "bigger";
-                        minMax = "MAX";
-                    }
-
-                    this.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
-                }
-
-                // Signed Integer
-                if (input < 0) {
-                    
-                    // 64 bit
-                    if (input < -2147483648) {
-                        view = makeDataView(8);
-                        view.setBigInt64(0, BigInt(input), false);
-                    }
-                    
-                    // 32 bit
-                    else if (input < -32768) {
-                        view = makeDataView(4);
-                        view.setInt32(0, input, false);
-                    }
-
-                    // 16 bit
-                    else {
-                        view = makeDataView(2);
-                        view.setInt16(0, input, false);
-                    }
-                }
-
-                // Unsigned Integer
-                else if (input > 0) {
-
-                    // 64 bit
-                    if (input > 4294967295) {
-                        view = makeDataView(8);
-                        view.setBigUint64(0, BigInt(input), false);
-                    }
-                    
-                    // 32 bit
-                    else if (input > 65535) {
-                        view = makeDataView(4);
-                        view.setUint32(0, input, false);
-                    }
-                    
-                    // 16 bit
-                    else {
-                        view = makeDataView(2);
-                        view.setInt16(0, input, false);
-                    }
-                }
-
-                // Zero
-                else {
-                    view = new Uint16Array([0]);
-                }
-            }
-            
-            // Floating Point Number
-            else {
-                // float
-            }
-
-            inputUint8 = new Uint8Array(view.buffer);
+            inputUint8 = this.prepareNumberInput(input);    
         }
 
         // Array
