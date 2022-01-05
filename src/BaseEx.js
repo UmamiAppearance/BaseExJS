@@ -1084,7 +1084,7 @@ class BaseExUtils {
             }
         }
         
-        // Floating Point Number
+        // Floating Point Number:
         else {
             
             // 32 Bit
@@ -1095,15 +1095,66 @@ class BaseExUtils {
             }
 
             // 64 Bit
-            else {
+            else if (input > 2.3e-308 && input < 1.7e+308) {
                 view = makeDataView(8);
                 view.setFloat64(0, input, false);
+            }
+
+            else {
+                throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.");
             }
         }
 
         return new Uint8Array(view.buffer);
 
     }
+
+
+    prepareBigInput(input) {
+        // Since BigInts are not limited to 64 bits, they might
+        // overflow the BigInt64Array values. A little more 
+        // handwork is therefore needed.
+
+        // as the integer size is not known yet, the bytes get a
+        // makeshift home
+        const byteArray = new Array();
+
+        if (input > 0) {
+            
+            const overflow = 18446744073709551616n; 
+
+            while (input >= overflow) {
+                byteArray.unshift(input % overflow);
+                input >>= 64n;
+            }
+            console.log("ui-input", input);
+        }
+
+        else if (input < 0) {
+            const overflow = -9223372036854775808n;
+
+            while (input <= overflow) {
+                byteArray.unshift(input % overflow);
+                input >>= 64n;
+            }
+            console.log("si-input", input);
+        }
+
+        byteArray.unshift(input);
+
+        const byteLen = byteArray.length * 8;
+
+        const buffer = new ArrayBuffer(byteLen);
+        const view = new DataView(buffer);
+
+        byteArray.forEach((bigInt, i) => {
+            const offset = i * 8;
+            view.setBigUint64(offset, bigInt, false);
+        });
+
+        return new Uint8Array(view.buffer);
+    }
+
 
     prepareInput(input) {
 
@@ -1125,8 +1176,13 @@ class BaseExUtils {
         }
         
         // Number:
-        else if (typeof input === "number" && !isNaN(input)) { 
+        else if (typeof input === "number" && !isNaN(input) && !Infinity) { 
             inputUint8 = this.prepareNumberInput(input);    
+        }
+
+        // BigInt:
+        else if (typeof input === "bigint") {
+            inputUint8 = this.prepareBigInput(input);
         }
 
         // Array
