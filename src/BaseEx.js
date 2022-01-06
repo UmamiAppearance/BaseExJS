@@ -467,8 +467,8 @@ class Base85 {
                     const H = Math.floor((dist % 86400000) / 3600000);
                     const M = Math.floor((dist % 3600000) / 60000);
                     const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                    this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                    this.utils.warning(msg);
+                    BaseExUtils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                    BaseExUtils.warning(msg);
                 }
             }
         }
@@ -1004,203 +1004,6 @@ class BaseExUtils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
-    prepareNumberInput(input) {
-        const makeDataView = (byteLen) => {
-            const buffer = new ArrayBuffer(byteLen);
-            return new DataView(buffer);
-        }
-
-        let view;
-
-        // Integer
-        if (Number.isInteger(input)) {
-
-            if (!Number.isSafeInteger(input)) {
-                
-                let safeInt;
-                let smallerOrBigger;
-                let minMax;
-
-                if (input < 0) {
-                    safeInt = Number.MIN_SAFE_INTEGER;
-                    smallerOrBigger = "smaller";
-                    minMax = "MIN";
-                } else {
-                    safeInt = Number.MAX_SAFE_INTEGER;
-                    smallerOrBigger = "bigger";
-                    minMax = "MAX";
-                }
-
-                this.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
-            }
-
-            // Signed Integer
-            if (input < 0) {
-                
-                // 64 bit
-                if (input < -2147483648) {
-                    view = makeDataView(8);
-                    view.setBigInt64(0, BigInt(input), false);
-                }
-                
-                // 32 bit
-                else if (input < -32768) {
-                    view = makeDataView(4);
-                    view.setInt32(0, input, false);
-                }
-
-                // 16 bit
-                else {
-                    view = makeDataView(2);
-                    view.setInt16(0, input, false);
-                }
-            }
-
-            // Unsigned Integer
-            else if (input > 0) {
-
-                // 64 bit
-                if (input > 4294967295) {
-                    view = makeDataView(8);
-                    view.setBigUint64(0, BigInt(input), false);
-                }
-                
-                // 32 bit
-                else if (input > 65535) {
-                    view = makeDataView(4);
-                    view.setUint32(0, input, false);
-                }
-                
-                // 16 bit
-                else {
-                    view = makeDataView(2);
-                    view.setInt16(0, input, false);
-                }
-            }
-
-            // Zero
-            else {
-                view = new Uint16Array([0]);
-            }
-        }
-        
-        // Floating Point Number:
-        else {
-            
-            // 32 Bit
-            // eslint-disable-next-line no-lonely-if
-            if (input > 1.2e-38 && input < 3.4e+38) {
-                view = makeDataView(4);
-                view.setFloat32(0, input, false);
-            }
-
-            // 64 Bit
-            else if (input > 2.3e-308 && input < 1.7e+308) {
-                view = makeDataView(8);
-                view.setFloat64(0, input, false);
-            }
-
-            else {
-                throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.");
-            }
-        }
-
-        return new Uint8Array(view.buffer);
-
-    }
-
-
-    prepareBigInput(input) {
-        // Since BigInts are not limited to 64 bits, they might
-        // overflow the BigInt64Array values. A little more 
-        // handwork is therefore needed.
-
-        // as the integer size is not known yet, the bytes get a
-        // makeshift home
-        const byteArray = new Array();
-
-        if (input > 0) {
-            
-            const overflow = 18446744073709551616n; 
-
-            while (input >= overflow) {
-                byteArray.unshift(input % overflow);
-                input >>= 64n;
-            }
-            console.log("ui-input", input);
-        }
-
-        else if (input < 0) {
-            const overflow = -9223372036854775808n;
-
-            while (input <= overflow) {
-                byteArray.unshift(input % overflow);
-                input >>= 64n;
-            }
-            console.log("si-input", input);
-        }
-
-        byteArray.unshift(input);
-
-        const byteLen = byteArray.length * 8;
-
-        const buffer = new ArrayBuffer(byteLen);
-        const view = new DataView(buffer);
-
-        byteArray.forEach((bigInt, i) => {
-            const offset = i * 8;
-            view.setBigUint64(offset, bigInt, false);
-        });
-
-        return new Uint8Array(view.buffer);
-    }
-
-
-    prepareInput(input) {
-
-        let inputUint8;
-        
-        // Buffer:
-        if (input instanceof ArrayBuffer) {
-            inputUint8 = new Uint8Array(input)
-        }
-
-        // TypedArray or DataView:
-        else if (ArrayBuffer.isView(input)) {
-            inputUint8 = new Uint8Array(input.buffer);
-        }
-        
-        // String:
-        else if (typeof input === "string" || input instanceof String) {
-            inputUint8 = new TextEncoder().encode(input);
-        }
-        
-        // Number:
-        else if (typeof input === "number" && !isNaN(input) && !Infinity) { 
-            inputUint8 = this.prepareNumberInput(input);    
-        }
-
-        // BigInt:
-        else if (typeof input === "bigint") {
-            inputUint8 = this.prepareBigInput(input);
-        }
-
-        // Array
-        else if (Array.isArray(input)) {
-            const collection = new Array();
-            for (const elem of input) {
-                collection.push(...this.prepareInput(elem));
-            }
-            inputUint8 = Uint8Array.from(collection);
-        }
-
-        else {
-            throw new TypeError("The provided input type can not be processed.");
-        }
-
-        return inputUint8;
-    }
-
     setIOType(args, IO) {
         /* 
             Set type for input or output (bytes or string).
@@ -1267,7 +1070,7 @@ class BaseExUtils {
         */
         if (inputType === "str") {
             if (typeof input !== "string") {
-                this.warning("Your input was converted into a string.");
+                this.constructor.warning("Your input was converted into a string.");
             }
             return String(input);
         } else {
@@ -1280,12 +1083,219 @@ class BaseExUtils {
         }
     }
 
-    warning(message) {
+    static warning(message) {
         if (Object.prototype.hasOwnProperty.call(console, "warn")) {
             console.warn(message);
         } else {
             console.log(`___\n${message}\n`);
         }
+    }
+}
+
+
+class InputMiseEnPlace {
+
+    makeDataView(byteLen) {
+        const buffer = new ArrayBuffer(byteLen);
+        return new DataView(buffer);
+    }
+
+    floatingPoints(input) {
+        
+        let view;
+        
+        // 32 Bit
+        if (input > 1.2e-38 && input < 3.4e+38) {
+            view = this.makeDataView(4);
+            view.setFloat32(0, input, false);
+        }
+
+        // 64 Bit
+        else if (input > 2.3e-308 && input < 1.7e+308) {
+            view = this.makeDataView(8);
+            view.setFloat64(0, input, false);
+        }
+
+        else {
+            throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.");
+        }
+
+        return view;
+    }
+
+    numbers(input) {
+
+        let view;
+
+        // Integer
+        if (Number.isInteger(input)) {
+
+            if (!Number.isSafeInteger(input)) {
+                
+                let safeInt;
+                let smallerOrBigger;
+                let minMax;
+
+                if (input < 0) {
+                    safeInt = Number.MIN_SAFE_INTEGER;
+                    smallerOrBigger = "smaller";
+                    minMax = "MIN";
+                } else {
+                    safeInt = Number.MAX_SAFE_INTEGER;
+                    smallerOrBigger = "bigger";
+                    minMax = "MAX";
+                }
+
+                BaseExUtils.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
+            }
+
+            // Signed Integer
+            if (input < 0) {
+                
+                // 64 bit
+                if (input < -2147483648) {
+                    view = this.makeDataView(8);
+                    view.setBigInt64(0, BigInt(input), false);
+                }
+                
+                // 32 bit
+                else if (input < -32768) {
+                    view = this.makeDataView(4);
+                    view.setInt32(0, input, false);
+                }
+
+                // 16 bit
+                else {
+                    view = this.makeDataView(2);
+                    view.setInt16(0, input, false);
+                }
+            }
+
+            // Unsigned Integer
+            else if (input > 0) {
+
+                // 64 bit
+                if (input > 4294967295) {
+                    view = this.makeDataView(8);
+                    view.setBigUint64(0, BigInt(input), false);
+                }
+                
+                // 32 bit
+                else if (input > 65535) {
+                    view = this.makeDataView(4);
+                    view.setUint32(0, input, false);
+                }
+                
+                // 16 bit
+                else {
+                    view = this.makeDataView(2);
+                    view.setInt16(0, input, false);
+                }
+            }
+
+            // Zero
+            else {
+                view = new Uint16Array([0]);
+            }
+        }
+        
+        // Floating Point Number:
+        else {
+            view = this.floatingPoints(input);
+        }
+
+        return new Uint8Array(view.buffer);
+
+    }
+
+
+    bigInts(input) {
+        // Since BigInts are not limited to 64 bits, they might
+        // overflow the BigInt64Array values. A little more 
+        // handwork is therefore needed.
+
+        // as the integer size is not known yet, the bytes get a
+        // makeshift home
+        const byteArray = new Array();
+
+        if (input > 0) {
+            
+            const overflow = 18446744073709551616n; 
+
+            while (input >= overflow) {
+                byteArray.unshift(input % overflow);
+                input >>= 64n;
+            }
+        }
+
+        else if (input < 0) {
+            const overflow = -9223372036854775808n;
+
+            while (input <= overflow) {
+                byteArray.unshift(input % overflow);
+                input >>= 64n;
+            }
+        }
+
+        byteArray.unshift(input);
+
+        const byteLen = byteArray.length * 8;
+
+        const buffer = new ArrayBuffer(byteLen);
+        const view = new DataView(buffer);
+
+        byteArray.forEach((bigInt, i) => {
+            const offset = i * 8;
+            view.setBigUint64(offset, bigInt, false);
+        });
+
+        return new Uint8Array(view.buffer);
+    }
+
+
+    toBytes(input) {
+
+        let inputUint8;
+        
+        // Buffer:
+        if (input instanceof ArrayBuffer) {
+            inputUint8 = new Uint8Array(input)
+        }
+
+        // TypedArray or DataView:
+        else if (ArrayBuffer.isView(input)) {
+            inputUint8 = new Uint8Array(input.buffer);
+        }
+        
+        // String:
+        else if (typeof input === "string" || input instanceof String) {
+            inputUint8 = new TextEncoder().encode(input);
+        }
+        
+        // Number:
+        else if (typeof input === "number" && !isNaN(input) && input !== Infinity) { 
+            inputUint8 = this.numbers(input);    
+        }
+
+        // BigInt:
+        else if (typeof input === "bigint") {
+            inputUint8 = this.bigInts(input);
+        }
+
+        // Array
+        else if (Array.isArray(input)) {
+            const collection = new Array();
+            for (const elem of input) {
+                collection.push(...this.toBytes(elem));
+            }
+            inputUint8 = Uint8Array.from(collection);
+        }
+
+        else {
+            throw new TypeError("The provided input type can not be processed.");
+        }
+
+        return inputUint8;
     }
 }
 
