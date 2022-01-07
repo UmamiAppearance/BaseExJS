@@ -112,7 +112,7 @@ class Base32 {
         */
 
         this.charsets = {
-            rfc3548:   "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
+            rfc3548:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648:   "0123456789ABCDEFGHIJKLMNOPQRSTUV",
             crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
         }
@@ -744,13 +744,9 @@ class BaseExConv {
             // Convert the subarray into a bs*8-bit binary 
             // number "n", most significant byte first (big endian).
  
-            let n;
-            subArray.forEach((b) => n = ((n << 8) + b) || b);                           // start shifting (e.g. times the base 256) and adding of all other bytes
-            
-            let m = 0;
-            subArray.forEach((b, j) => m += b * this.pow(256, (bs-1-j)));
-
-            console.log(n, m);
+            let n = 0n;
+            subArray.forEach((b) => n = (n << 8n) + BigInt(b));                           // start shifting (e.g. times the base 256) and adding of all other bytes
+            n = parseInt(n, 10);
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
