@@ -112,8 +112,9 @@ class Base32 {
         */
 
         this.charsets = {
-            rfc3548: "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
-            rfc4648: "0123456789ABCDEFGHIJKLMNOPQRSTUV" 
+            rfc3548:   "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
+            rfc4648:   "0123456789ABCDEFGHIJKLMNOPQRSTUV",
+            crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
         }
 
         this.padding = Boolean(padding);
@@ -501,10 +502,6 @@ class Base91 {
         this.IOtypes = ["str", "bytes"];
 
         this.utils = new BaseExUtils(this);
-        this.utils.binPow = {
-            13: 2**13,
-            14: 2**14
-        }
         this.utils.divmod = (x, y) => [Math.floor(x / y), x % y];
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
@@ -562,11 +559,11 @@ class Base91 {
                 // and calculate the remainder for n % 2^14.
 
                 let count = 13;
-                let rN = n % this.utils.binPow[13];
+                let rN = n % 8192;
 
                 if (rN < 89) {
                     count = 14;
-                    rN = n % this.utils.binPow[14];
+                    rN = n % 16384;
                 }
 
                 // Remove 13 or 14 bits from the integer,
@@ -656,7 +653,7 @@ class Base91 {
             // Calculate back the remainder of the integer "n"
             const rN = chars.indexOf(input[i]) + chars.indexOf(input[i+1]) * 91;
             n = (rN << bitCount) + n;
-            bitCount += (rN % this.utils.binPow[13] > 88) ? 13 : 14;
+            bitCount += (rN % 8192 > 88) ? 13 : 14;
 
             // calculate back the individual bytes (base256)
             do {
@@ -746,9 +743,14 @@ class BaseExConv {
             
             // Convert the subarray into a bs*8-bit binary 
             // number "n", most significant byte first (big endian).
+ 
+            let n;
+            subArray.forEach((b) => n = ((n << 8) + b) || b);                           // start shifting (e.g. times the base 256) and adding of all other bytes
+            
+            let m = 0;
+            subArray.forEach((b, j) => m += b * this.pow(256, (bs-1-j)));
 
-            let n = 0;
-            subArray.forEach((b, j) => n += b * this.pow(256, (bs-1-j)));
+            console.log(n, m);
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
@@ -1093,7 +1095,7 @@ class BaseExUtils {
 }
 
 
-class InputMiseEnPlace {
+class SmartInput {
 
     makeDataView(byteLen) {
         const buffer = new ArrayBuffer(byteLen);

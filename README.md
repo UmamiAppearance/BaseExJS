@@ -104,7 +104,7 @@ import {Base16, Base32, Base64, Base85, Base91, BaseEx} from "base-ex"
 ```
 
 ### Working with it (Browser/Node)
-Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/demo.html). You'll find an online base converter and code examples that will work independently from your environment.
+Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/examples/demo.html). You'll find an online base converter and code examples for multiple environments.
 
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).

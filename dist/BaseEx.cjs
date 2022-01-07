@@ -14,6 +14,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 class Base16 {
     /*
         En-/decoding to and from base16 (hexadecimal).
+        For integers two's complement system is getting used.
         (Requires "BaseExConv", "BaseExUtils")
     */
 
@@ -470,8 +471,8 @@ class Base85 {
                     const H = Math.floor((dist % 86400000) / 3600000);
                     const M = Math.floor((dist % 3600000) / 60000);
                     const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                    this.utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                    this.utils.warning(msg);
+                    BaseExUtils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                    BaseExUtils.warning(msg);
                 }
             }
         };
@@ -565,11 +566,11 @@ class Base91 {
                 // and calculate the remainder for n % 2^14.
 
                 let count = 13;
-                let rN = n % this.utils.binPow[13];
+                let rN = n % 8192;
 
                 if (rN < 89) {
                     count = 14;
-                    rN = n % this.utils.binPow[14];
+                    rN = n % 16384;
                 }
 
                 // Remove 13 or 14 bits from the integer,
@@ -1004,7 +1005,7 @@ class BaseExUtils {
         /*
             Returns argument lists for error messages.
         */
-        return args.map(s => `'${s}'`).join(", ")
+        return args.map(s => `'${s}'`).join(", ");
     }
 
     setIOType(args, IO) {
@@ -1073,7 +1074,7 @@ class BaseExUtils {
         */
         if (inputType === "str") {
             if (typeof input !== "string") {
-                this.warning("Your input was converted into a string.");
+                this.constructor.warning("Your input was converted into a string.");
             }
             return String(input);
         } else {
@@ -1086,7 +1087,7 @@ class BaseExUtils {
         }
     }
 
-    warning(message) {
+    static warning(message) {
         if (Object.prototype.hasOwnProperty.call(console, "warn")) {
             console.warn(message);
         } else {
