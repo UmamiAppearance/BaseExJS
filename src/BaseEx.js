@@ -6,6 +6,11 @@
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
+function getBits(x) {
+    return Math.log(x) / Math.log(2);
+}
+  
+
 
 class Base16 {
     /*
@@ -696,7 +701,19 @@ class BaseExConv {
         */
         this.radix = radix;
         this.bsEnc = bsEnc;
-        this.bsDec = bsDec
+        this.bsDec = bsDec;
+        
+
+        // precalculate powers for decoding
+        // [radix**bs-1, radix**i, ... radix**0]
+        // bit shifting (as used during encoding)
+        // only works on regular base conversions,
+        // not something like base85
+        
+        this.powers = [];
+        for (let i=0; i<bsDec; i++) {
+            this.powers.unshift(BigInt(radix**i));
+        }
     }
 
     encode(inputBytes, charset, replacer=null) {
@@ -710,15 +727,6 @@ class BaseExConv {
         let zeroPadding = 0;
         const bs = this.bsEnc;
         
-        // The blocksize defines the size of the corresponding
-        // integer, calculated for base conversion. Values 
-        // above 6 lead to numbers that are higher than the 
-        // "MAX_SAFE_INTEGER" (2^bs*8).
-
-        if (bs > 6) {
-            throw new RangeError("The given blocksize may require big integers (> 2^53) during conversion.\nThis is not supported.")
-        }
-
         // Iterate over the input array in groups with the length
         // of the given blocksize.
 
@@ -743,10 +751,14 @@ class BaseExConv {
             
             // Convert the subarray into a bs*8-bit binary 
             // number "n", most significant byte first (big endian).
+            // The blocksize defines the size of the corresponding
+            // integer. According to the blocksize this may lead  
+            // to values, that are higher than the "MAX_SAFE_INTEGER",
+            // therefore BigInts are used.
+
  
             let n = 0n;
-            subArray.forEach((b) => n = (n << 8n) + BigInt(b));                           // start shifting (e.g. times the base 256) and adding of all other bytes
-            n = parseInt(n, 10);
+            subArray.forEach((b) => n = (n << 8n) + BigInt(b));
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
@@ -758,11 +770,11 @@ class BaseExConv {
             // Divide n until the quotient becomes less than the radix.
             while (q >= this.radix) {
                 [q, r] = this.divmod(q, this.radix);
-                bXarray.unshift(r);
+                bXarray.unshift(parseInt(r, 10));
             }
 
             // Append the remaining quotient to the array
-            bXarray.unshift(q);
+            bXarray.unshift(parseInt(q, 10));
 
             // If the length of the array is less than the
             // given output bs, it gets filled up with zeros.
@@ -864,9 +876,9 @@ class BaseExConv {
             // binary number "n", most significant byte 
             // first (big endian).
 
-            let n = 0;
+            let n = 0n;
             subArray.forEach(
-                (b, j) => n += b * this.pow(this.radix, bs-1-j)
+                (b, j) => n += BigInt(b) * this.powers[j]
             );
 
             // Initialize quotient and remainder for base conversion
@@ -875,11 +887,11 @@ class BaseExConv {
             // Divide n until the quotient is less than 256.
             while (q >= 256) {
                 [q, r] = this.divmod(q, 256);
-                subArray256.unshift(r);
+                subArray256.unshift(parseInt(r, 10));
             }
 
             // Append the remaining quotient to the array
-            subArray256.unshift(q);
+            subArray256.unshift(parseInt(q, 10));
             
             // If the length of the array is less than the required
             // bs after decoding it gets filled up with zeros.
@@ -904,19 +916,8 @@ class BaseExConv {
     }
 
     divmod(x, y) {
-        return [Math.floor(x / y), x % y];
-    }
-
-    pow(radix, n) {
-        // Precalculated powers for each radix
-        const powList = {
-             16: [16**0, 16**1],
-             32: [32**0, 32**1, 32**2, 32**3, 32**4, 32**5, 32**6, 32**7],
-             64: [64**0, 64**1, 64**2, 64**3],
-             85: [85**0, 85**1, 85**2, 85**3, 85**4 ],
-            256: [256**0, 256**1, 256**2, 256**3, 256**4]
-        }
-        return powList[radix][n];
+        [x, y] = [BigInt(x), BigInt(y)];
+        return [parseInt(x/y, 10), parseInt(x%y, 10)];
     }
 }
 
