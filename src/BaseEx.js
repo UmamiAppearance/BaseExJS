@@ -9,7 +9,6 @@
 function getBits(x) {
     return Math.log(x) / Math.log(2);
 }
-  
 
 
 class Base16 {
@@ -695,14 +694,17 @@ class BaseExConv {
         based on a given charset.
     */
 
-    constructor(radix, bsEnc, bsDec) {
+    constructor(radix) {
         /*
             Stores the radix and blocksize for en-/decoding.
         */
         this.radix = radix;
+        /*
         this.bsEnc = bsEnc;
         this.bsDec = bsDec;
-        
+        */
+       this.calcBS(radix);
+       console.log(radix, this.bsEnc, this.bsDec);
 
         // precalculate powers for decoding
         // [radix**bs-1, radix**i, ... radix**0]
@@ -711,9 +713,36 @@ class BaseExConv {
         // not something like base85
         
         this.powers = [];
-        for (let i=0; i<bsDec; i++) {
+        for (let i=0; i<this.bsDec; i++) {
             this.powers.unshift(BigInt(radix**i));
         }
+    }
+
+    calcBS(radix) {
+        // Calc how many bits are needed to represent 256 conditions
+        let bsDecPre = Math.ceil(256 / radix);
+        
+        // If the result is divisible by 8, divide by 8
+        // (the result is a multiple of 8 in that case
+        // therefore it is appropriate to reduce the result)
+
+        if (bsDecPre > 8 && !(bsDecPre % 8)) {
+            bsDecPre /= 8;
+        }
+
+        // Search for the amount of bytes, which are necessary
+        // to represent the assumed amount of bytes. If the result
+        // is equal or bigger than the assumption for decoding, the
+        // amount of bytes for encoding is found. 
+
+        let byteCount = 0;
+        while (((byteCount * 8) * Math.log(2) / Math.log(radix)) < bsDecPre) {
+            byteCount++;
+        }
+        this.bsEnc = byteCount;
+
+        // The result for decoding can now get calculated accurately.
+        this.bsDec = Math.ceil((byteCount * 8) * Math.log(2) / Math.log(radix));
     }
 
     encode(inputBytes, charset, replacer=null) {
