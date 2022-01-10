@@ -28,7 +28,7 @@ class Base16 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(16, 1, 2);
+        this.converter = new BaseExConv(16, false, 1, 2);
         this.converter.padAmount = [0]
     }
 
@@ -127,7 +127,7 @@ class Base32 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(32, 5, 8);
+        this.converter = new BaseExConv(32, false, 5, 8);
         this.converter.padAmount = [0, 1, 3, 4, 6]; // -> ["", "=", "===", "====", "======"]
     }
     
@@ -236,7 +236,7 @@ class Base64 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(64, 3, 4);
+        this.converter = new BaseExConv(64, false, 3, 4);
         this.converter.padAmount = [0, 1, 2]; // ["", "=", "=="]
     }
 
@@ -365,7 +365,7 @@ class Base85 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(85, 4, 5);
+        this.converter = new BaseExConv(85, false, 4, 5);
         this.converter.padAmount = [0]; // Padding gets cut of completely
     }
     
@@ -694,17 +694,22 @@ class BaseExConv {
         based on a given charset.
     */
 
-    constructor(radix) {
+    constructor(radix, signed=false, bsEnc=null, bsDec=null) {
         /*
             Stores the radix and blocksize for en-/decoding.
         */
         this.radix = radix;
-        /*
-        this.bsEnc = bsEnc;
-        this.bsDec = bsDec;
-        */
-       this.calcBS(radix);
-       console.log(radix, this.bsEnc, this.bsDec);
+        this.signed = signed;
+
+        if (bsEnc !== null && bsDec !== null) {
+            this.bsEnc = bsEnc;
+            this.bsDec = bsDec;
+            console.log("hardcoded bs");
+        } else {
+            [this.bsEnc, this.bsDec] = this.constructor.calcBS(radix);
+            console.log("calculated bs");
+        }
+        console.log(radix, this.bsEnc, this.bsDec);
 
         // precalculate powers for decoding
         // [radix**bs-1, radix**i, ... radix**0]
@@ -718,7 +723,7 @@ class BaseExConv {
         }
     }
 
-    calcBS(radix) {
+    static calcBS(radix) {
         // Calc how many bits are needed to represent 256 conditions
         let bsDecPre = Math.ceil(256 / radix);
         
@@ -735,14 +740,15 @@ class BaseExConv {
         // is equal or bigger than the assumption for decoding, the
         // amount of bytes for encoding is found. 
 
-        let byteCount = 0;
-        while (((byteCount * 8) * Math.log(2) / Math.log(radix)) < bsDecPre) {
-            byteCount++;
+        let bsEnc = 0;
+        while (((bsEnc * 8) * Math.log(2) / Math.log(radix)) < bsDecPre) {
+            bsEnc++;
         }
-        this.bsEnc = byteCount;
 
         // The result for decoding can now get calculated accurately.
-        this.bsDec = Math.ceil((byteCount * 8) * Math.log(2) / Math.log(radix));
+        const bsDec = Math.ceil((bsEnc * 8) * Math.log(2) / Math.log(radix));
+
+        return [bsEnc, bsDec];
     }
 
     encode(inputBytes, charset, replacer=null) {
@@ -756,27 +762,14 @@ class BaseExConv {
         let zeroPadding = 0;
         const bs = this.bsEnc;
         
+        const view = new DataView(inputBytes.buffer);
+        const get = (this.signed) ? "getInt8" : "getUint8";
+        
         // Iterate over the input array in groups with the length
         // of the given blocksize.
 
         for (let i=0, l=inputBytes.length; i<l; i+=bs) {
             
-            // Build a subarray of bs bytes
-            let subArray = inputBytes.slice(i, i+bs);
-
-            // At the very last block of bytes, there 
-            // is a change that the subarray has a length
-            // less than bs. If this is the case, padding is
-            // required. All missing bytes are filled with
-            // zeros. The amount of zeros is stored in
-            // "zeroPadding".
-
-            if (subArray.length < bs) {
-                zeroPadding = bs - subArray.length;
-                const paddedArray = new Uint8Array(bs);
-                paddedArray.set(subArray);
-                subArray = paddedArray;
-            }
             
             // Convert the subarray into a bs*8-bit binary 
             // number "n", most significant byte first (big endian).
@@ -784,10 +777,20 @@ class BaseExConv {
             // integer. According to the blocksize this may lead  
             // to values, that are higher than the "MAX_SAFE_INTEGER",
             // therefore BigInts are used.
-
- 
+  
             let n = 0n;
-            subArray.forEach((b) => n = (n << 8n) + BigInt(b));
+            
+            for (let j=i; j<i+bs; j++) {
+                let byte;
+                if (j >= l) {
+                    byte = 0;
+                    zeroPadding++;
+                } else {
+                    byte = view[get](j);
+                }
+
+                n = (n << 8n) + BigInt(byte);
+            }
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
