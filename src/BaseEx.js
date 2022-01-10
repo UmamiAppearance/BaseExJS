@@ -6,11 +6,6 @@
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
-function getBits(x) {
-    return Math.log(x) / Math.log(2);
-}
-
-
 class Base16 {
     /*
         En-/decoding to and from base16 (hexadecimal).
@@ -29,7 +24,7 @@ class Base16 {
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
         this.converter = new BaseExConv(16, false, 1, 2);
-        this.converter.padAmount = [0]
+        this.converter.padAmount = [0];
     }
 
     encode(input, ...args) {
@@ -45,13 +40,15 @@ class Base16 {
         
         // argument validation and input settings
         args = this.utils.validateArgs(args);
-        const inputType = this.utils.setIOType(args, "in");
+        //const inputType = this.utils.setIOType(args, "in");
         const version = this.utils.getVersion(args);
-        input = this.utils.validateInput(input, inputType);
+        //input = this.utils.validateInput(input, inputType);
 
         // convert to an array of bytes if necessary
-        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        
+        //const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        const sI = new SmartInput();
+        const inputBytes =sI.toBytes(input);
+
         // Convert to Base16 string
         const output = this.converter.encode(inputBytes, this.charsets[version])[0];
 
@@ -116,7 +113,7 @@ class Base32 {
         */
 
         this.charsets = {
-            rfc3548:"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
+            rfc3548:   "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648:   "0123456789ABCDEFGHIJKLMNOPQRSTUV",
             crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
         }
@@ -704,10 +701,8 @@ class BaseExConv {
         if (bsEnc !== null && bsDec !== null) {
             this.bsEnc = bsEnc;
             this.bsDec = bsDec;
-            console.log("hardcoded bs");
         } else {
             [this.bsEnc, this.bsDec] = this.constructor.calcBS(radix);
-            console.log("calculated bs");
         }
         console.log(radix, this.bsEnc, this.bsDec);
 
@@ -762,9 +757,6 @@ class BaseExConv {
         let zeroPadding = 0;
         const bs = this.bsEnc;
         
-        const view = new DataView(inputBytes.buffer);
-        const get = (this.signed) ? "getInt8" : "getUint8";
-        
         // Iterate over the input array in groups with the length
         // of the given blocksize.
 
@@ -786,7 +778,11 @@ class BaseExConv {
                     byte = 0;
                     zeroPadding++;
                 } else {
-                    byte = view[get](j);
+                    byte = inputBytes[j];
+                    if (this.signed) {
+                        byte %= 255;
+                    }
+                    console.log(byte);
                 }
 
                 n = (n << 8n) + BigInt(byte);
