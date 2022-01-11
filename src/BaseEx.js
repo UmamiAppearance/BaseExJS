@@ -1,29 +1,32 @@
 /*
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.3.2
+ * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
+/**
+ * En-/decoding to and from base16 (hexadecimal).
+ * For integers two's complement system is getting used.
+ * 
+ * Requires: 
+ * -> BaseConverter
+ * -> Utils (-> SmartInput)
+ */
 class Base16 {
-    /*
-        En-/decoding to and from base16 (hexadecimal).
-        For integers two's complement system is getting used.
-        (Requires "BaseExConv", "BaseExUtils")
-    */
 
-    constructor(version="default", input="str", output="str") {
+    constructor(version="default", signed=false) {
         this.charsets = {
             default: "0123456789abcdef" 
         }
 
-        this.IOtypes = ["str", "bytes"];
-        this.utils = new BaseExUtils(this);
+        this.utils = new Utils(this);
         
-        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
+        this.signed = (signed === "signed");
+        this.version = this.utils.validateArgs([version]);
 
-        this.converter = new BaseExConv(16, false, 1, 2);
+        this.converter = new BaseConverter(16, this.signed, 1, 2);
         this.converter.padAmount = [0];
     }
 
@@ -33,21 +36,13 @@ class Base16 {
             --------------------------------
 
             @input: string or (typed) array of bytes
-            @args:
-                "str"       :  tells the encoder, that input is a string (default)
-                "bytes"     :  tells the encoder, that input is an array
+            @args:  possible alternative charset
         */
         
         // argument validation and input settings
         args = this.utils.validateArgs(args);
-        //const inputType = this.utils.setIOType(args, "in");
         const version = this.utils.getVersion(args);
-        //input = this.utils.validateInput(input, inputType);
-
-        // convert to an array of bytes if necessary
-        //const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
-        const sI = new SmartInput();
-        const inputBytes =sI.toBytes(input);
+        const inputBytes = this.utils.smartInput.toBytes(input);
 
         // Convert to Base16 string
         const output = this.converter.encode(inputBytes, this.charsets[version])[0];
@@ -61,15 +56,12 @@ class Base16 {
             ------------------
 
             @input: hex-string
-            @args:
-                "str"       :  tells the encoder, that output should be a utf8-string (default)
-                "bytes"     :  tells the encoder, that output should be an array of bytes
+            @args:  possible alternative charset
         */
         
         // Argument validation and output settings
         args = this.utils.validateArgs(args);
         const version = this.utils.getVersion(args);
-        const outputType = this.utils.setIOType(args, "out");
         
         // Remove the leading 0x if present
         input = String(input).replace(/^0x/, '');
@@ -85,12 +77,8 @@ class Base16 {
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[version]);
         
-        // Return the output, convert to utf8-string if requested
-        if (outputType === "bytes") {
-            return output;
-        } else {
-            return new TextDecoder().decode(output);
-        }
+        // Return the output buffer
+        return output.buffer;
     }
 }
 
@@ -103,7 +91,7 @@ class Base32 {
         Uses RFC standard 4658 by default (as used e.g
         for (t)otp keys), RFC 3548 is also supported.
         
-        (Requires "BaseExConv", "BaseExUtils")
+        (Requires "BaseConverter", "Utils")
     */
     
     constructor(version="rfc4648", input="str", output="str", padding=true) {
@@ -120,11 +108,11 @@ class Base32 {
 
         this.padding = Boolean(padding);
         this.IOtypes = ["str", "bytes"];
-        this.utils = new BaseExUtils(this);
+        this.utils = new Utils(this);
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(32, false, 5, 8);
+        this.converter = new BaseConverter(32, false, 5, 8);
         this.converter.padAmount = [0, 1, 3, 4, 6]; // -> ["", "=", "===", "====", "======"]
     }
     
@@ -212,7 +200,7 @@ class Base64 {
         -------------------------------
         
         Regular and urlsafe charsets can be used.
-        (Requires "BaseExConv", "BaseExUtils")
+        (Requires "BaseConverter", "Utils")
     */
 
     constructor(version="default", input="str", output="str", padding=true) {
@@ -229,11 +217,11 @@ class Base64 {
 
         this.padding = Boolean(padding);
         this.IOtypes = ["str", "bytes"];
-        this.utils = new BaseExUtils(this);
+        this.utils = new Utils(this);
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(64, false, 3, 4);
+        this.converter = new BaseConverter(64, false, 3, 4);
         this.converter.padAmount = [0, 1, 2]; // ["", "=", "=="]
     }
 
@@ -337,7 +325,7 @@ class Base85 {
         project. (Keep in mind, that even the original is
         based on a joke).
 
-        (Requires "BaseExConv", "BaseExUtils")
+        (Requires "BaseConverter", "Utils")
         
     */
 
@@ -357,12 +345,12 @@ class Base85 {
         }
         
         this.IOtypes = ["str", "bytes"];
-        this.utils = new BaseExUtils(this);
+        this.utils = new Utils(this);
         this.expandUtils(debug);
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseExConv(85, false, 4, 5);
+        this.converter = new BaseConverter(85, false, 4, 5);
         this.converter.padAmount = [0]; // Padding gets cut of completely
     }
     
@@ -469,8 +457,8 @@ class Base85 {
                     const H = Math.floor((dist % 86400000) / 3600000);
                     const M = Math.floor((dist % 3600000) / 60000);
                     const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                    BaseExUtils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                    BaseExUtils.warning(msg);
+                    Utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
+                    Utils.warning(msg);
                 }
             }
         }
@@ -488,8 +476,8 @@ class Base91 {
         http://base91.sourceforge.net/
 
         As this method requires to split the bytes, the default
-        conversion class "BaseExConv" is not used in this case.
-        (Requires "BaseExUtils")
+        conversion class "BaseConverter" is not used in this case.
+        (Requires "Utils")
     */
     constructor(version="default", input="str", output="str") {
         /*
@@ -502,7 +490,7 @@ class Base91 {
         
         this.IOtypes = ["str", "bytes"];
 
-        this.utils = new BaseExUtils(this);
+        this.utils = new Utils(this);
         this.utils.divmod = (x, y) => [Math.floor(x / y), x % y];
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
@@ -685,7 +673,7 @@ class Base91 {
 }
 
 
-class BaseExConv {
+class BaseConverter {
     /*
         Core class for base-conversion and substitution
         based on a given charset.
@@ -949,12 +937,14 @@ class BaseExConv {
     }
 }
 
-
-class BaseExUtils {
-    /*
-        Utilities for every BaseEx class.
-        The main purpose is argument validation.
-    */
+/**
+ *  Utilities for every BaseEx class. The main 
+ *  purpose is argument validation.
+ * 
+ * Requires:
+ * -> SmartInput
+ */
+class Utils {
 
     constructor(main) {
 
@@ -965,6 +955,8 @@ class BaseExUtils {
         // If charsets are uses by the parent class,
         // add extra functions for the user.
         if ("charsets" in main) this.charsetUserToolsConstructor();
+
+        this.smartInput = new SmartInput();
     }
 
     charsetUserToolsConstructor() {
@@ -1031,22 +1023,6 @@ class BaseExUtils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
-    setIOType(args, IO) {
-        /* 
-            Set type for input or output (bytes or string).
-        */
-        let type;
-        if (args.includes("bytes")) {
-            type = "bytes";
-        } else if (args.includes("str")) { 
-            type = "str";
-        } else {
-            type = (IO === "in") ? this.root.defaultInput : this.root.defaultOutput;
-        }
-
-        return type;
-    }
-
     getVersion(args) {
         /*
             Test which version (charset) should be used.
@@ -1067,47 +1043,29 @@ class BaseExUtils {
             Test if provided arguments are in the argument list.
             Everything gets converted to lowercase and returned
         */
-        let versions = null;
-        let validArgs;
+        let versions = Object.keys(this.root.charsets);
+        const validArgs = [...versions];
         const loweredArgs = new Array();
 
-        if ("charsets" in this.root) {
-            versions = Object.keys(this.root.charsets);
-            validArgs = [...this.root.IOtypes, ...versions];
-        } else {
-            validArgs = this.root.IOtypes;
-        }
-
         if (args.length) {
-            args.forEach(arg => {
+            args.forEach((arg, i) => {
                 arg = String(arg).toLowerCase();
+
+                // TODO: remove this warning in a future release
+                if (arg.match(/^str$|^bytes$/)) {
+                    this.warn("The setting of input or output type is deprecated.\nThe input gets detected automatically.\nThe decoded output is always a arraybuffer.");
+                    arg = String(args[i+1]).toLowerCase();
+                    args.splice(i, 1);
+                }
+
                 if (!validArgs.includes(arg)) {
-                    const versionHint = (versions) ? `The options for version (charset) are:\n${this.makeArgList(versions)}\n\n` : "";
-                    throw new TypeError(`'${arg}'\n\nValid arguments for in- and output-type are:\n${this.makeArgList(this.root.IOtypes)}\n\n${versionHint}Traceback:`);
+                    const versionHint = (versions) ? `The options for version (charset) are:\n${this.makeArgList(versions)}` : "";
+                    throw new TypeError(`'${arg}'\n${versionHint}\n\nTraceback:`);
                 }
                 loweredArgs.push(arg);
             });
         }
         return loweredArgs;
-    }
-
-    validateInput(input, inputType) {
-        /* 
-            Test if input type fits to the actual input.
-        */
-        if (inputType === "str") {
-            if (typeof input !== "string") {
-                this.constructor.warning("Your input was converted into a string.");
-            }
-            return String(input);
-        } else {
-            if (typeof input === "string") {
-                throw new TypeError("Your provided input is a string, but some kind of (typed) Array is expected.");
-            } else if (!(ArrayBuffer.isView(input) || Array.isArray(input))) {
-                throw new TypeError("Input must be some kind of (typed) Array if input type is set to 'bytes'.");
-            }
-            return input; 
-        }
     }
 
     static warning(message) {
@@ -1173,7 +1131,7 @@ class SmartInput {
                     minMax = "MAX";
                 }
 
-                BaseExUtils.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
+                Utils.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
             }
 
             // Signed Integer
