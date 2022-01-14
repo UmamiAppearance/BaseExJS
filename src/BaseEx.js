@@ -6,6 +6,7 @@
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
+
 /**
  * En-/decoding to and from base16 (hexadecimal).
  * For integers two's complement system is getting used.
@@ -16,17 +17,17 @@
  */
 class Base16 {
 
-    constructor(version="default", signed=false) {
+    constructor(...args) {
         this.charsets = {
             default: "0123456789abcdef" 
         }
 
         this.utils = new Utils(this);
         
-        this.signed = (signed === "signed");
-        this.version = this.utils.validateArgs([version]);
-
-        this.converter = new BaseConverter(16, this.signed, 1, 2);
+        [this.version, this.signed, this.outputType] = ["default", false, "buffer"];
+        [this.version, this.signed, this.outputType] = this.utils.validateArgs(args);
+        
+        this.converter = new BaseConverter(16, 1, 2);
         this.converter.padAmount = [0];
     }
 
@@ -40,12 +41,17 @@ class Base16 {
         */
         
         // argument validation and input settings
-        args = this.utils.validateArgs(args);
-        const version = this.utils.getVersion(args);
-        const inputBytes = this.utils.smartInput.toBytes(input);
+        let version, signed;
+        [version, signed,,] = this.utils.validateArgs(args);
+        
+        let inputBytes, negative;
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
 
         // Convert to Base16 string
-        const output = this.converter.encode(inputBytes, this.charsets[version])[0];
+        let output = this.converter.encode(inputBytes, this.charsets[version])[0];
+
+        // apply settings for results with or without two's complement system
+        output = this.utils.encodeSign(output, signed, negative);
 
         return output;
     }
@@ -60,11 +66,13 @@ class Base16 {
         */
         
         // Argument validation and output settings
-        args = this.utils.validateArgs(args);
-        const version = this.utils.getVersion(args);
-        
+        let version, outputType;
+        [version,, outputType] = this.utils.validateArgs(args);
+
+        const negative = (input[0] === "-"); 
+
         // Remove the leading 0x if present
-        input = String(input).replace(/^0x/, '');
+        input = String("0xFF").replace(/^-?0x/, '');
 
         // Make it lower case
         input = input.toLowerCase();
@@ -77,7 +85,13 @@ class Base16 {
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[version]);
         
-        // Return the output buffer
+        // Return the output
+        if (outputType === "str") {
+            return new TextEncoder().encode(output);
+        } else if (outputType === "bytes") {
+            return output;
+        } 
+
         return output.buffer;
     }
 }
@@ -112,7 +126,7 @@ class Base32 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseConverter(32, false, 5, 8);
+        this.converter = new BaseConverter(32, 5, 8);
         this.converter.padAmount = [0, 1, 3, 4, 6]; // -> ["", "=", "===", "====", "======"]
     }
     
@@ -221,7 +235,7 @@ class Base64 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseConverter(64, false, 3, 4);
+        this.converter = new BaseConverter(64, 3, 4);
         this.converter.padAmount = [0, 1, 2]; // ["", "=", "=="]
     }
 
@@ -350,7 +364,7 @@ class Base85 {
         
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
-        this.converter = new BaseConverter(85, false, 4, 5);
+        this.converter = new BaseConverter(85, 4, 5);
         this.converter.padAmount = [0]; // Padding gets cut of completely
     }
     
@@ -679,12 +693,11 @@ class BaseConverter {
         based on a given charset.
     */
 
-    constructor(radix, signed=false, bsEnc=null, bsDec=null) {
+    constructor(radix, bsEnc=null, bsDec=null) {
         /*
             Stores the radix and blocksize for en-/decoding.
         */
         this.radix = radix;
-        this.signed = signed;
 
         if (bsEnc !== null && bsDec !== null) {
             this.bsEnc = bsEnc;
@@ -692,7 +705,6 @@ class BaseConverter {
         } else {
             [this.bsEnc, this.bsDec] = this.constructor.calcBS(radix);
         }
-        console.log(radix, this.bsEnc, this.bsDec);
 
         // precalculate powers for decoding
         // [radix**bs-1, radix**i, ... radix**0]
@@ -767,10 +779,6 @@ class BaseConverter {
                     zeroPadding++;
                 } else {
                     byte = inputBytes[j];
-                    if (this.signed) {
-                        byte %= 255;
-                    }
-                    console.log(byte);
                 }
 
                 n = (n << 8n) + BigInt(byte);
@@ -962,7 +970,7 @@ class Utils {
     charsetUserToolsConstructor() {
         /*
             Constructor for the ability to add a charset and 
-            change the default version.
+            change the defau[version, signed, outputType]lt version.
         */
 
         this.root.addCharset = (name, charset) => {
@@ -1023,19 +1031,17 @@ class Utils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
-    getVersion(args) {
-        /*
-            Test which version (charset) should be used.
-            Sets either the default or overwrites it if
-            requested.
-        */
-        let version = this.root.version;
-        args.forEach(arg => {
-            if (arg in this.root.charsets) {
-                version = arg; 
-            }
-        })
-        return version;
+    encodeSign(output, signed, negative) {
+
+        if (signed) {
+            output = output.replace(/^0+/, "");
+        }
+
+        if (negative) {
+            output = "-".concat(output);
+        }
+
+        return output;
     }
 
     validateArgs(args) {
@@ -1044,28 +1050,38 @@ class Utils {
             Everything gets converted to lowercase and returned
         */
         let versions = Object.keys(this.root.charsets);
-        const validArgs = [...versions];
-        const loweredArgs = new Array();
+        const outputTypes = ["buffer", "bytes", "str"];
+        const signedArgs = ["signed", "unsigned"];
+        const validArgs = [...outputTypes, ...versions, ...signedArgs];
+
+        let version = this.root.version;
+        let signed = this.root.signed;
+        let outputType = "buffer";
 
         if (args.length) {
             args.forEach((arg, i) => {
                 arg = String(arg).toLowerCase();
 
-                // TODO: remove this warning in a future release
-                if (arg.match(/^str$|^bytes$/)) {
-                    this.warn("The setting of input or output type is deprecated.\nThe input gets detected automatically.\nThe decoded output is always a arraybuffer.");
-                    arg = String(args[i+1]).toLowerCase();
-                    args.splice(i, 1);
+                if (!validArgs.includes(arg)) {
+                    const signedHint = "'signed' to disable the use of the twos's complement for negaive integers.\n\n"
+                    const outputHint = `Valid args for the output type are ${this.makeArgList(outputTypes)}\n\n`;
+                    const versionHint = (versions) ? `The options for version (charset) are:\n${this.makeArgList(versions)}` : "";
+                    throw new TypeError(`'${arg}'\nValid parameters are: ${signedHint}${outputHint}${versionHint}\n\nTraceback:`);
                 }
 
-                if (!validArgs.includes(arg)) {
-                    const versionHint = (versions) ? `The options for version (charset) are:\n${this.makeArgList(versions)}` : "";
-                    throw new TypeError(`'${arg}'\n${versionHint}\n\nTraceback:`);
+                if (versions.includes(arg)) {
+                    version = arg;
+                } else if (outputTypes.includes(arg)) {
+                    outputType = arg;
+                } else if (arg === "signed") {
+                    signed = true;
+                } else if (arg === "unsigned") {
+                    signed = false;
                 }
-                loweredArgs.push(arg);
             });
         }
-        return loweredArgs;
+
+        return [version, signed, outputType];
     }
 
     static warning(message) {
@@ -1238,9 +1254,10 @@ class SmartInput {
     }
 
 
-    toBytes(input) {
+    toBytes(input, signed) {
 
         let inputUint8;
+        let negative = false;
         
         // Buffer:
         if (input instanceof ArrayBuffer) {
@@ -1258,12 +1275,20 @@ class SmartInput {
         }
         
         // Number:
-        else if (typeof input === "number" && !isNaN(input) && input !== Infinity) { 
+        else if (typeof input === "number" && !isNaN(input) && input !== Infinity) {
+            if (signed && input < 0) {
+                negative = true;
+                input *= -1;
+            }
             inputUint8 = this.numbers(input);    
         }
 
         // BigInt:
         else if (typeof input === "bigint") {
+            if (signed && input < 0) {
+                negative = true;
+                input *= -1n;
+            }
             inputUint8 = this.bigInts(input);
         }
 
@@ -1280,7 +1305,7 @@ class SmartInput {
             throw new TypeError("The provided input type can not be processed.");
         }
 
-        return inputUint8;
+        return [inputUint8, negative];
     }
 }
 
