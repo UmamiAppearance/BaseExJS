@@ -66,24 +66,43 @@ class Base16 {
         */
         
         // Argument validation and output settings
-        let version, outputType;
-        [version,, outputType] = this.utils.validateArgs(args);
+        let version, signed, outputType;
+        [version, signed, outputType] = this.utils.validateArgs(args);
 
-        const negative = (input[0] === "-"); 
+        // Make it a string, whatever goes in
+        input = String(input);
+        
+        // Test for a negative sign
+        let negative;
+        [input, negative] = this.utils.extractSign(input);   
+        
+        if (negative && !signed) {
+            this.utils.signError();
+        }
 
-        // Remove the leading 0x if present
-        input = String("0xFF").replace(/^-?0x/, '');
+        // Remove "0x" if present
+        input = input.replace(/^0x/, "");
 
         // Make it lower case
         input = input.toLowerCase();
-        
+
         // Ensure even number of characters
         if (input.length % 2) {
             input = "0".concat(input);
         }
         
         // Run the decoder
-        const output = this.converter.decode(input, this.charsets[version]);
+        let output = this.converter.decode(input, this.charsets[version]);
+
+        console.log("i", output);
+        // If signed mode is set, calculate the bytes per element to
+        // allow the conversion of output to an integer.
+        
+        if (signed) {
+            output = this.utils.toSignedArray(output, negative);
+        }
+
+        console.log("o", output);
         
         // Return the output
         if (outputType === "str") {
@@ -1044,6 +1063,63 @@ class Utils {
         return output;
     }
 
+    extractSign(input) {
+        // Test for a negative sign
+        let negative = false;
+        if (input[0] === "-") {
+            negative = true;
+            input = input.slice(1);
+        }
+
+        return [input, negative];
+    }
+
+    normalizeOutput(array) {
+        // calculate a fitting byte length (2,4,8,16...)
+        const bytesPerElem = 2**Math.ceil(Math.log(array.byteLength)/Math.log(2));
+        
+        // calculate the missing bytes
+        const byteDelta = bytesPerElem - array.byteLength;
+
+        // if bytes are missing, construct a new array 
+        // and set the values. The delta is the offset
+        // eg. [12, 32, 45], length: 3 offset = (4-3=1)
+        // --> set values with offset 1 --> [0, 12, 32, 45]
+        if (byteDelta) {
+            const normalizedArray = new Uint8Array(bytesPerElem);
+            normalizedArray.set(array, byteDelta);
+            array = normalizedArray;
+        }
+
+        return array;
+    }
+
+    negate(array) {
+        // set the negative value of each byte 
+        // which gets converted to the equivalent
+        // positive value
+
+        // xor with 255 
+        const invert = array.map((b) => b ^ 255);
+        const lastElem = array.byteLength - 1;
+        
+        // add one to the last element
+        invert[lastElem] += 1;
+
+        return invert;
+    }
+
+    toSignedArray(array, negative) {
+        array = this.normalizeOutput(array);
+
+        // Negate the value if the input is negative
+        if (negative) {
+            array = this.negate(array);
+        }
+
+        return array;
+    }
+
     validateArgs(args) {
         /* 
             Test if provided arguments are in the argument list.
@@ -1082,6 +1158,10 @@ class Utils {
         }
 
         return [version, signed, outputType];
+    }
+
+    signError() {
+        throw new TypeError("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
     }
 
     static warning(message) {
