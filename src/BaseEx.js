@@ -51,7 +51,7 @@ class Base16 {
         let output = this.converter.encode(inputBytes, this.charsets[version])[0];
 
         // apply settings for results with or without two's complement system
-        output = this.utils.encodeSign(output, signed, negative);
+        output = this.utils.toSignedStr(output, signed, negative);
 
         return output;
     }
@@ -728,8 +728,9 @@ class BaseConverter {
         // precalculate powers for decoding
         // [radix**bs-1, radix**i, ... radix**0]
         // bit shifting (as used during encoding)
-        // only works on regular base conversions,
-        // not something like base85
+        // only works on base conversions with 
+        // powers of 2 (eg. 16, 32, 64), not something
+        // like base85
         
         this.powers = [];
         for (let i=0; i<this.bsDec; i++) {
@@ -738,7 +739,7 @@ class BaseConverter {
     }
 
     static calcBS(radix) {
-        // Calc how many bits are needed to represent 256 conditions
+        // Calc how many bits are needed to represent 256 conditions (1 byte)
         let bsDecPre = Math.ceil(256 / radix);
         
         // If the result is divisible by 8, divide by 8
@@ -837,6 +838,8 @@ class BaseConverter {
             );
 
             // Ascii85 is replacing four consecutive "!" into "z"
+            // Also other replacements can be implemented and used
+            // at this point.
             if (replacer) {
                 frame = replacer(frame, zeroPadding);
             }
@@ -878,9 +881,8 @@ class BaseConverter {
         );
         
         // The amount of padding characters is not equal
-        // to the amount of padded zeros. This the
-        // defined by the specific class and gets
-        // converted.
+        // to the amount of padded zeros. The transmission
+        // is defined by the specific class and gets converted.
 
         let padding = this.padAmount.indexOf(padChars);
 
@@ -895,21 +897,28 @@ class BaseConverter {
         for (let i=0, l=inputBaseStr.length; i<l; i+=bs) {
             
             // Build a subarray of bs bytes.
-            let subArray = inputBytes.slice(i, i+bs);
+            let n = 0n;
 
-            // Ascii85 is cutting of the padding in any case. 
-            // It is possible for this group of algorithms, that
-            // the last subarray has a length which is less than
-            // the bs. This is padded with the highest possible
-            // value, which is radix-1 (=> 84 or char "u").
-            // The amount of padding is stored in "padding".
-            
-            if (subArray.length < bs) {
-                padding = bs - subArray.length;
-                const paddedArray = Uint8Array.from(Array(bs).fill(this.radix-1));
-                paddedArray.set(subArray);
-                subArray = paddedArray;
+            for (let j=i; j<i+bs; j++) {
+                let byte;
+
+                // Ascii85 is cutting of the padding in any case. 
+                // It is possible for this group of algorithms, that
+                // the last subarray has a length which is less than
+                // the bs. This is padded with the highest possible
+                // value, which is radix-1 (=> 84 or char "u").
+                // The amount of padding is stored in "padding".
+                
+                if (j >= l) {
+                    byte = this.radix-1;
+                    padding++;
+                } else {
+                    byte = inputBytes[j];
+                }
+
+                n += BigInt(byte) * this.powers[j]
             }
+            
             
             // To store the output chunks, initialize a
             // new default array.
@@ -918,11 +927,6 @@ class BaseConverter {
             // The subarray gets converted into a bs*8-bit 
             // binary number "n", most significant byte 
             // first (big endian).
-
-            let n = 0n;
-            subArray.forEach(
-                (b, j) => n += BigInt(b) * this.powers[j]
-            );
 
             // Initialize quotient and remainder for base conversion
             let q = n, r;
@@ -1050,7 +1054,7 @@ class Utils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
-    encodeSign(output, signed, negative) {
+    toSignedStr(output, signed, negative) {
 
         if (signed) {
             output = output.replace(/^0+/, "");
@@ -1076,7 +1080,10 @@ class Utils {
 
     normalizeOutput(array) {
         // calculate a fitting byte length (2,4,8,16...)
-        const bytesPerElem = 2**Math.ceil(Math.log(array.byteLength)/Math.log(2));
+        let bytesPerElem = 2 ** Math.ceil(Math.log(array.byteLength) / Math.log(2));
+        
+        // Take at least 2 bytes (byte amount for a int16/uint16)
+        bytesPerElem = Math.max(bytesPerElem, 2);
         
         // calculate the missing bytes
         const byteDelta = bytesPerElem - array.byteLength;
@@ -1100,13 +1107,11 @@ class Utils {
         // positive value
 
         // xor with 255 
-        const invert = array.map((b) => b ^ 255);
+        array.forEach((b, i) => array[i] = b ^ 255);
         const lastElem = array.byteLength - 1;
         
-        // add one to the last element
-        invert[lastElem] += 1;
-
-        return invert;
+        // add one to the last byte
+        array[lastElem] += 1;
     }
 
     toSignedArray(array, negative) {
@@ -1114,7 +1119,7 @@ class Utils {
 
         // Negate the value if the input is negative
         if (negative) {
-            array = this.negate(array);
+            this.negate(array);
         }
 
         return array;
