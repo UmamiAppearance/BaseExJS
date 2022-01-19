@@ -18,17 +18,21 @@
 class Base16 {
 
     constructor(...args) {
+        
+        // default settings
         this.charsets = {
             default: "0123456789abcdef" 
         }
-
-        this.utils = new Utils(this);
-        
-        [this.version, this.signed, this.outputType] = ["default", false, "buffer"];
-        [this.version, this.signed, this.outputType] = this.utils.validateArgs(args);
-        
         this.converter = new BaseConverter(16, 1, 2);
         this.converter.padAmount = [0];
+        this.outputType = "buffer";
+        this.padding = false;
+        this.signed = false;
+        this.utils = new Utils(this);
+        this.version = "default";
+        
+        // user settings
+        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
 
     encode(input, ...args) {
@@ -67,7 +71,7 @@ class Base16 {
         
         // Argument validation and output settings
         let version, signed, outputType;
-        [version, signed, outputType] = this.utils.validateArgs(args);
+        [version, signed,, outputType] = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
@@ -94,15 +98,12 @@ class Base16 {
         // Run the decoder
         let output = this.converter.decode(input, this.charsets[version]);
 
-        console.log("i", output);
         // If signed mode is set, calculate the bytes per element to
         // allow the conversion of output to an integer.
         
         if (signed) {
             output = this.utils.toSignedArray(output, negative);
         }
-
-        console.log("o", output);
         
         // Return the output
         if (outputType === "str") {
@@ -899,7 +900,8 @@ class BaseConverter {
             // Build a subarray of bs bytes.
             let n = 0n;
 
-            for (let j=i; j<i+bs; j++) {
+            for (let j=0; j<bs; j++) {
+                let index = i + j;
                 let byte;
 
                 // Ascii85 is cutting of the padding in any case. 
@@ -909,11 +911,11 @@ class BaseConverter {
                 // value, which is radix-1 (=> 84 or char "u").
                 // The amount of padding is stored in "padding".
                 
-                if (j >= l) {
+                if (index >= l) {
                     byte = this.radix-1;
                     padding++;
                 } else {
-                    byte = inputBytes[j];
+                    byte = inputBytes[index];
                 }
 
                 n += BigInt(byte) * this.powers[j]
@@ -1133,21 +1135,25 @@ class Utils {
         let versions = Object.keys(this.root.charsets);
         const outputTypes = ["buffer", "bytes", "str"];
         const signedArgs = ["signed", "unsigned"];
-        const validArgs = [...outputTypes, ...versions, ...signedArgs];
+        const padArgs = ["pad", "nopad"];
+        const validArgs = [...outputTypes, ...versions, ...padArgs, ...signedArgs];
 
         let version = this.root.version;
         let signed = this.root.signed;
+        let padding = this.root.padding;
         let outputType = "buffer";
 
         if (args.length) {
-            args.forEach((arg, i) => {
+            args.forEach((arg) => {
                 arg = String(arg).toLowerCase();
 
                 if (!validArgs.includes(arg)) {
-                    const signedHint = "'signed' to disable the use of the twos's complement for negaive integers.\n\n"
-                    const outputHint = `Valid args for the output type are ${this.makeArgList(outputTypes)}\n\n`;
-                    const versionHint = (versions) ? `The options for version (charset) are:\n${this.makeArgList(versions)}` : "";
-                    throw new TypeError(`'${arg}'\nValid parameters are: ${signedHint}${outputHint}${versionHint}\n\nTraceback:`);
+                    const signedHint = "'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers."
+                    const padHint = "'pad' to fill up, 'nopad' to not fill up the output with the particular padding.";
+                    const outputHint = `Valid args for the output type are ${this.makeArgList(outputTypes)}`;
+                    const versionHint = (versions) ? `The options for version (charset) are: ${this.makeArgList(versions)}` : "";
+                    
+                    throw new TypeError(`'${arg}'\nValid parameters are:\n * ${signedHint}\n * ${padHint}\n * ${outputHint}\n * ${versionHint}\n\nTraceback:`);
                 }
 
                 if (versions.includes(arg)) {
@@ -1158,11 +1164,15 @@ class Utils {
                     signed = true;
                 } else if (arg === "unsigned") {
                     signed = false;
+                } else if (arg === "pad") {
+                    padding = true;
+                } else if (arg === "nopad") {
+                    padding = false;
                 }
             });
         }
 
-        return [version, signed, outputType];
+        return [version, signed, padding, outputType];
     }
 
     signError() {
