@@ -106,13 +106,7 @@ class Base16 {
         }
         
         // Return the output
-        if (outputType === "str") {
-            return new TextEncoder().encode(output);
-        } else if (outputType === "bytes") {
-            return output;
-        } 
-
-        return output.buffer;
+        return this.utils.smartOutput.compileOutput(output, outputType);
     }
 }
 
@@ -990,12 +984,13 @@ class Utils {
         if ("charsets" in main) this.charsetUserToolsConstructor();
 
         this.smartInput = new SmartInput();
+        this.smartOutput = new SmartOutput();
     }
 
     charsetUserToolsConstructor() {
         /*
             Constructor for the ability to add a charset and 
-            change the defau[version, signed, outputType]lt version.
+            change the default version.
         */
 
         this.root.addCharset = (name, charset) => {
@@ -1133,7 +1128,7 @@ class Utils {
             Everything gets converted to lowercase and returned
         */
         let versions = Object.keys(this.root.charsets);
-        const outputTypes = ["buffer", "bytes", "str"];
+        const outputTypes = this.smartOutput.typeList;
         const signedArgs = ["signed", "unsigned"];
         const padArgs = ["pad", "nopad"];
         const validArgs = [...outputTypes, ...versions, ...padArgs, ...signedArgs];
@@ -1401,6 +1396,45 @@ class SmartInput {
         }
 
         return [inputUint8, negative];
+    }
+}
+
+
+class SmartOutput {
+    
+    constructor () {
+        this.typeList = this.constructor.validTypes();
+    }
+
+    getType(type) {
+        if (!this.typeList.includes(type)) {
+            throw new TypeError(`Unknown output type: '${type}'`);
+        }
+        return type;
+    }
+
+    compileOutput(Uint8ArrayOut, type) {
+        type = this.getType(type);
+        let compiled;
+
+        if (type === "buffer") {
+            compiled = Uint8ArrayOut.buffer;
+        } else if (type == "bytes") {
+            compiled = Uint8ArrayOut;
+        } else if (type === "str") {
+           compiled = new TextDecoder().decode(Uint8ArrayOut);
+        }
+
+        return compiled;
+    }
+
+    static validTypes() {
+        const typeList = [
+            "buffer",
+            "bytes",
+            "str"
+        ];
+        return typeList; 
     }
 }
 
