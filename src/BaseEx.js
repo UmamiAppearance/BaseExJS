@@ -20,11 +20,14 @@ class Base16 {
     constructor(...args) {
         
         // default settings
+        this.byteOrder = "BE";
+
         this.charsets = {
             default: "0123456789abcdef" 
         }
+        
         this.converter = new BaseConverter(16, 1, 2);
-        this.converter.padAmount = [0];
+        this.converter.padGroups = [0];
         this.outputType = "buffer";
         this.padding = false;
         this.signed = false;
@@ -106,7 +109,7 @@ class Base16 {
         }
         
         // Return the output
-        return this.utils.smartOutput.compileOutput(output, outputType);
+        return this.utils.smartOutput.compile(output, outputType);
     }
 }
 
@@ -122,26 +125,29 @@ class Base32 {
         (Requires "BaseConverter", "Utils")
     */
     
-    constructor(version="rfc4648", input="str", output="str", padding=true) {
+    constructor(...args) {
         /*
             The RFC standard defined here is used by de- and encoder.
             This can be overwritten during the call of the function.
         */
 
+        this.byteOrder = "BE";
+        
         this.charsets = {
             rfc3548:   "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648:   "0123456789ABCDEFGHIJKLMNOPQRSTUV",
-            crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+            crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ",
         }
-
-        this.padding = Boolean(padding);
-        this.IOtypes = ["str", "bytes"];
-        this.utils = new Utils(this);
-        
-        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
-
+    
         this.converter = new BaseConverter(32, 5, 8);
-        this.converter.padAmount = [0, 1, 3, 4, 6]; // -> ["", "=", "===", "====", "======"]
+        this.outputType = "buffer";
+        this.padding = true;
+        this.signed = false;
+        this.utils = new Utils(this);
+        this.version = "rfc4648";
+        
+        // user settings
+        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
     
     encode(input, ...args) {
@@ -158,27 +164,28 @@ class Base32 {
         */
 
         // Argument validation and output settings
-        args = this.utils.validateArgs(args);
-        const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.getVersion(args);
-        input = this.utils.validateInput(input, inputType);
-
-        // Convert to bytes if input is a string
-        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        let version, signed, padding;
+        [version, signed, padding,,] = this.utils.validateArgs(args);
         
+        let inputBytes, negative;
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
+
         // Convert to Base32 string
         let output, zeroPadding;
         [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version]);
         
-        // Cut of redundant chars and append padding if set
+        // Cut of redundant chars or replace with padding if set
         if (zeroPadding) {
-            const padValue = this.converter.padAmount[zeroPadding];
-            output = output.slice(0, output.length-padValue);
-            if (this.padding) { 
+            const padValue = this.converter.padBytes(zeroPadding);
+            
+            if (padding) { 
                 output = output.concat("=".repeat(padValue));
             }
         }
 
+        // apply settings for results with or without two's complement system
+        output = this.utils.toSignedStr(output, signed, negative);
+        
         return output;
     }
 
@@ -196,10 +203,19 @@ class Base32 {
         */
 
         // Argument validation and output settings
-        args = this.utils.validateArgs(args);
-        const version = this.utils.getVersion(args);
-        const outputType = this.utils.setIOType(args, "out");
+        let version, signed, outputType;
+        [version, signed,, outputType] = this.utils.validateArgs(args);
 
+        // Make it a string, whatever goes in
+        input = String(input);
+        
+        // Test for a negative sign
+        let negative;
+        [input, negative] = this.utils.extractSign(input);   
+        
+        if (negative && !signed) {
+            this.utils.signError();
+        }
         // Make it upper case
         input = input.toUpperCase();
 
@@ -207,17 +223,13 @@ class Base32 {
         const missingChars = input.length % 8;
         if (missingChars) {
             input = input.padEnd(input.length + 8-missingChars, "=");
-        }
+        }version="default", input="str", output="str", padding=true
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[version]);
         
-        // Return the output, convert to utf8-string if requested
-        if (outputType === "bytes") {
-            return output;
-        } else {
-            return new TextDecoder().decode(output);
-        }
+        // Return the output
+        return this.utils.smartOutput.compile(output, outputType);
     }
 }
 
@@ -231,11 +243,14 @@ class Base64 {
         (Requires "BaseConverter", "Utils")
     */
 
-    constructor(version="default", input="str", output="str", padding=true) {
+    constructor(...args) {
         /*
             The charset defined here is used by de- and encoder.
             This can be overwritten during the call of the function.
         */
+
+        this.byteOrder = "BE";
+        
 
         const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         this.charsets = {
@@ -243,14 +258,15 @@ class Base64 {
             urlsafe: b62Chars.concat("-_")
         }
 
-        this.padding = Boolean(padding);
-        this.IOtypes = ["str", "bytes"];
-        this.utils = new Utils(this);
-        
-        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
-
         this.converter = new BaseConverter(64, 3, 4);
-        this.converter.padAmount = [0, 1, 2]; // ["", "=", "=="]
+        this.outputType = "buffer";
+        this.padding = true;
+        this.signed = false;
+        this.utils = new Utils(this);
+        this.version = "default";
+        
+        // user settings
+        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
 
     encode(input, ...args) {
@@ -281,7 +297,7 @@ class Base64 {
         
         // Cut of redundant chars and append padding if set
         if (zeroPadding) {
-            const padValue = this.converter.padAmount[zeroPadding];
+            const padValue = this.converter.padGroups[zeroPadding];
             output = output.slice(0, output.length-padValue);
             if (this.padding) { 
                 output = output.concat("=".repeat(padValue));
@@ -379,7 +395,7 @@ class Base85 {
         [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
         this.converter = new BaseConverter(85, 4, 5);
-        this.converter.padAmount = [0]; // Padding gets cut of completely
+        this.converter.padGroups = [0]; // Padding gets cut of completely
     }
     
     encode(input, ...args) {
@@ -799,6 +815,7 @@ class BaseConverter {
                 n = (n << 8n) + BigInt(byte);
             }
 
+
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
             const bXarray = new Array();
@@ -814,6 +831,8 @@ class BaseConverter {
 
             // Append the remaining quotient to the array
             bXarray.unshift(parseInt(q, 10));
+
+            console.log(bXarray);
 
             // If the length of the array is less than the
             // given output bs, it gets filled up with zeros.
@@ -861,25 +880,22 @@ class BaseConverter {
         // is set to zero in this case.
 
         const bs = this.bsDec;
-        let padChars = 0;
-
-        const inputBytes = Uint8Array.from(
-            inputBaseStr.split('').map(c => {
-                const index = charset.indexOf(c);
-                if (index < 0) { 
-                    padChars++;
-                    return 0;
-                } else {
-                    return index;
-                }
-            })
-        );
+        const byteArray = new Array();
         
-        // The amount of padding characters is not equal
-        // to the amount of padded zeros. The transmission
-        // is defined by the specific class and gets converted.
+        inputBaseStr.split('').forEach((c) => {
+            const index = charset.indexOf(c);
+            if (index > -1) { 
+               byteArray.push(index);
+            }
+        });
 
-        let padding = this.padAmount.indexOf(padChars);
+        const padChars = (bs - byteArray.length % bs) % bs;
+
+        for (let i=0; i<padChars; i++) {
+            byteArray.push(this.radix-1);
+        }
+
+        const inputBytes = Uint8Array.from(byteArray);
 
         // Initialize a new default array to store
         // the converted radix-256 integers.
@@ -895,24 +911,7 @@ class BaseConverter {
             let n = 0n;
 
             for (let j=0; j<bs; j++) {
-                let index = i + j;
-                let byte;
-
-                // Ascii85 is cutting of the padding in any case. 
-                // It is possible for this group of algorithms, that
-                // the last subarray has a length which is less than
-                // the bs. This is padded with the highest possible
-                // value, which is radix-1 (=> 84 or char "u").
-                // The amount of padding is stored in "padding".
-                
-                if (index >= l) {
-                    byte = this.radix-1;
-                    padding++;
-                } else {
-                    byte = inputBytes[index];
-                }
-
-                n += BigInt(byte) * this.powers[j]
+                n += BigInt(inputBytes[i+j]) * this.powers[j]
             }
             
             
@@ -953,9 +952,18 @@ class BaseConverter {
         // The amount of bytes added for padding is left 
         // behind.
 
-        const output = Uint8Array.from(b256Array.slice(0, b256Array.length-padding));
-        
-        return output;
+        const padding = this.padChars(padChars);
+        b256Array.splice(b256Array.length-padding);
+
+        return Uint8Array.from(b256Array);
+    }
+
+    padBytes(padChars) {
+        return Math.floor((padChars*this.bsDec)/this.bsEnc);
+    }
+
+    padChars(byteCount) {
+        return Math.ceil((byteCount*this.bsEnc)/this.bsDec);
     }
 
     divmod(x, y) {
@@ -1167,6 +1175,11 @@ class Utils {
             });
         }
 
+        if (padding && signed) {
+            padding = false;
+            this.constructor.warning("Padding was set to false due to the signed conversion.");
+        }
+
         return [version, signed, padding, outputType];
     }
 
@@ -1191,20 +1204,20 @@ class SmartInput {
         return new DataView(buffer);
     }
 
-    floatingPoints(input) {
+    floatingPoints(input, littleEndian=false) {
         
         let view;
         
         // 32 Bit
         if (input > 1.2e-38 && input < 3.4e+38) {
             view = this.makeDataView(4);
-            view.setFloat32(0, input, false);
+            view.setFloat32(0, input, littleEndian);
         }
 
         // 64 Bit
         else if (input > 2.3e-308 && input < 1.7e+308) {
             view = this.makeDataView(8);
-            view.setFloat64(0, input, false);
+            view.setFloat64(0, input, littleEndian);
         }
 
         else {
@@ -1214,7 +1227,7 @@ class SmartInput {
         return view;
     }
 
-    numbers(input) {
+    numbers(input, littleEndian=false) {
 
         let view;
 
@@ -1246,19 +1259,19 @@ class SmartInput {
                 // 64 bit
                 if (input < -2147483648) {
                     view = this.makeDataView(8);
-                    view.setBigInt64(0, BigInt(input), false);
+                    view.setBigInt64(0, BigInt(input), littleEndian);
                 }
                 
-                // 32 bit
+                // 32 littleEndianit
                 else if (input < -32768) {
                     view = this.makeDataView(4);
-                    view.setInt32(0, input, false);
+                    view.setInt32(0, input, littleEndian);
                 }
 
-                // 16 bit
+                // 16 littleEndianit
                 else {
                     view = this.makeDataView(2);
-                    view.setInt16(0, input, false);
+                    view.setInt16(0, input, littleEndian);
                 }
             }
 
@@ -1268,19 +1281,19 @@ class SmartInput {
                 // 64 bit
                 if (input > 4294967295) {
                     view = this.makeDataView(8);
-                    view.setBigUint64(0, BigInt(input), false);
+                    view.setBigUint64(0, BigInt(input), littleEndian);
                 }
                 
                 // 32 bit
                 else if (input > 65535) {
                     view = this.makeDataView(4);
-                    view.setUint32(0, input, false);
+                    view.setUint32(0, input, littleEndian);
                 }
                 
                 // 16 bit
                 else {
                     view = this.makeDataView(2);
-                    view.setInt16(0, input, false);
+                    view.setInt16(0, input, littleEndian);
                 }
             }
 
@@ -1292,7 +1305,7 @@ class SmartInput {
         
         // Floating Point Number:
         else {
-            view = this.floatingPoints(input);
+            view = this.floatingPoints(input, littleEndian);
         }
 
         return new Uint8Array(view.buffer);
@@ -1300,7 +1313,7 @@ class SmartInput {
     }
 
 
-    bigInts(input) {
+    bigInts(input, littleEndian=false) {
         // Since BigInts are not limited to 64 bits, they might
         // overflow the BigInt64Array values. A little more 
         // handwork is therefore needed.
@@ -1337,14 +1350,14 @@ class SmartInput {
 
         byteArray.forEach((bigInt, i) => {
             const offset = i * 8;
-            view.setBigUint64(offset, bigInt, false);
+            view.setBigUint64(offset, bigInt, littleEndian);
         });
 
         return new Uint8Array(view.buffer);
     }
 
 
-    toBytes(input, signed) {
+    toBytes(input, signed, littleEndian=false) {
 
         let inputUint8;
         let negative = false;
@@ -1370,7 +1383,7 @@ class SmartInput {
                 negative = true;
                 input *= -1;
             }
-            inputUint8 = this.numbers(input);    
+            inputUint8 = this.numbers(input, littleEndian);    
         }
 
         // BigInt:
@@ -1379,7 +1392,7 @@ class SmartInput {
                 negative = true;
                 input *= -1n;
             }
-            inputUint8 = this.bigInts(input);
+            inputUint8 = this.bigInts(input, littleEndian);
         }
 
         // Array
@@ -1413,7 +1426,7 @@ class SmartOutput {
         return type;
     }
 
-    compileOutput(Uint8ArrayOut, type) {
+    compile(Uint8ArrayOut, type) {
         type = this.getType(type);
         let compiled;
 
