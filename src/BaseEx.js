@@ -174,10 +174,10 @@ class Base32 {
         let output, zeroPadding;
         [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version]);
         
-        // Cut of redundant chars or replace with padding if set
+        // Cut of redundant chars and append padding if set
         if (zeroPadding) {
             const padValue = this.converter.padBytes(zeroPadding);
-            
+            output = output.slice(0, output.length-padValue);
             if (padding) { 
                 output = output.concat("=".repeat(padValue));
             }
@@ -218,12 +218,6 @@ class Base32 {
         }
         // Make it upper case
         input = input.toUpperCase();
-
-        // If the input is unpadded, pad it.
-        const missingChars = input.length % 8;
-        if (missingChars) {
-            input = input.padEnd(input.length + 8-missingChars, "=");
-        }version="default", input="str", output="str", padding=true
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[version]);
@@ -270,79 +264,79 @@ class Base64 {
     }
 
     encode(input, ...args) {
-        /*
-            Encode from string or bytes to base64.
+        /* 
+            Encode from string or bytes to base32.
             -------------------------------------
 
             @input: string or (typed) array of bytes
             @args:
                 "str"       :  tells the encoder, that input is a string (default)
                 "bytes"     :  tells the encoder, that input is an array
-                "default"   :  sets the used charset to this variant (default)
-                "urlsafe"   :  sets the used charset to this variant
+                "rfc3548"   :  sets the used charset to this standard
+                "rfc4648"   :  sets the used charset to this standard
         */
-       
-        // Argument validation and input settings
-        args = this.utils.validateArgs(args);
-        const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.getVersion(args);
-        input = this.utils.validateInput(input, inputType);
 
-        // Convert to bytes if input is a string
-        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        // Argument validation and output settings
+        let version, signed, padding;
+        [version, signed, padding,,] = this.utils.validateArgs(args);
         
+        let inputBytes, negative;
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
+
         // Convert to Base64 string
         let output, zeroPadding;
         [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version]);
         
         // Cut of redundant chars and append padding if set
         if (zeroPadding) {
-            const padValue = this.converter.padGroups[zeroPadding];
+            const padValue = this.converter.padBytes(zeroPadding);
             output = output.slice(0, output.length-padValue);
-            if (this.padding) { 
+            if (padding) { 
                 output = output.concat("=".repeat(padValue));
             }
         }
-    
+
+        // apply settings for results with or without two's complement system
+        output = this.utils.toSignedStr(output, signed, negative);
+        
         return output;
     }
 
     decode(input, ...args) {
         /* 
-            Decode from base64 string to utf8-string or bytes.
+            Decode from base32 string to utf8-string or bytes.
             -------------------------------------------------
 
             @input: base32-string
             @args:
                 "str"       :  tells the encoder, that output should be a string (default)
                 "bytes"     :  tells the encoder, that output should be an array
-                "default"   :  sets the used charset to this variant (default)
-                "urlsafe"   :  sets the used charset to this variant
+                "rfc3548"   :  defines to use the charset of this version
+                "rfc4648"   :  defines to use the charset of this version (default)
         */
 
         // Argument validation and output settings
-        args = this.utils.validateArgs(args);
-        const version = this.utils.getVersion(args);
-        const outputType = this.utils.setIOType(args, "out");
- 
-        // If the input is unpadded, pad it.
-        const missingChars = input.length % 4;
-        if (missingChars) {
-            input = input.padEnd(input.length + 4-missingChars, "=");
+        let version, signed, outputType;
+        [version, signed,, outputType] = this.utils.validateArgs(args);
+
+        // Make it a string, whatever goes in
+        input = String(input);
+        
+        // Test for a negative sign
+        let negative;
+        [input, negative] = this.utils.extractSign(input);   
+        
+        if (negative && !signed) {
+            this.utils.signError();
         }
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[version]);
-
-        // Return the output, convert to utf8-string if requested
-        if (outputType === "bytes") {
-            return output;
-        } else {
-            return new TextDecoder().decode(output);
-        }
+        
+        // Return the output
+        return this.utils.smartOutput.compile(output, outputType);
     }
 }
-
 
 class Base85 {
     /*
@@ -373,12 +367,14 @@ class Base85 {
         
     */
 
-    constructor(version="ascii85", input="str", output="str", debug=false) {
+    constructor(...args) {
         /*
             The charset defined here is used by de- and encoder.
             This can still be overwritten during the call of the
             function.
         */
+
+        this.byteOrder = "BE";
 
         const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
         this.charsets = {
@@ -387,15 +383,16 @@ class Base85 {
             rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
         }
-        
-        this.IOtypes = ["str", "bytes"];
-        this.utils = new Utils(this);
-        this.expandUtils(debug);
-        
-        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
 
         this.converter = new BaseConverter(85, 4, 5);
-        this.converter.padGroups = [0]; // Padding gets cut of completely
+        this.outputType = "buffer";
+        this.padding = false;
+        this.signed = false;
+        this.utils = new Utils(this);
+        this.version = "ascii85";
+        
+        // user settings
+        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
     
     encode(input, ...args) {
@@ -413,14 +410,13 @@ class Base85 {
                 "z85"       :  sets the used charset to this variant
         */
        
-        // Argument validation and input settings
-        args = this.utils.validateArgs(args);
-        const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.getVersion(args);
-        input = this.utils.validateInput(input, inputType);
+        // Argument validation and output settings
+        let version, signed, padding;
+        [version, signed, padding,,] = this.utils.validateArgs(args);
+        
+        let inputBytes, negative;
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
 
-        // Convert to bytes if input is a string
-        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
 
         // Initialize the replacing of null bytes for ascii85
         let replacer = null;
@@ -428,18 +424,26 @@ class Base85 {
             replacer = (frame, zPad) => (!zPad && frame === "!!!!!") ? "z" : frame;
         }
 
-        // Convert to Base85 string        
+        // Convert to Base85 string
         let output, zeroPadding;
         [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version], replacer);
-        output = output.slice(0, output.length-zeroPadding);
-    
+        
+        // Cut of redundant chars and append padding if set
+        if (zeroPadding) {
+            const padValue = this.converter.padBytes(zeroPadding);
+            output = output.slice(0, output.length-padValue);
+            if (padding) { 
+                output = output.concat("=".repeat(padValue));
+            }
+        }
+
+        // apply settings for results with or without two's complement system
+        output = this.utils.toSignedStr(output, signed, negative);
+        
         // Adobes variant gets its <~framing~>
         if (version === "adobe") {
             output = `<~${output}~>`;
         }
-        
-        // ...
-        if (version === "rfc1924") this.utils.announce();
         
         return output;
     }
@@ -460,11 +464,12 @@ class Base85 {
         */
 
         // Argument validation and output settings
-        args = this.utils.validateArgs(args);
-        const version = this.utils.getVersion(args);
-        const outputType = this.utils.setIOType(args, "out");
-        input = input.replace(/\s/g,'');        //remove all whitespace from input
-        
+        let version, outputType;
+        [version,, outputType] = this.utils.validateArgs(args);
+
+        // Make it a string, whatever goes in
+        input = String(input);
+    
         // For default ascii85 convert "z" back to "!!!!!"
         if (version.match(/adobe|ascii85/)) {
             input = input.replace(/z/g, "!!!!!");
@@ -476,12 +481,8 @@ class Base85 {
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[version]);
 
-        // Return the output, convert to utf8-string if requested
-        if (outputType === "bytes") {
-            return output;
-        } else {
-            return new TextDecoder().decode(output);
-        }
+        // Return the output
+        return this.utils.smartOutput.compile(output, outputType);
     }
 
     expandUtils(debug) {        
@@ -523,21 +524,26 @@ class Base91 {
         conversion class "BaseConverter" is not used in this case.
         (Requires "Utils")
     */
-    constructor(version="default", input="str", output="str") {
+    constructor(...args) {
         /*
             The default charset gets initialized, as well as
             some utilities.
         */
+
+        this.byteOrder = "BE";
+
         this.charsets = {
             default: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
         }
-        
-        this.IOtypes = ["str", "bytes"];
 
+        this.outputType = "buffer";
+        this.padding = false;
+        this.signed = false;
         this.utils = new Utils(this);
-        this.utils.divmod = (x, y) => [Math.floor(x / y), x % y];
+        this.version = "default";
         
-        [this.version, this.defaultInput, this.defaultOutput] = this.utils.validateArgs([version, input, output]);
+        // user settings
+        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
 
     encode(input, ...args) {
@@ -552,14 +558,10 @@ class Base91 {
                 "default"   :  default charset 
         */
        
-        // Argument validation and input settings
-        args = this.utils.validateArgs(args);
-        const inputType = this.utils.setIOType(args, "in");
-        const version = this.utils.getVersion(args);
-        input = this.utils.validateInput(input, inputType);
-
-        // Convert to bytes if input is a string
-        const inputBytes = (inputType === "str") ? new TextEncoder().encode(input) : input;
+        // Argument validation and output settings
+        const version = this.utils.validateArgs(args)[0];
+        
+        const inputBytes = this.utils.smartInput.toBytes(input, false)[0];
 
         // As this base representation splits the bytes
         // the read bits need to be stores somewhere. 
@@ -650,14 +652,12 @@ class Base91 {
                 "default"   :  sets the used charset to this variant
         */
 
-        // Argument validation and output settings
-        args = this.utils.validateArgs(args);
-        const version = this.utils.getVersion(args);
-        const outputType = this.utils.setIOType(args, "out");
-        
-        //remove all whitespace from input
-        input = input.replace(/\s/g,'');
-        
+        let version, outputType;
+        [version,, outputType] = this.utils.validateArgs(args);
+
+        // Make it a string, whatever goes in
+        input = String(input);
+    
         let l = input.length;
 
         // For starters leave the last char behind
@@ -905,7 +905,7 @@ class BaseConverter {
         // Iterate over the input bytes in groups of 
         // the blocksize.
 
-        for (let i=0, l=inputBaseStr.length; i<l; i+=bs) {
+        for (let i=0, l=inputBytes.length; i<l; i+=bs) {
             
             // Build a subarray of bs bytes.
             let n = 0n;

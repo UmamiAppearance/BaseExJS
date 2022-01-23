@@ -166,7 +166,7 @@ async function test(base, IOtestRounds, verbose=false) {
             makeError(name, "hello", testStr, encoded, expectedResult);
         }
 
-        const decoded = base.decode(encoded);
+        const decoded = base.decode(encoded, "str");
 
         if (decoded === testStr) {
             testData[name].passed++;
@@ -208,7 +208,7 @@ async function test(base, IOtestRounds, verbose=false) {
 
             if (verbose) console.log(`>>> Testing charset: ${charset}`);
 
-            for (const IOtype of base.IOtypes) {
+            for (const IOtype of ["str", "bytes"]) {
 
                 if (verbose) console.log(`>>>> Testing type: ${IOtype}`);
 

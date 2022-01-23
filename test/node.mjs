@@ -3,7 +3,7 @@ import {roundUpTests, test, testData} from "./test.esm.js"
 
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class
-    const classes = [new Base16(), new Base32(), new Base64(), new Base85("ascii85", "str", "str", true), new Base91()];
+    const classes = [new Base16(), new Base32(), new Base64(), new Base85("ascii85", "str"), new Base91()];
         
     async function testGroup() {
         const base = classes.shift();
