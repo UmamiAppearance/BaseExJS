@@ -156,6 +156,7 @@ async function test(base, IOtestRounds, verbose=false) {
 
         testStr = testStr.concat(c);
         const encoded = base.encode(testStr);
+
         const expectedResult = encodingList[name].get(testStr);
         
         if (encoded === expectedResult) {
@@ -219,10 +220,10 @@ async function test(base, IOtestRounds, verbose=false) {
                     curCount++;
                     testData.totalTests++;
 
-                    const encoded = base.encode(input, charset, IOtype);
+                    const encoded = base.encode(input, charset);
                     const decoded = base.decode(encoded, charset, IOtype);
 
-                    const passed = (IOtype === "bytes") ? (input.join("") === decoded.join("")) : (input === decoded);
+                    const passed = input.toString() === decoded.toString();
                     if (passed) {
                         testData[name].passed++;
                     } else {

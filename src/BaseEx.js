@@ -465,7 +465,7 @@ class Base85 {
 
         // Argument validation and output settings
         let version, outputType;
-        [version,, outputType] = this.utils.validateArgs(args);
+        [version,,, outputType] = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
@@ -610,7 +610,7 @@ class Base91 {
                 // the before calculated remainder of n 
                 // -> "rN"
                 let q, r;
-                [q, r] = this.utils.divmod(rN, 91);
+                [q, r] = this.divmod(rN, 91);
 
                 // Lookup the corresponding characters for
                 // "r" and "q" in the set, append it to the 
@@ -624,7 +624,7 @@ class Base91 {
         // once more.
         if (bitCount) {
             let q, r;
-            [q, r] = this.utils.divmod(n, 91);
+            [q, r] = this.divmod(n, 91);
 
             // The remainder is concatenated in any case
             output = output.concat(chars[r]);
@@ -652,12 +652,13 @@ class Base91 {
                 "default"   :  sets the used charset to this variant
         */
 
+        // Argument validation and output settings
         let version, outputType;
-        [version,, outputType] = this.utils.validateArgs(args);
+        [version,,, outputType] = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
-    
+
         let l = input.length;
 
         // For starters leave the last char behind
@@ -712,7 +713,10 @@ class Base91 {
         } else {
             return new TextDecoder().decode(output);
         }
+    }
 
+    divmod (x, y) {
+        return [Math.floor(x/y), x%y];
     }
 }
 
@@ -831,8 +835,6 @@ class BaseConverter {
 
             // Append the remaining quotient to the array
             bXarray.unshift(parseInt(q, 10));
-
-            console.log(bXarray);
 
             // If the length of the array is less than the
             // given output bs, it gets filled up with zeros.
