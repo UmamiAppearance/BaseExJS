@@ -20,45 +20,50 @@ class Base16 {
     constructor(...args) {
         
         // default settings
-        this.byteOrder = "BE";
-
         this.charsets = {
             default: "0123456789abcdef" 
         }
         
         this.converter = new BaseConverter(16, 1, 2);
-        this.converter.padGroups = [0];
+        this.littleEndian = false;
         this.outputType = "buffer";
         this.padding = false;
         this.signed = false;
         this.utils = new Utils(this);
         this.version = "default";
         
-        // user settings
-        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
+        this.isMutable = {
+            littleEndian: false,
+            padding: false,
+            signed: true,
+        };
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
     }
 
     encode(input, ...args) {
         /* 
             Hex string encoder from string or bytes.
-            --------------------------------
+            -------------------------------
 
             @input: string or (typed) array of bytes
             @args:  possible alternative charset
         */
         
         // argument validation and input settings
-        let version, signed;
-        [version, signed,,] = this.utils.validateArgs(args);
+        const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed);
 
         // Convert to Base16 string
-        let output = this.converter.encode(inputBytes, this.charsets[version])[0];
+        let output = this.converter.encode(inputBytes, settings.littleEndian, this.charsets[settings.version])[0];
 
         // apply settings for results with or without two's complement system
-        output = this.utils.toSignedStr(output, signed, negative);
+        if (settings.signed) {
+            output = this.utils.toSignedStr(output, negative);
+        }
 
         return output;
     }
@@ -73,8 +78,7 @@ class Base16 {
         */
         
         // Argument validation and output settings
-        let version, signed, outputType;
-        [version, signed,, outputType] = this.utils.validateArgs(args);
+        const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
@@ -83,7 +87,7 @@ class Base16 {
         let negative;
         [input, negative] = this.utils.extractSign(input);   
         
-        if (negative && !signed) {
+        if (negative && !settings.signed) {
             this.utils.signError();
         }
 
@@ -99,17 +103,17 @@ class Base16 {
         }
         
         // Run the decoder
-        let output = this.converter.decode(input, this.charsets[version]);
+        let output = this.converter.decode(input, this.charsets[settings.version]);
 
         // If signed mode is set, calculate the bytes per element to
         // allow the conversion of output to an integer.
         
-        if (signed) {
+        if (settings.signed) {
             output = this.utils.toSignedArray(output, negative);
         }
         
         // Return the output
-        return this.utils.smartOutput.compile(output, outputType);
+        return this.utils.smartOutput.compile(output, settings.outputType);
     }
 }
 
@@ -130,8 +134,6 @@ class Base32 {
             The RFC standard defined here is used by de- and encoder.
             This can be overwritten during the call of the function.
         */
-
-        this.byteOrder = "BE";
         
         this.charsets = {
             rfc3548:   "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
@@ -139,15 +141,24 @@ class Base32 {
             crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ",
         }
     
+        // predefined settings
         this.converter = new BaseConverter(32, 5, 8);
+        this.littleEndian = false;
         this.outputType = "buffer";
         this.padding = true;
         this.signed = false;
         this.utils = new Utils(this);
         this.version = "rfc4648";
         
-        // user settings
-        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
+        // list of allowed/disallowed args to change
+        this.isMutable = {
+            littleEndian: true,
+            padding: true,
+            signed: true,
+        };
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
     }
     
     encode(input, ...args) {
@@ -163,28 +174,33 @@ class Base32 {
                 "rfc4648"   :  sets the used charset to this standard
         */
 
-        // Argument validation and output settings
-        let version, signed, padding;
-        [version, signed, padding,,] = this.utils.validateArgs(args);
+        // argument validation and input settings
+        const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed);
 
         // Convert to Base32 string
         let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version]);
+        [output, zeroPadding] = this.converter.encode(inputBytes, settings.littleEndian, this.charsets[settings.version]);
         
-        // Cut of redundant chars and append padding if set
-        if (zeroPadding) {
-            const padValue = this.converter.padBytes(zeroPadding);
-            output = output.slice(0, output.length-padValue);
-            if (padding) { 
-                output = output.concat("=".repeat(padValue));
-            }
-        }
+        if (!settings.littleEndian) {
+            
+            // Cut of redundant chars and append padding if set
 
-        // apply settings for results with or without two's complement system
-        output = this.utils.toSignedStr(output, signed, negative);
+            if (zeroPadding) {
+                const padValue = this.converter.padBytes(zeroPadding);
+                output = output.slice(0, output.length-padValue);
+                if (settings.padding) { 
+                    output = output.concat("=".repeat(padValue));
+                }
+            }
+        } else {
+            
+            // apply settings without two's complement system
+            
+            output = this.utils.toSignedStr(output, negative);
+        }
         
         return output;
     }
@@ -203,8 +219,7 @@ class Base32 {
         */
 
         // Argument validation and output settings
-        let version, signed, outputType;
-        [version, signed,, outputType] = this.utils.validateArgs(args);
+        const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
@@ -213,17 +228,17 @@ class Base32 {
         let negative;
         [input, negative] = this.utils.extractSign(input);   
         
-        if (negative && !signed) {
+        if (negative && !settings.signed) {
             this.utils.signError();
         }
         // Make it upper case
         input = input.toUpperCase();
 
         // Run the decoder
-        const output = this.converter.decode(input, this.charsets[version]);
+        const output = this.converter.decode(input, this.charsets[settings.version]);
         
         // Return the output
-        return this.utils.smartOutput.compile(output, outputType);
+        return this.utils.smartOutput.compile(output, settings.outputType);
     }
 }
 
@@ -392,7 +407,7 @@ class Base85 {
         this.version = "ascii85";
         
         // user settings
-        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
+        [this.version,, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
     
     encode(input, ...args) {
@@ -407,15 +422,14 @@ class Base85 {
                 "adobe"     :  sets charset to ascii85 + <~frame~> 
                 "ascii85"   :  sets charset to this commonly used one
                 "rfc1924"   :  uses the charset (and only the charset) of this april fool
-                "z85"       :  sets the used charset to this variant
+                    this.converter.padGroups = [0];    "z85"       :  sets the used charset to this variant
         */
        
         // Argument validation and output settings
-        let version, signed, padding;
-        [version, signed, padding,,] = this.utils.validateArgs(args);
+        let version, padding;
+        [version,, padding,,] = this.utils.validateArgs(args);
         
-        let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
+        const inputBytes = this.utils.smartInput.toBytes(input)[0];
 
 
         // Initialize the replacing of null bytes for ascii85
@@ -437,9 +451,6 @@ class Base85 {
             }
         }
 
-        // apply settings for results with or without two's complement system
-        output = this.utils.toSignedStr(output, signed, negative);
-        
         // Adobes variant gets its <~framing~>
         if (version === "adobe") {
             output = `<~${output}~>`;
@@ -543,7 +554,7 @@ class Base91 {
         this.version = "default";
         
         // user settings
-        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
+        [this.version,, this.padding, this.outputType] = this.utils.validateArgs(args);
     }
 
     encode(input, ...args) {
@@ -561,7 +572,7 @@ class Base91 {
         // Argument validation and output settings
         const version = this.utils.validateArgs(args)[0];
         
-        const inputBytes = this.utils.smartInput.toBytes(input, false)[0];
+        const inputBytes = this.utils.smartInput.toBytes(input)[0];
 
         // As this base representation splits the bytes
         // the read bits need to be stores somewhere. 
@@ -757,9 +768,9 @@ class BaseConverter {
         // Calc how many bits are needed to represent 256 conditions (1 byte)
         let bsDecPre = Math.ceil(256 / radix);
         
-        // If the result is divisible by 8, divide by 8
-        // (the result is a multiple of 8 in that case
-        // therefore it is appropriate to reduce the result)
+        // If the result is a multiple of 8 it
+        // is appropriate to reduce the result
+        // by dividing once more by 8
 
         if (bsDecPre > 8 && !(bsDecPre % 8)) {
             bsDecPre /= 8;
@@ -781,7 +792,7 @@ class BaseConverter {
         return [bsEnc, bsDec];
     }
 
-    encode(inputBytes, charset, replacer=null) {
+    encode(inputBytes, littleEndian, charset, replacer=null) {
         /*
             Encodes to the given radix from a byte array
         */
@@ -789,17 +800,25 @@ class BaseConverter {
         // Initialize output string and set yet unknown
         // zero padding to zero.
         let output = "";
-        let zeroPadding = 0;
         const bs = this.bsEnc;
+
+        const zeroPadding = (bs - inputBytes.length % bs) % bs;
+        const zeroArray = new Array(zeroPadding).fill(0);
+        let byteArray;
+        
+        if (littleEndian) {
+            byteArray = [...zeroArray, ...inputBytes];
+        } else {
+            byteArray = [...inputBytes, ...zeroArray];
+        }
         
         // Iterate over the input array in groups with the length
         // of the given blocksize.
 
-        for (let i=0, l=inputBytes.length; i<l; i+=bs) {
-            
+        for (let i=0, l=byteArray.length; i<l; i+=bs) {
             
             // Convert the subarray into a bs*8-bit binary 
-            // number "n", most significant byte first (big endian).
+            // number "n".
             // The blocksize defines the size of the corresponding
             // integer. According to the blocksize this may lead  
             // to values, that are higher than the "MAX_SAFE_INTEGER",
@@ -808,15 +827,7 @@ class BaseConverter {
             let n = 0n;
             
             for (let j=i; j<i+bs; j++) {
-                let byte;
-                if (j >= l) {
-                    byte = 0;
-                    zeroPadding++;
-                } else {
-                    byte = inputBytes[j];
-                }
-
-                n = (n << 8n) + BigInt(byte);
+                n = (n << 8n) + BigInt(byteArray[j]);
             }
 
 
@@ -960,12 +971,12 @@ class BaseConverter {
         return Uint8Array.from(b256Array);
     }
 
-    padBytes(padChars) {
-        return Math.floor((padChars*this.bsDec)/this.bsEnc);
+    padBytes(charCount) {
+        return Math.floor((charCount * this.bsDec) / this.bsEnc);
     }
 
     padChars(byteCount) {
-        return Math.ceil((byteCount*this.bsEnc)/this.bsDec);
+        return Math.ceil((byteCount * this.bsEnc) / this.bsDec);
     }
 
     divmod(x, y) {
@@ -1061,11 +1072,9 @@ class Utils {
         return args.map(s => `'${s}'`).join(", ");
     }
 
-    toSignedStr(output, signed, negative) {
+    toSignedStr(output, negative) {
 
-        if (signed) {
-            output = output.replace(/^0+/, "");
-        }
+        output = output.replace(/^0+/, "");
 
         if (negative) {
             output = "-".concat(output);
@@ -1132,57 +1141,103 @@ class Utils {
         return array;
     }
 
-    validateArgs(args) {
+    invalidArgument(arg, versions, outputTypes) {
+        const signedHint = (this.root.isMutable.signed) ? "\n * 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers." : "";
+        const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be for big , 'le' for little endian" : "";
+        const padHint = (this.root.isMutable.padding) ? "\n * 'pad' to fill up, 'nopad' to not fill up the output with the particular padding." : "";
+        const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
+        const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+        
+        throw new TypeError(`'${arg}'\nValid parameters are:${signedHint}${endiannessHint}${padHint}${outputHint}${versionHint}\n\nTraceback:`);
+    }
+
+    validateArgs(args, initial=false) {
         /* 
             Test if provided arguments are in the argument list.
             Everything gets converted to lowercase and returned
         */
-        let versions = Object.keys(this.root.charsets);
-        const outputTypes = this.smartOutput.typeList;
-        const signedArgs = ["signed", "unsigned"];
-        const padArgs = ["pad", "nopad"];
-        const validArgs = [...outputTypes, ...versions, ...padArgs, ...signedArgs];
-
-        let version = this.root.version;
-        let signed = this.root.signed;
-        let padding = this.root.padding;
-        let outputType = "buffer";
-
-        if (args.length) {
-            args.forEach((arg) => {
-                arg = String(arg).toLowerCase();
-
-                if (!validArgs.includes(arg)) {
-                    const signedHint = "'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers."
-                    const padHint = "'pad' to fill up, 'nopad' to not fill up the output with the particular padding.";
-                    const outputHint = `Valid args for the output type are ${this.makeArgList(outputTypes)}`;
-                    const versionHint = (versions) ? `The options for version (charset) are: ${this.makeArgList(versions)}` : "";
-                    
-                    throw new TypeError(`'${arg}'\nValid parameters are:\n * ${signedHint}\n * ${padHint}\n * ${outputHint}\n * ${versionHint}\n\nTraceback:`);
-                }
-
-                if (versions.includes(arg)) {
-                    version = arg;
-                } else if (outputTypes.includes(arg)) {
-                    outputType = arg;
-                } else if (arg === "signed") {
-                    signed = true;
-                } else if (arg === "unsigned") {
-                    signed = false;
-                } else if (arg === "pad") {
-                    padding = true;
-                } else if (arg === "nopad") {
-                    padding = false;
-                }
-            });
+        
+        // default settings
+        const parameters = {
+            version: this.root.version,
+            signed: this.root.signed,
+            littleEndian: this.root.littleEndian,
+            padding: this.root.padding,
+            outputType: "buffer",
         }
 
-        if (padding && signed) {
-            padding = false;
+        // if no args are provided return the default settings immediately
+        if (!args.length) {
+            return parameters;
+        }
+
+        const versions = Object.keys(this.root.charsets);
+        const outputTypes = this.smartOutput.typeList;
+
+        const extraArgList = {
+            littleEndian: ["be", "le"],
+            padding: ["nopad", "pad"],
+            signed: ["unsigned", "signed"],
+        }
+
+        args.forEach((arg) => {
+            arg = String(arg).toLowerCase();
+
+            if (versions.includes(arg)) {
+                parameters.version = arg;
+            } else if (outputTypes.includes(arg)) {
+                parameters.outputType = arg;
+            } else {
+                // set invalid args to true for starters
+                // if a valid arg is found later it will
+                // get changed
+
+                let invalidArg = true;
+
+                // walk through the mutable parameter list
+
+                for (const param in extraArgList) {
+                    
+                    if (extraArgList[param].includes(arg)) {
+                        
+                        invalidArg = false;
+
+                        // extra params always have two options
+                        // they are converted into booleans 
+                        // index 0 > false
+                        // index 1 > true
+
+                        if (this.root.isMutable[param]) {
+                            parameters[param] = Boolean(extraArgList[param].indexOf(arg));
+                        } else {
+                            throw TypeError(`Argument '${arg}' is not allowed for this type of converter.`);
+                        }
+                    }
+                }
+
+                if (invalidArg) {
+                    this.invalidArgument(arg, versions, outputTypes);
+                }
+            }
+        });
+
+        if (parameters.littleEndian && !parameters.signed) {
+            parameters.signed = true;
+            this.constructor.warning("Signed was set to true due to the use of little endian byte order.");
+        }
+
+        if (parameters.padding && parameters.signed) {
+            parameters.padding = false;
             this.constructor.warning("Padding was set to false due to the signed conversion.");
         }
+        
+        if (initial) {
+            for (const param in parameters) {
+                this.root[param] = parameters[param];
+            }
+        }
 
-        return [version, signed, padding, outputType];
+        return parameters;
     }
 
     signError() {
@@ -1359,7 +1414,7 @@ class SmartInput {
     }
 
 
-    toBytes(input, signed, littleEndian=false) {
+    toBytes(input, signed=false, littleEndian=false) {
 
         let inputUint8;
         let negative = false;
