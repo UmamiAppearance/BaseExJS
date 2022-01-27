@@ -178,7 +178,7 @@ class Base32 {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed);
+        [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
 
         // Convert to Base32 string
         let output, zeroPadding;
@@ -235,7 +235,7 @@ class Base32 {
         input = input.toUpperCase();
 
         // Run the decoder
-        const output = this.converter.decode(input, this.charsets[settings.version]);
+        const output = this.converter.decode(input, settings.littleEndian, this.charsets[settings.version]);
         
         // Return the output
         return this.utils.smartOutput.compile(output, settings.outputType);
@@ -830,6 +830,7 @@ class BaseConverter {
                 n = (n << 8n) + BigInt(byteArray[j]);
             }
 
+            console.log("nEnc", n);
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
@@ -878,10 +879,12 @@ class BaseConverter {
         // of padded zeros. The specific class decides how 
         // to handle the padding.
 
+        console.log(output);
+
         return [output, zeroPadding];
     }
 
-    decode(inputBaseStr, charset) {
+    decode(inputBaseStr, littleEndian, charset) {
         /*
             Decodes to a string of the given radix to a byte array
         */
@@ -903,12 +906,21 @@ class BaseConverter {
         });
 
         const padChars = (bs - byteArray.length % bs) % bs;
+        
 
-        for (let i=0; i<padChars; i++) {
-            byteArray.push(this.radix-1);
+        if (littleEndian) {
+            const zeroArray = new Array(padChars).fill(0);
+            byteArray.unshift(...zeroArray);
+            byteArray.reverse();
+        } else {
+            const uArray = new Array(padChars).fill(this.radix-1);
+            byteArray.push(...uArray);
         }
+        
 
-        const inputBytes = Uint8Array.from(byteArray);
+        if (littleEndian) {
+            byteArray.reverse();
+        } 
 
         // Initialize a new default array to store
         // the converted radix-256 integers.
@@ -918,14 +930,16 @@ class BaseConverter {
         // Iterate over the input bytes in groups of 
         // the blocksize.
 
-        for (let i=0, l=inputBytes.length; i<l; i+=bs) {
+        for (let i=0, l=byteArray.length; i<l; i+=bs) {
             
             // Build a subarray of bs bytes.
             let n = 0n;
 
             for (let j=0; j<bs; j++) {
-                n += BigInt(inputBytes[i+j]) * this.powers[j]
+                n += BigInt(byteArray[i+j]) * this.powers[j]
             }
+
+            console.log("nDec", n);
             
             
             // To store the output chunks, initialize a
@@ -966,7 +980,16 @@ class BaseConverter {
         // behind.
 
         const padding = this.padChars(padChars);
-        b256Array.splice(b256Array.length-padding);
+
+        console.log("padBytes:", padChars, "padding:", padding);
+
+        if (littleEndian) {
+            while (!b256Array[0]) {
+                b256Array.shift();  
+            }
+        } else {
+            b256Array.splice(b256Array.length-padding);
+        }
 
         return Uint8Array.from(b256Array);
     }
