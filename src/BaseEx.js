@@ -29,6 +29,7 @@ class Base16 {
         this.outputType = "buffer";
         this.padding = false;
         this.signed = false;
+        this.upper = false;
         this.utils = new Utils(this);
         this.version = "default";
         
@@ -36,6 +37,7 @@ class Base16 {
             littleEndian: false,
             padding: false,
             signed: true,
+            upper: true,
         };
 
         // apply user settings
@@ -63,6 +65,10 @@ class Base16 {
         // apply settings for results with or without two's complement system
         if (settings.signed) {
             output = this.utils.toSignedStr(output, negative);
+        }
+
+        if (settings.upper) {
+            output = output.toUpperCase();
         }
 
         return output;
@@ -147,6 +153,7 @@ class Base32 {
         this.outputType = "buffer";
         this.padding = true;
         this.signed = false;
+        this.upper = false;
         this.utils = new Utils(this);
         this.version = "rfc4648";
         
@@ -155,6 +162,7 @@ class Base32 {
             littleEndian: true,
             padding: true,
             signed: true,
+            upper: true,
         };
 
         // apply user settings
@@ -200,6 +208,10 @@ class Base32 {
             // apply settings without two's complement system
             
             output = this.utils.toSignedStr(output, negative);
+        }
+
+        if (!settings.upper) {
+            output = output.toLowerCase();
         }
         
         return output;
@@ -911,15 +923,9 @@ class BaseConverter {
         if (littleEndian) {
             const zeroArray = new Array(padChars).fill(0);
             byteArray.unshift(...zeroArray);
-            byteArray.reverse();
         } else {
             const uArray = new Array(padChars).fill(this.radix-1);
             byteArray.push(...uArray);
-        }
-        
-
-        if (littleEndian) {
-            byteArray.reverse();
         } 
 
         // Initialize a new default array to store
@@ -984,10 +990,12 @@ class BaseConverter {
         console.log("padBytes:", padChars, "padding:", padding);
 
         if (littleEndian) {
+            // remove all zeros from the start of the array
             while (!b256Array[0]) {
                 b256Array.shift();  
             }
         } else {
+            // remove all bytes according to the padding
             b256Array.splice(b256Array.length-padding);
         }
 
@@ -1165,13 +1173,14 @@ class Utils {
     }
 
     invalidArgument(arg, versions, outputTypes) {
-        const signedHint = (this.root.isMutable.signed) ? "\n * 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers." : "";
-        const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be for big , 'le' for little endian" : "";
-        const padHint = (this.root.isMutable.padding) ? "\n * 'pad' to fill up, 'nopad' to not fill up the output with the particular padding." : "";
+        const signedHint = (this.root.isMutable.signed) ? "\n * 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers" : "";
+        const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
+        const padHint = (this.root.isMutable.padding) ? "\n * 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
+        const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
         const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
         const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
         
-        throw new TypeError(`'${arg}'\nValid parameters are:${signedHint}${endiannessHint}${padHint}${outputHint}${versionHint}\n\nTraceback:`);
+        throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}\n\nTraceback:`);
     }
 
     validateArgs(args, initial=false) {
@@ -1201,6 +1210,7 @@ class Utils {
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],
             signed: ["unsigned", "signed"],
+            upper: ["lower", "upper"],
         }
 
         args.forEach((arg) => {
@@ -1247,6 +1257,8 @@ class Utils {
         if (parameters.littleEndian && !parameters.signed) {
             parameters.signed = true;
             this.constructor.warning("Signed was set to true due to the use of little endian byte order.");
+        } else if (!parameters.littleEndian && parameters.signed) {
+            this.constructor.warning("Signed was set to false due to the use of big endian byte order.");
         }
 
         if (parameters.padding && parameters.signed) {
