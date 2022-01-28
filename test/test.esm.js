@@ -48,19 +48,19 @@ encodingList.Base16.set("Hello World!!!",    "48656c6c6f20576f726c64212121");
 // Base32 (rfc3548)
 encodingList.Base32 = new Map();
 encodingList.Base32.set("H",                 "90======");
-encodingList.Base32.set("He",                "91IG====");
-encodingList.Base32.set("Hel",               "91IMO===");
-encodingList.Base32.set("Hell",              "91IMOR0=");
-encodingList.Base32.set("Hello",             "91IMOR3F");
-encodingList.Base32.set("Hello ",            "91IMOR3F40======");
-encodingList.Base32.set("Hello W",           "91IMOR3F41BG====");
-encodingList.Base32.set("Hello Wo",          "91IMOR3F41BMU===");
-encodingList.Base32.set("Hello Wor",         "91IMOR3F41BMUSG=");
-encodingList.Base32.set("Hello Worl",        "91IMOR3F41BMUSJC");
-encodingList.Base32.set("Hello World",       "91IMOR3F41BMUSJCCG======");
-encodingList.Base32.set("Hello World!",      "91IMOR3F41BMUSJCCGGG====");
-encodingList.Base32.set("Hello World!!",     "91IMOR3F41BMUSJCCGGI2===");
-encodingList.Base32.set("Hello World!!!",    "91IMOR3F41BMUSJCCGGI288=");
+encodingList.Base32.set("He",                "91ig====");
+encodingList.Base32.set("Hel",               "91imo===");
+encodingList.Base32.set("Hell",              "91imor0=");
+encodingList.Base32.set("Hello",             "91imor3f");
+encodingList.Base32.set("Hello ",            "91imor3f40======");
+encodingList.Base32.set("Hello W",           "91imor3f41bg====");
+encodingList.Base32.set("Hello Wo",          "91imor3f41bmu===");
+encodingList.Base32.set("Hello Wor",         "91imor3f41bmusg=");
+encodingList.Base32.set("Hello Worl",        "91imor3f41bmusjc");
+encodingList.Base32.set("Hello World",       "91imor3f41bmusjccg======");
+encodingList.Base32.set("Hello World!",      "91imor3f41bmusjccggg====");
+encodingList.Base32.set("Hello World!!",     "91imor3f41bmusjccggi2===");
+encodingList.Base32.set("Hello World!!!",    "91imor3f41bmusjccggi288=");
 
 // Base64
 encodingList.Base64 = new Map();

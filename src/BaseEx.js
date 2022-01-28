@@ -60,7 +60,7 @@ class Base16 {
         [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed);
 
         // Convert to Base16 string
-        let output = this.converter.encode(inputBytes, settings.littleEndian, this.charsets[settings.version])[0];
+        let output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
 
         // apply settings for results with or without two's complement system
         if (settings.signed) {
@@ -190,7 +190,7 @@ class Base32 {
 
         // Convert to Base32 string
         let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, settings.littleEndian, this.charsets[settings.version]);
+        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian);
         
         if (!settings.littleEndian) {
             
@@ -247,7 +247,7 @@ class Base32 {
         input = input.toUpperCase();
 
         // Run the decoder
-        const output = this.converter.decode(input, settings.littleEndian, this.charsets[settings.version]);
+        const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
         
         // Return the output
         return this.utils.smartOutput.compile(output, settings.outputType);
@@ -270,24 +270,32 @@ class Base64 {
             This can be overwritten during the call of the function.
         */
 
-        this.byteOrder = "BE";
-        
-
         const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         this.charsets = {
             default: b62Chars.concat("+/"),
             urlsafe: b62Chars.concat("-_")
         }
 
+        // predefined settings
         this.converter = new BaseConverter(64, 3, 4);
+        this.littleEndian = false;
         this.outputType = "buffer";
         this.padding = true;
         this.signed = false;
+        this.upper = null;
         this.utils = new Utils(this);
         this.version = "default";
         
-        // user settings
-        [this.version, this.signed, this.padding, this.outputType] = this.utils.validateArgs(args);
+        // list of allowed/disallowed args to change
+        this.isMutable = {
+            littleEndian: false,
+            padding: true,
+            signed: false,
+            upper: false,
+        };
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
     }
 
     encode(input, ...args) {
@@ -303,35 +311,29 @@ class Base64 {
                 "rfc4648"   :  sets the used charset to this standard
         */
 
-        // Argument validation and output settings
-        let version, signed, padding;
-        [version, signed, padding,,] = this.utils.validateArgs(args);
-        
-        let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, signed);
+        // argument validation and input settings
+        const settings = this.utils.validateArgs(args); 
+        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
 
         // Convert to Base64 string
         let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version]);
-        
+        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version]);
+            
         // Cut of redundant chars and append padding if set
         if (zeroPadding) {
             const padValue = this.converter.padBytes(zeroPadding);
             output = output.slice(0, output.length-padValue);
-            if (padding) { 
+            if (settings.padding) { 
                 output = output.concat("=".repeat(padValue));
             }
         }
-
-        // apply settings for results with or without two's complement system
-        output = this.utils.toSignedStr(output, signed, negative);
         
         return output;
     }
 
     decode(input, ...args) {
         /* 
-            Decode from base32 string to utf8-string or bytes.
+            Decode from base64 string to utf8-string or bytes.
             -------------------------------------------------
 
             @input: base32-string
@@ -343,25 +345,16 @@ class Base64 {
         */
 
         // Argument validation and output settings
-        let version, signed, outputType;
-        [version, signed,, outputType] = this.utils.validateArgs(args);
+        const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
-        
-        // Test for a negative sign
-        let negative;
-        [input, negative] = this.utils.extractSign(input);   
-        
-        if (negative && !signed) {
-            this.utils.signError();
-        }
 
         // Run the decoder
-        const output = this.converter.decode(input, this.charsets[version]);
+        const output = this.converter.decode(input, this.charsets[settings.version]);
         
         // Return the output
-        return this.utils.smartOutput.compile(output, outputType);
+        return this.utils.smartOutput.compile(output, settings.outputType);
     }
 }
 
@@ -401,8 +394,6 @@ class Base85 {
             function.
         */
 
-        this.byteOrder = "BE";
-
         const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
         this.charsets = {
             ascii85: asciiChars,
@@ -411,15 +402,26 @@ class Base85 {
             z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
         }
 
+        // predefined settings
         this.converter = new BaseConverter(85, 4, 5);
+        this.littleEndian = false;
         this.outputType = "buffer";
         this.padding = false;
         this.signed = false;
+        this.upper = null;
         this.utils = new Utils(this);
         this.version = "ascii85";
         
-        // user settings
-        [this.version,, this.padding, this.outputType] = this.utils.validateArgs(args);
+        // list of allowed/disallowed args to change
+        this.isMutable = {
+            littleEndian: false,
+            padding: false,
+            signed: false,
+            upper: false,
+        };
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
     }
     
     encode(input, ...args) {
@@ -437,34 +439,28 @@ class Base85 {
                     this.converter.padGroups = [0];    "z85"       :  sets the used charset to this variant
         */
        
-        // Argument validation and output settings
-        let version, padding;
-        [version,, padding,,] = this.utils.validateArgs(args);
-        
-        const inputBytes = this.utils.smartInput.toBytes(input)[0];
-
-
+        // argument validation and input settings
+        const settings = this.utils.validateArgs(args);
+        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
+  
         // Initialize the replacing of null bytes for ascii85
         let replacer = null;
-        if (version.match(/adobe|ascii85/)) {
+        if (settings.version.match(/adobe|ascii85/)) {
             replacer = (frame, zPad) => (!zPad && frame === "!!!!!") ? "z" : frame;
         }
 
         // Convert to Base85 string
         let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[version], replacer);
+        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], false, replacer);
         
-        // Cut of redundant chars and append padding if set
+        // Cut of redundant chars
         if (zeroPadding) {
             const padValue = this.converter.padBytes(zeroPadding);
             output = output.slice(0, output.length-padValue);
-            if (padding) { 
-                output = output.concat("=".repeat(padValue));
-            }
         }
 
         // Adobes variant gets its <~framing~>
-        if (version === "adobe") {
+        if (settings.version === "adobe") {
             output = `<~${output}~>`;
         }
         
@@ -487,49 +483,24 @@ class Base85 {
         */
 
         // Argument validation and output settings
-        let version, outputType;
-        [version,,, outputType] = this.utils.validateArgs(args);
+        const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
-    
+
         // For default ascii85 convert "z" back to "!!!!!"
-        if (version.match(/adobe|ascii85/)) {
+        if (settings.version.match(/adobe|ascii85/)) {
             input = input.replace(/z/g, "!!!!!");
-            if (version === "adobe") {
+            if (settings.version === "adobe") {
                 input = input.replace(/^<~|~>$/g, "");
             }
         }
 
         // Run the decoder
-        const output = this.converter.decode(input, this.charsets[version]);
-
+        const output = this.converter.decode(input, this.charsets[settings.version]);
+        
         // Return the output
-        return this.utils.smartOutput.compile(output, outputType);
-    }
-
-    expandUtils(debug) {        
-        this.utils.announce = () => {
-            if (!debug) {
-                const date = new Date();
-                if (date.getMonth() === 3 && date.getDate() === 1) {
-                    // eslint-disable-next-line no-useless-escape
-                    console.log("         __\n _(\\    |@@|\n(__/\\__ \\--/ __\n   \\___|----|  |   __\n       \\ }{ /\\ )_ / _\\\n       /\\__/\\ \\__O (__\n      (--/\--)    \\__/\n      _)(  )(_\n     `---''---`");
-                } else {
-                    const ts = date.getTime();
-                    date.setMonth(3, 1);
-                    date.setHours(0, 0, 0);
-                    if (date.getTime() < ts) date.setFullYear(date.getFullYear()+1);
-                    const dist = date - ts;
-                    const d = Math.floor(dist / 86400000);
-                    const H = Math.floor((dist % 86400000) / 3600000);
-                    const M = Math.floor((dist % 3600000) / 60000);
-                    const msg = `Time left: ${d} days, ${H} hours, ${M} minutes`;
-                    Utils.warning("Only the charset is used. The input is not taken as a 128 bit integer. (because this is madness)");
-                    Utils.warning(msg);
-                }
-            }
-        }
+        return this.utils.smartOutput.compile(output, settings.outputType);
     }
 }
 
@@ -559,14 +530,25 @@ class Base91 {
             default: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
         }
 
+        // predefined settings
+        this.littleEndian = false;
         this.outputType = "buffer";
         this.padding = false;
         this.signed = false;
+        this.upper = null;
         this.utils = new Utils(this);
         this.version = "default";
         
-        // user settings
-        [this.version,, this.padding, this.outputType] = this.utils.validateArgs(args);
+        // list of allowed/disallowed args to change
+        this.isMutable = {
+            littleEndian: false,
+            padding: false,
+            signed: false,
+            upper: false,
+        };
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
     }
 
     encode(input, ...args) {
@@ -581,11 +563,10 @@ class Base91 {
                 "default"   :  default charset 
         */
        
-        // Argument validation and output settings
-        const version = this.utils.validateArgs(args)[0];
-        
-        const inputBytes = this.utils.smartInput.toBytes(input)[0];
-
+        // argument validation and input settings
+        const settings = this.utils.validateArgs(args);
+        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
+  
         // As this base representation splits the bytes
         // the read bits need to be stores somewhere. 
         // This is done in "bitCount". "n", similar to 
@@ -597,7 +578,7 @@ class Base91 {
         let output = "";
 
         // Shortcut
-        const chars = this.charsets[version];
+        const chars = this.charsets[settings.version];
 
         inputBytes.forEach(byte => {
             //n = n + byte * 2^bitcount;
@@ -676,8 +657,7 @@ class Base91 {
         */
 
         // Argument validation and output settings
-        let version, outputType;
-        [version,,, outputType] = this.utils.validateArgs(args);
+        const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
         input = String(input);
@@ -698,7 +678,7 @@ class Base91 {
 
         let n = 0;
         let bitCount = 0;
-        const chars = this.charsets[version];
+        const chars = this.charsets[settings.version];
         
         // Initialize an ordinary array
         const b256Array = new Array();
@@ -730,12 +710,8 @@ class Base91 {
 
         const output = Uint8Array.from(b256Array);
 
-        // Return the output, convert to utf8-string if requested
-        if (outputType === "bytes") {
-            return output;
-        } else {
-            return new TextDecoder().decode(output);
-        }
+        // Return the output
+        return this.utils.smartOutput.compile(output, settings.outputType);
     }
 
     divmod (x, y) {
@@ -804,7 +780,7 @@ class BaseConverter {
         return [bsEnc, bsDec];
     }
 
-    encode(inputBytes, littleEndian, charset, replacer=null) {
+    encode(inputBytes, charset, littleEndian=false, replacer=null) {
         /*
             Encodes to the given radix from a byte array
         */
@@ -819,6 +795,12 @@ class BaseConverter {
         let byteArray;
         
         if (littleEndian) {
+            
+            // as the following loop walks through the array
+            // from left to right, the input bytes get reversed
+            // to favor the least significant first
+
+            inputBytes.reverse();
             byteArray = [...zeroArray, ...inputBytes];
         } else {
             byteArray = [...inputBytes, ...zeroArray];
@@ -832,7 +814,7 @@ class BaseConverter {
             // Convert the subarray into a bs*8-bit binary 
             // number "n".
             // The blocksize defines the size of the corresponding
-            // integer. According to the blocksize this may lead  
+            // integer. Dependent on the blocksize this may lead  
             // to values, that are higher than the "MAX_SAFE_INTEGER",
             // therefore BigInts are used.
   
@@ -841,8 +823,6 @@ class BaseConverter {
             for (let j=i; j<i+bs; j++) {
                 n = (n << 8n) + BigInt(byteArray[j]);
             }
-
-            console.log("nEnc", n);
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
@@ -891,12 +871,10 @@ class BaseConverter {
         // of padded zeros. The specific class decides how 
         // to handle the padding.
 
-        console.log(output);
-
         return [output, zeroPadding];
     }
 
-    decode(inputBaseStr, littleEndian, charset) {
+    decode(inputBaseStr, charset, littleEndian=false) {
         /*
             Decodes to a string of the given radix to a byte array
         */
@@ -919,7 +897,6 @@ class BaseConverter {
 
         const padChars = (bs - byteArray.length % bs) % bs;
         
-
         if (littleEndian) {
             const zeroArray = new Array(padChars).fill(0);
             byteArray.unshift(...zeroArray);
@@ -944,9 +921,6 @@ class BaseConverter {
             for (let j=0; j<bs; j++) {
                 n += BigInt(byteArray[i+j]) * this.powers[j]
             }
-
-            console.log("nDec", n);
-            
             
             // To store the output chunks, initialize a
             // new default array.
@@ -981,13 +955,7 @@ class BaseConverter {
             b256Array = b256Array.concat(subArray256);
         }
 
-        // Convert default array to typed uInt8 array.
-        // The amount of bytes added for padding is left 
-        // behind.
-
-        const padding = this.padChars(padChars);
-
-        console.log("padBytes:", padChars, "padding:", padding);
+        // Remove padded zeros (or in case of LE all leading zeros)
 
         if (littleEndian) {
             // remove all zeros from the start of the array
@@ -995,6 +963,8 @@ class BaseConverter {
                 b256Array.shift();  
             }
         } else {
+            const padding = this.padChars(padChars);
+
             // remove all bytes according to the padding
             b256Array.splice(b256Array.length-padding);
         }
@@ -1137,7 +1107,7 @@ class Utils {
 
         // if bytes are missing, construct a new array 
         // and set the values. The delta is the offset
-        // eg. [12, 32, 45], length: 3 offset = (4-3=1)
+        // eg. TypedArray([12, 32, 45]), length: 3 offset = (4-3=1)
         // --> set values with offset 1 --> [0, 12, 32, 45]
         if (byteDelta) {
             const normalizedArray = new Uint8Array(bytesPerElem);
@@ -1254,13 +1224,7 @@ class Utils {
             }
         });
 
-        if (parameters.littleEndian && !parameters.signed) {
-            parameters.signed = true;
-            this.constructor.warning("Signed was set to true due to the use of little endian byte order.");
-        } else if (!parameters.littleEndian && parameters.signed) {
-            this.constructor.warning("Signed was set to false due to the use of big endian byte order.");
-        }
-
+        // overwrite the default parameters for the initial call
         if (parameters.padding && parameters.signed) {
             parameters.padding = false;
             this.constructor.warning("Padding was set to false due to the signed conversion.");
@@ -1354,13 +1318,13 @@ class SmartInput {
                     view.setBigInt64(0, BigInt(input), littleEndian);
                 }
                 
-                // 32 littleEndianit
+                // 32 littleEndian
                 else if (input < -32768) {
                     view = this.makeDataView(4);
                     view.setInt32(0, input, littleEndian);
                 }
 
-                // 16 littleEndianit
+                // 16 littleEndian
                 else {
                     view = this.makeDataView(2);
                     view.setInt16(0, input, littleEndian);
