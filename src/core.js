@@ -36,9 +36,8 @@ class BaseConverter {
         
         // If the result is a multiple of 8 it
         // is appropriate to reduce the result
-        // by dividing once more by 8
 
-        if (bsDecPre > 8 && !(bsDecPre % 8)) {
+        while (bsDecPre > 8 && !(bsDecPre % 8)) {
             bsDecPre /= 8;
         }
 
@@ -240,6 +239,12 @@ class BaseConverter {
             while (!b256Array[0]) {
                 b256Array.shift();  
             }
+            
+            if (!b256Array.length) {
+                b256Array.push(0);
+            }
+
+            b256Array.reverse();
         } else {
             const padding = this.padChars(padChars);
 
@@ -353,7 +358,7 @@ class Utils {
 
     toSignedStr(output, negative) {
 
-        output = output.replace(/^0+/, "");
+        output = output.replace(/^0+(?!$)/, "");
 
         if (negative) {
             output = "-".concat(output);

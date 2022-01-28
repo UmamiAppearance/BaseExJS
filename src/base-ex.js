@@ -16,11 +16,12 @@
  * -> Utils (-> SmartInput)
  */
 
-import { Base16 } from "./Base16.js";
-import { Base32 } from "./Base32.js";
-import { Base64 } from "./Base64.js";
-import { Base85 } from "./Base85.js";
-import { Base91 } from "./Base91.js";
+import { Base16 } from "./base-16.js";
+import { Base32 } from "./base-32.js";
+import { Base64 } from "./base-64.js";
+import { Base85 } from "./base-85.js";
+import { Base91 } from "./base-91.js";
+import { SimpleBase } from "./simple-base.js";
 
 
 class BaseEx {
@@ -42,4 +43,4 @@ class BaseEx {
     }
 }
 
-export { Base16, Base32, Base64, Base85, Base91, BaseEx };
+export { Base16, Base32, Base64, Base85, Base91, SimpleBase, BaseEx };
