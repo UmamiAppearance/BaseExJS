@@ -82,6 +82,8 @@ class BaseConverter {
         } else {
             byteArray = [...inputBytes, ...zeroArray];
         }
+
+        console.log(byteArray);
         
         // Iterate over the input array in groups with the length
         // of the given blocksize.
@@ -100,6 +102,8 @@ class BaseConverter {
             for (let j=i; j<i+bs; j++) {
                 n = (n << 8n) + BigInt(byteArray[j]);
             }
+
+            console.log(n);
 
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
@@ -147,6 +151,8 @@ class BaseConverter {
         // The output string is returned. Also the amount 
         // of padded zeros. The specific class decides how 
         // to handle the padding.
+
+        console.log(output);
 
         return [output, zeroPadding];
     }
@@ -659,14 +665,16 @@ class SmartInput {
 
         // as the integer size is not known yet, the bytes get a
         // makeshift home
+
         const byteArray = new Array();
+        const append = (littleEndian) ? "push" : "unshift";
 
         if (input > 0) {
             
             const overflow = 18446744073709551616n; 
 
             while (input >= overflow) {
-                byteArray.unshift(input % overflow);
+                byteArray[append](input % overflow);
                 input >>= 64n;
             }
         }
@@ -675,12 +683,12 @@ class SmartInput {
             const overflow = -9223372036854775808n;
 
             while (input <= overflow) {
-                byteArray.unshift(input % overflow);
+                byteArray[append](input % overflow);
                 input >>= 64n;
             }
         }
 
-        byteArray.unshift(input);
+        byteArray[append](input);
 
         const byteLen = byteArray.length * 8;
 
