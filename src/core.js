@@ -31,8 +31,12 @@ class BaseConverter {
     }
 
     static calcBS(radix) {
-        // Calc how many bits are needed to represent 256 conditions (1 byte)
-        let bsDecPre = Math.ceil(256 / radix);
+        // Calc how many bits are needed to represent
+        // 256 conditions (1 byte)
+        // If the radix is less than 8 bits, skip that part
+        // and use the radix value directly.
+
+        let bsDecPre = (radix < 8) ? radix : Math.ceil(256 / radix);
         
         // If the result is a multiple of 8 it
         // is appropriate to reduce the result
@@ -799,3 +803,11 @@ class SmartOutput {
 }
 
 export { BaseConverter, SmartInput, SmartOutput, Utils };
+
+/*
+
+76543210 76543210 76543210    76543210 76543210 76543210
+
+64 
+  
+*/
