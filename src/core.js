@@ -777,26 +777,99 @@ class SmartOutput {
         return type;
     }
 
-    compile(Uint8ArrayOut, type) {
+    makeTypedArrayBuffer(Uint8ArrayOut, bytesPerElem, littleEndian) {
+        
+        const len = Uint8ArrayOut.byteLength;
+        const delta = (bytesPerElem - (Uint8ArrayOut.byteLength % bytesPerElem)) % bytesPerElem;
+        let newArray = Uint8ArrayOut;
+        
+        if (delta) {
+            newArray = new Uint8Array(len + delta);
+            const offset = (littleEndian) ? delta : 0;
+            newArray.set(Uint8ArrayOut, offset)
+        }
+
+        return newArray.buffer;
+    }
+
+    makeTypedArray(inArray, type, littleEndian) {
+        let outArray;
+
+        if (type === "int16" || type === "uint16") {
+            const buffer = this.makeTypedArrayBuffer(inArray, 2, littleEndian);
+            outArray = (type === "int16") ? new Int16Array(buffer) : new Uint16Array(buffer);
+        } else if (type === "int32" || type === "uint32") {
+            const buffer = this.makeTypedArrayBuffer(inArray, 4, littleEndian);
+            outArray = (type === "int32") ? new Int32Array(buffer) : new Uint32Array(buffer);
+        } else if (type === "bigint64" || type === "biguint64") {
+            const buffer = this.makeTypedArrayBuffer(inArray, 8, littleEndian);
+            outArray = (type === "bigint64") ? new BigInt64Array(buffer) : new BigUint64Array(buffer);
+        }
+
+        return outArray;
+    }
+
+    compile(Uint8ArrayOut, type, littleEndian, negative=false) {
         type = this.getType(type);
         let compiled;
 
         if (type === "buffer") {
             compiled = Uint8ArrayOut.buffer;
-        } else if (type == "bytes") {
+        } else if (type === "bytes" || type === "Uint8") {
             compiled = Uint8ArrayOut;
+        } else if (type === "int8") {
+            compiled = new Int8Array(Uint8ArrayOut.buffer);
+        } else if (type === "view") {
+            compiled = new DataView(Uint8ArrayOut.buffer);
         } else if (type === "str") {
            compiled = new TextDecoder().decode(Uint8ArrayOut);
-        }
+        } else if (type === "number") {
+
+            if (Uint8ArrayOut.byteLength <= 2) {
+                type = "uint16";
+            } else if (Uint8ArrayOut.byteLength <= 4) {
+                type = "uint32";
+            } else {
+                type = "biguint64";
+            }
+
+            console.log("testype", type);
+
+            compiled = this.makeTypedArray(Uint8ArrayOut, type, littleEndian);
+
+            if (type === "biguint64") {
+                // TODO: Loop
+            } else {
+                // TODO: view and get 
+                Number(compiled);
+            }
+
+            if (negative) {
+                compiled = -(compiled);
+            }
+
+        } else {
+            compiled = this.makeTypedArray(Uint8ArrayOut, type, littleEndian);
+        } 
 
         return compiled;
     }
 
     static validTypes() {
         const typeList = [
+            "bigint64",
+            "biguint64",
             "buffer",
             "bytes",
-            "str"
+            "int8",
+            "int16",
+            "int32",
+            "number",
+            "str",
+            "uint8",
+            "uint16",
+            "uint32",
+            "view"
         ];
         return typeList; 
     }
