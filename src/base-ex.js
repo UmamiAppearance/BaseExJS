@@ -30,16 +30,16 @@ class BaseEx {
         instances.
     */
    
-    constructor(input="str", output="str") {
-        this.base16 = new Base16("default", input, output);
-        this.base32_rfc3548 = new Base32("rfc3548", input, output);
-        this.base32_rfc4648 = new Base32("rfc4648", input, output);
-        this.base64 = new Base64("default", input, output);
-        this.base64_urlsafe = new Base64("urlsafe", input, output);
-        this.base85adobe = new Base85("adobe", input, output);
-        this.base85ascii = new Base85("ascii85", input, output);
-        this.base85_z85 = new Base85("z85", input, output);
-        this.base91 = new Base91("default", input, output);
+    constructor(output="buffer") {
+        this.base16 = new Base16("default", output);
+        this.base32_rfc3548 = new Base32("rfc3548", output);
+        this.base32_rfc4648 = new Base32("rfc4648", output);
+        this.base64 = new Base64("default", output);
+        this.base64_urlsafe = new Base64("urlsafe", output);
+        this.base85adobe = new Base85("adobe", output);
+        this.base85ascii = new Base85("ascii85", output);
+        this.base85_z85 = new Base85("z85", output);
+        this.base91 = new Base91("default",output);
     }
 }
 

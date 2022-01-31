@@ -81,6 +81,6 @@ export class SimpleBase {
         const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
         
         // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType);
+        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 }

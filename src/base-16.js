@@ -104,6 +104,6 @@ export class Base16 {
         }
         
         // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType);
+        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 }

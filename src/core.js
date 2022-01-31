@@ -26,7 +26,7 @@ class BaseConverter {
         
         this.powers = [];
         for (let i=0; i<this.bsDec; i++) {
-            this.powers.unshift(BigInt(radix**i));
+            this.powers.unshift(BigInt(radix)**BigInt(i));
         }
     }
 
@@ -599,7 +599,7 @@ class SmartInput {
                     minMax = "MAX";
                 }
 
-                Utils.warning(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData loss is possible. Use a BigInt to avoid this issue.`);
+                throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not possible. Use a BigInt to avoid this issue.`);
             }
 
             // Signed Integer
@@ -809,7 +809,7 @@ class SmartOutput {
         return outArray;
     }
 
-    compile(Uint8ArrayOut, type, littleEndian, negative=false) {
+    compile(Uint8ArrayOut, type, littleEndian=false, negative=false) {
         type = this.getType(type);
         let compiled;
 
@@ -825,23 +825,19 @@ class SmartOutput {
            compiled = new TextDecoder().decode(Uint8ArrayOut);
         } else if (type === "number") {
 
-            if (Uint8ArrayOut.byteLength <= 2) {
-                type = "uint16";
-            } else if (Uint8ArrayOut.byteLength <= 4) {
-                type = "uint32";
-            } else {
-                type = "biguint64";
+            compiled = Uint8ArrayOut;
+
+            if (littleEndian) {
+                compiled.reverse();
             }
 
-            console.log("testype", type);
+            let n = 0n;
+            compiled.forEach((b) => n = (n << 8n) + BigInt(b));
 
-            compiled = this.makeTypedArray(Uint8ArrayOut, type, littleEndian);
-
-            if (type === "biguint64") {
-                // TODO: Loop
+            if (n < Number.MAX_SAFE_INTEGER) {
+                compiled = Number(n);
             } else {
-                // TODO: view and get 
-                Number(compiled);
+                compiled = n;
             }
 
             if (negative) {
@@ -876,11 +872,3 @@ class SmartOutput {
 }
 
 export { BaseConverter, SmartInput, SmartOutput, Utils };
-
-/*
-
-76543210 76543210 76543210    76543210 76543210 76543210
-
-64 
-  
-*/
