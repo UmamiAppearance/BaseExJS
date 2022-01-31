@@ -123,6 +123,7 @@ class BaseConverter {
             }
 
             // Append the remaining quotient to the array
+            console.log("lastQ", q);
             bXarray.unshift(parseInt(q, 10));
 
             // If the length of the array is less than the
@@ -132,6 +133,8 @@ class BaseConverter {
             while (bXarray.length < this.bsDec) {
                 bXarray.unshift(0);
             }
+
+            console.log("bXarray", bXarray);
 
             // Each digit is used as an index to pick a 
             // corresponding char from the charset. The 
@@ -275,7 +278,7 @@ class BaseConverter {
 
     divmod(x, y) {
         [x, y] = [BigInt(x), BigInt(y)];
-        return [parseInt(x/y, 10), parseInt(x%y, 10)];
+        return [(x / y), (x % y)];
     }
 }
 
