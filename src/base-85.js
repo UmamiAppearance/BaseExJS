@@ -45,7 +45,7 @@ export class Base85 {
         }
 
         // predefined settings
-        this.converter = new BaseConverter(85, 4, 5);
+        this.converter = new BaseConverter(85, 4, 5, 84);
         this.littleEndian = false;
         this.outputType = "buffer";
         this.padding = false;

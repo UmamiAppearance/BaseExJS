@@ -4,7 +4,7 @@ class BaseConverter {
         based on a given charset.
     */
 
-    constructor(radix, bsEnc=null, bsDec=null) {
+    constructor(radix, bsEnc=null, bsDec=null, decPadVal=0) {
         /*
             Stores the radix and blocksize for en-/decoding.
         */
@@ -16,6 +16,8 @@ class BaseConverter {
         } else {
             [this.bsEnc, this.bsDec] = this.constructor.calcBS(radix);
         }
+
+        this.decPadVal = decPadVal;
 
         // precalculate powers for decoding
         // [radix**bs-1, radix**i, ... radix**0]
@@ -86,8 +88,6 @@ class BaseConverter {
         } else {
             byteArray = [...inputBytes, ...zeroArray];
         }
-
-        console.log(byteArray);
         
         // Iterate over the input array in groups with the length
         // of the given blocksize.
@@ -107,8 +107,6 @@ class BaseConverter {
                 n = (n << 8n) + BigInt(byteArray[j]);
             }
 
-            console.log(n);
-
             // Initialize a new ordinary array, to
             // store the digits with the given radix  
             const bXarray = new Array();
@@ -123,7 +121,6 @@ class BaseConverter {
             }
 
             // Append the remaining quotient to the array
-            console.log("lastQ", q);
             bXarray.unshift(parseInt(q, 10));
 
             // If the length of the array is less than the
@@ -133,8 +130,6 @@ class BaseConverter {
             while (bXarray.length < this.bsDec) {
                 bXarray.unshift(0);
             }
-
-            console.log("bXarray", bXarray);
 
             // Each digit is used as an index to pick a 
             // corresponding char from the charset. The 
@@ -158,8 +153,6 @@ class BaseConverter {
         // The output string is returned. Also the amount 
         // of padded zeros. The specific class decides how 
         // to handle the padding.
-
-        console.log(output);
 
         return [output, zeroPadding];
     }
@@ -186,14 +179,14 @@ class BaseConverter {
         });
 
         const padChars = (bs - byteArray.length % bs) % bs;
-        
+        const fillArray = new Array(padChars).fill(this.decPadVal);
         if (littleEndian) {
-            const zeroArray = new Array(padChars).fill(0);
-            byteArray.unshift(...zeroArray);
+            byteArray.unshift(...fillArray);
         } else {
-            const uArray = new Array(padChars).fill(this.radix-1);
-            byteArray.push(...uArray);
+            byteArray.push(...fillArray);
         } 
+
+        console.log(byteArray);
 
         // Initialize a new default array to store
         // the converted radix-256 integers.

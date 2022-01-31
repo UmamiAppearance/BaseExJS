@@ -26,7 +26,7 @@ export class SimpleBase {
         this.isMutable = {
             littleEndian: false,
             padding: false,
-            signed: true,
+            signed: false,
             upper: true,
         };
 
@@ -61,19 +61,23 @@ export class SimpleBase {
 
         // Make it a string, whatever goes in
         input = String(input);
-
-        // Ensure even number of characters
-        if (input.length % 2) {
-            input = "0".concat(input);
-        }
         
         // Test for a negative sign
         let negative;
         [input, negative] = this.utils.extractSign(input);   
         
-        if (negative && !settings.signed) {
-            this.utils.signError();
+        // Ensure correct length of characters
+        // for binary and hexadecimal
+        if (this.converter.radix === 2) {
+            const leadingZeros = (8 - (input.length % 8)) % 8;
+            input = `${"0".repeat(leadingZeros)}${input}`;
+        } else if (this.converter.radix === 16) {
+            const leadingZeros = input.length % 2;
+            input = `${"0".repeat(leadingZeros)}${input}`;
         }
+
+        console.log(input);
+
         // Make it lower case
         input = input.toLowerCase();
 
