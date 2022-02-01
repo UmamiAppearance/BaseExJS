@@ -19,6 +19,7 @@
 import { Base1 }  from "./base-1.js";
 import { Base16 } from "./base-16.js";
 import { Base32 } from "./base-32.js";
+import { Base58 } from "./base-58.js";
 import { Base64 } from "./base-64.js";
 import { Base85 } from "./base-85.js";
 import { Base91 } from "./base-91.js";
@@ -44,4 +45,4 @@ class BaseEx {
     }
 }
 
-export { Base1, Base16, Base32, Base64, Base85, Base91, SimpleBase, BaseEx };
+export { Base1, Base16, Base32, Base58, Base64, Base85, Base91, SimpleBase, BaseEx };

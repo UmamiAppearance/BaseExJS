@@ -13,7 +13,7 @@ export class SimpleBase {
         }
     
         // predefined settings
-        this.converter = new BaseConverter(radix);
+        this.converter = (radix === 10) ? new BaseConverter(10, 0, 0) : new BaseConverter(radix);
         this.littleEndian = !(radix === 2 || radix === 16);
         this.outputType = "buffer";
         this.padding = false;

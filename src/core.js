@@ -26,10 +26,6 @@ class BaseConverter {
         // powers of 2 (eg. 16, 32, 64), not something
         // like base85
         
-        this.powers = [];
-        for (let i=0; i<this.bsDec; i++) {
-            this.powers.unshift(BigInt(radix)**BigInt(i));
-        }
     }
 
     static calcBS(radix) {
@@ -70,8 +66,12 @@ class BaseConverter {
 
         // Initialize output string and set yet unknown
         // zero padding to zero.
+        let bs = this.bsEnc;
+        if (bs === 0) {
+            bs = inputBytes.byteLength;
+        }
+
         let output = "";
-        const bs = this.bsEnc;
 
         const zeroPadding = (bs - inputBytes.length % bs) % bs;
         const zeroArray = new Array(zeroPadding).fill(0);
@@ -165,12 +165,15 @@ class BaseConverter {
         // Convert each char of the input to the radix-integer
         // (this becomes the corresponding index of the char
         // from the charset). Every char, that is not found in
-        // in the set is assumed to be a padding char. The integer
-        // is set to zero in this case.
+        // in the set is getting ignored.
 
-        const bs = this.bsDec;
+        if (!inputBaseStr) {
+            return new Uint8Array(0);
+        }
+
+        let bs = this.bsDec;
         const byteArray = new Array();
-        
+
         inputBaseStr.split('').forEach((c) => {
             const index = charset.indexOf(c);
             if (index > -1) { 
@@ -178,15 +181,20 @@ class BaseConverter {
             }
         });
 
-        const padChars = (bs - byteArray.length % bs) % bs;
-        const fillArray = new Array(padChars).fill(this.decPadVal);
-        if (littleEndian) {
-            byteArray.unshift(...fillArray);
-        } else {
-            byteArray.push(...fillArray);
-        } 
 
-        console.log(byteArray);
+        let padChars;
+
+        if (bs === 0) {
+            bs = byteArray.length;
+        } else {
+            padChars = (bs - byteArray.length % bs) % bs;
+            const fillArray = new Array(padChars).fill(this.decPadVal);
+            if (littleEndian) {
+                byteArray.unshift(...fillArray);
+            } else {
+                byteArray.push(...fillArray);
+            }
+        }
 
         // Initialize a new default array to store
         // the converted radix-256 integers.
@@ -202,7 +210,7 @@ class BaseConverter {
             let n = 0n;
 
             for (let j=0; j<bs; j++) {
-                n += BigInt(byteArray[i+j]) * this.powers[j]
+                n += BigInt(byteArray[i+j]) * this.pow(bs-1-j);
             }
             
             // To store the output chunks, initialize a
@@ -251,7 +259,7 @@ class BaseConverter {
             }
 
             b256Array.reverse();
-        } else {
+        } else if (this.bsDec) {
             const padding = this.padChars(padChars);
 
             // remove all bytes according to the padding
@@ -267,6 +275,10 @@ class BaseConverter {
 
     padChars(byteCount) {
         return Math.ceil((byteCount * this.bsEnc) / this.bsDec);
+    }
+
+    pow(n) {
+        return BigInt(this.radix)**BigInt(n);
     }
 
     divmod(x, y) {

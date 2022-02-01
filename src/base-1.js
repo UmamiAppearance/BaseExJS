@@ -13,7 +13,7 @@ export class Base1 {
         this.base10Chars = "0123456789";
     
         // predefined settings
-        this.converter = new BaseConverter(10);
+        this.converter = new BaseConverter(10, 0, 0);
         this.littleEndian = true;
         this.outputType = "buffer";
         this.padding = false;
