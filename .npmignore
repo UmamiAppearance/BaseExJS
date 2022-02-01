@@ -1,3 +1,4 @@
 BaseEx.code-workspace
 dist/*
 !dist/BaseEx.cjs.js
+.vscode/
