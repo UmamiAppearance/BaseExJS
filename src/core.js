@@ -73,7 +73,7 @@ class BaseConverter {
 
         let output = "";
 
-        const zeroPadding = (bs - inputBytes.length % bs) % bs;
+        const zeroPadding = (bs) ? (bs - inputBytes.length % bs) % bs : 0;
         const zeroArray = new Array(zeroPadding).fill(0);
         let byteArray;
         
@@ -720,15 +720,18 @@ class SmartInput {
 
         let inputUint8;
         let negative = false;
+        let bytesInput = false;
         
         // Buffer:
         if (input instanceof ArrayBuffer) {
-            inputUint8 = new Uint8Array(input)
+            inputUint8 = new Uint8Array(input);
+            bytesInput = true;
         }
 
         // TypedArray or DataView:
         else if (ArrayBuffer.isView(input)) {
             inputUint8 = new Uint8Array(input.buffer);
+            bytesInput = true;
         }
         
         // String:
@@ -767,7 +770,7 @@ class SmartInput {
             throw new TypeError("The provided input type can not be processed.");
         }
 
-        return [inputUint8, negative];
+        return [inputUint8, negative, bytesInput];
     }
 }
 

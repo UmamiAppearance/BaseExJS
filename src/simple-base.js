@@ -40,7 +40,7 @@ export class SimpleBase {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
+        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
 
         // Convert to BaseRadix string
         let output = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian)[0];

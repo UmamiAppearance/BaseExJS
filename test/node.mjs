@@ -1,9 +1,9 @@
-import { Base16, Base32, Base64, Base85, Base91 } from "../src/base-ex.js"
+import { Base16, Base32, Base58, Base64, Base85, Base91 } from "../src/base-ex.js"
 import {roundUpTests, test, testData} from "./test.esm.js"
 
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class
-    const classes = [new Base16(), new Base32(), new Base64(), new Base85(), new Base91()];
+    const classes = [new Base16(), new Base32(), new Base58("bitcoin"), new Base64(), new Base85(), new Base91()];
         
     async function testGroup() {
         const base = classes.shift();

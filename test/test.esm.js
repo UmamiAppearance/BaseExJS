@@ -62,6 +62,25 @@ encodingList.Base32.set("Hello World!",      "91imor3f41bmusjccggg====");
 encodingList.Base32.set("Hello World!!",     "91imor3f41bmusjccggi2===");
 encodingList.Base32.set("Hello World!!!",    "91imor3f41bmusjccggi288=");
 
+
+// Base58 (bitcoin)
+encodingList.Base58 = new Map();
+encodingList.Base58.set("H",                  "2F");
+encodingList.Base58.set("He",                 "6WY");
+encodingList.Base58.set("Hel",                "RKPh");
+encodingList.Base58.set("Hell",               "2rLBBR");
+encodingList.Base58.set("Hello",              "9Ajdvzr");
+encodingList.Base58.set("Hello ",             "d3yC1LKq");
+encodingList.Base58.set("Hello W",            "3k871aUJ8N");
+encodingList.Base58.set("Hello Wo",           "D7LMXYjUbXc");
+encodingList.Base58.set("Hello Wor",          "vSxRbq4UoQ7T");
+encodingList.Base58.set("Hello Worl",         "54uZdaj8Mho1Vd");
+encodingList.Base58.set("Hello World",        "JxF12TrwUP45BMd");
+encodingList.Base58.set("Hello World!",       "2NEpo7TZRRrLZSi2U");
+encodingList.Base58.set("Hello World!!",      "72k1xXWE6pgmLCU5Uk");
+encodingList.Base58.set("Hello World!!!",     "TcgsE5dzphUWfjcWmTN");
+
+
 // Base64
 encodingList.Base64 = new Map();
 encodingList.Base64.set("H",                 "SA==");

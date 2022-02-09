@@ -25,7 +25,7 @@ export class Base58 {
         this.converter = new BaseConverter(58, 0, 0);
         this.littleEndian = false;
         this.outputType = "buffer";
-        this.padding = false;
+        this.padding = true;
         this.signed = false;
         this.upper = null;
         this.utils = new Utils(this);
@@ -47,20 +47,32 @@ export class Base58 {
 
         // argument validation and input settings
         const settings = this.utils.validateArgs(args); 
-        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
+        let inputBytes, bytesInput;
+        [inputBytes,, bytesInput] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
 
-        // Convert to Base64 string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version]);
-            
-        // Cut of redundant chars and append padding if set
-        if (zeroPadding) {
-            const padValue = this.converter.padBytes(zeroPadding);
-            output = output.slice(0, output.length-padValue);
-            if (settings.padding) { 
-                output = output.concat("=".repeat(padValue));
+        let output;
+
+        if (settings.padding && bytesInput) { 
+        
+            let i = 0;
+            let zeroPadding = 0;
+            while (!inputBytes[i]) {
+                zeroPadding++;
+                i++;
             }
+
+
+            // Convert to Base58 string
+            output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
+
+            if (zeroPadding) {
+                output = ("1".repeat(zeroPadding)).concat(output);
+            }
+        } else {
+            // Convert to Base58 string directly
+            output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
         }
+
         
         return output;
     }
@@ -84,8 +96,28 @@ export class Base58 {
         // Make it a string, whatever goes in
         input = String(input);
 
-        // Run the decoder
-        const output = this.converter.decode(input, this.charsets[settings.version]);
+        let output;
+        if (settings.padding) {
+            
+            let i = 0;
+            let zeroPadding = 0;
+            while (input[i] === "1") {
+                zeroPadding++;
+                i++;
+            }
+
+            // Run the decoder
+            output = this.converter.decode(input, this.charsets[settings.version]);
+
+            if (zeroPadding) {
+                output = Uint8Array.from([...new Array(zeroPadding).fill(0), ...output]);
+            }
+
+        } else {
+            // Run the decoder
+            output = this.converter.decode(input, this.charsets[settings.version]);
+        }
+
         
         // Return the output
         return this.utils.smartOutput.compile(output, settings.outputType);

@@ -42,7 +42,7 @@ export class Base16 {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative] = this.utils.smartInput.toBytes(input, settings.signed);
+        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings.signed);
 
         // Convert to Base16 string
         let output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
