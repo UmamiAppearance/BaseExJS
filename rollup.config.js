@@ -1,58 +1,47 @@
+import { readdirSync } from 'fs';
 import { terser } from "rollup-plugin-terser";
 
-export default [
-    {
-        input: "src/base-ex.js",
-        output: [ 
-            {   
-                format: "iife",
-                name: "BaseEx",
-                file: "dist/base-ex.iife.js"
-            },
-            {   
-                format: "iife",
-                name: "BaseEx",
-                file: "dist/base-ex.iife.min.js",
-                plugins: [terser()]
-            },
-            {   
-                format: "es",
-                name: "BaseEx",
-                file: "dist/base-ex.esm.js"
-            },
-            {   
-                format: "es",
-                name: "BaseEx",
-                file: "dist/base-ex.esm.min.js",
-                plugins: [terser()]
-            },
-        ]
-    }, {
-        input: "src/base-16.js",
-        output: [ 
-            {   
-                format: "iife",
-                name: "Base16",
-                file: "dist/components/base-16.iife.js"
-            },
-            {   
-                format: "iife",
-                name: "Base16",
-                file: "dist/components/base-16.iife.min.js",
-                plugins: [terser()]
-            },
-            {   
-                format: "es",
-                name: "Base16",
-                file: "dist/components/base-16.esm.js"
-            },
-            {   
-                format: "es",
-                name: "Base16",
-                file: "dist/components/base-16.esm.min.js",
-                plugins: [terser()]
-            },
-        ]
-    },
-];
+const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
 
+const converters = new Array();
+
+readdirSync("./src/").forEach(inputFile => {
+    if (inputFile !== "core.js") { 
+        
+        const filename = inputFile.replace(/\.js$/, "");
+        const modName = toInitCap(filename);
+
+        const subDir = (modName !== "BaseEx") ? "dist/single-converters/" : "dist/";
+
+        converters.push({
+            input: `src/${inputFile}`,
+            output: [ 
+                {   
+                    format: "iife",
+                    name: modName,
+                    file: `${subDir}${filename}.iife.js`
+                },
+                {   
+                    format: "iife",
+                    name: modName,
+                    file: `${subDir}${filename}.iife.min.js`,
+                    plugins: [terser()]
+                },
+                {   
+                    format: "es",
+                    name: modName,
+                    file: `${subDir}${filename}.esm.js`
+                },
+                {   
+                    format: "es",
+                    name: modName,
+                    file: `${subDir}${filename}.esm.min.js`,
+                    plugins: [terser()]
+                },
+            ]
+        });
+    }
+});
+
+
+export default converters;
