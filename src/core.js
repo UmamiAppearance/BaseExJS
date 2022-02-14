@@ -564,21 +564,44 @@ class SmartInput {
     floatingPoints(input, littleEndian=false) {
         
         let view;
+
+        const rangeError = () => {
+            throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.")
+        };
         
-        // 32 Bit
-        if (input > 1.2e-38 && input < 3.4e+38) {
-            view = this.makeDataView(4);
-            view.setFloat32(0, input, littleEndian);
+        if (input > 0) {
+        
+            // 32 Bit
+            if (input > 1.18e-38 && input < 3.4e+38) {
+                view = this.makeDataView(4);
+                view.setFloat32(0, input, littleEndian);
+            }
+
+            // 64 Bit
+            else if (input > 2.3e-308 && input < 1.7e+308) {
+                view = this.makeDataView(8);
+                view.setFloat64(0, input, littleEndian);
+            }
+            
+            else {
+                rangeError();
+            }
+        }
+        
+        // 32 Bit (negative)
+        else if (input < -1.18e-38 && input > -3.4e+38) {
+                view = this.makeDataView(4);
+                view.setFloat32(0, input, littleEndian);
         }
 
-        // 64 Bit
-        else if (input > 2.3e-308 && input < 1.7e+308) {
-            view = this.makeDataView(8);
-            view.setFloat64(0, input, littleEndian);
+        // 64 Bit (negative)
+        else if (input < -2.3e-308 && input > -1.7e+308) {
+                view = this.makeDataView(8);
+                view.setFloat64(0, input, littleEndian);
         }
-
+        
         else {
-            throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.");
+            rangeError();
         }
 
         return view;
@@ -809,9 +832,15 @@ class SmartOutput {
         if (type === "int16" || type === "uint16") {
             const buffer = this.makeTypedArrayBuffer(inArray, 2, littleEndian);
             outArray = (type === "int16") ? new Int16Array(buffer) : new Uint16Array(buffer);
-        } else if (type === "int32" || type === "uint32") {
+        } else if (type === "int32" || type === "uint32" || type === "float32") {
             const buffer = this.makeTypedArrayBuffer(inArray, 4, littleEndian);
-            outArray = (type === "int32") ? new Int32Array(buffer) : new Uint32Array(buffer);
+            if (type === "int32") {
+                outArray = new Int32Array(buffer);
+            } else if (type === "uint32") {
+                outArray = new Uint32Array(buffer);
+            } else {
+                outArray = new Float32Array(buffer);
+            }
         } else if (type === "bigint64" || type === "biguint64") {
             const buffer = this.makeTypedArrayBuffer(inArray, 8, littleEndian);
             outArray = (type === "bigint64") ? new BigInt64Array(buffer) : new BigUint64Array(buffer);
@@ -845,7 +874,7 @@ class SmartOutput {
             let n = 0n;
             compiled.forEach((b) => n = (n << 8n) + BigInt(b));
 
-            if (n < Number.MAX_SAFE_INTEGER) {
+            if (n <= Number.MAX_SAFE_INTEGER) {
                 compiled = Number(n);
             } else {
                 compiled = n;
@@ -853,6 +882,40 @@ class SmartOutput {
 
             if (negative) {
                 compiled = -(compiled);
+            }
+        
+        } else if (type === "float_n") {
+
+            if (Uint8ArrayOut.length <= 4) {
+                
+                let array;
+                if (Uint8ArrayOut.length === 4) {
+                    array = Uint8ArrayOut;
+                } else {
+                    array = this.makeTypedArray(compiled, "float32", false);
+                }
+
+                const view = new DataView(array.buffer);
+                compiled = view.getFloat32(0, littleEndian);
+            
+            }
+            
+            else if (Uint8ArrayOut.length <= 8) {
+                
+                let array;
+                if (Uint8ArrayOut.length === 8) {
+                    array = Uint8ArrayOut;
+                } else {
+                    array = this.makeTypedArray(compiled, "float64", false);
+                }
+
+                const view = new DataView(array.buffer);
+                compiled = view.getFloat64(0, littleEndian);
+            
+            }
+
+            else {
+                throw new RangeError("The provided input is to complex to be converted into a floating point.")
             }
 
         } else {
@@ -868,6 +931,9 @@ class SmartOutput {
             "biguint64",
             "buffer",
             "bytes",
+            "float32",
+            "float64",
+            "float_n",
             "int8",
             "int16",
             "int32",
