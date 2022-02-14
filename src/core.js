@@ -699,11 +699,12 @@ class SmartInput {
         // handwork is therefore needed.
 
         // as the integer size is not known yet, the bytes get a
-        // makeshift home
+        // makeshift home "byteArray", which is a regular array
 
         const byteArray = new Array();
         const append = (littleEndian) ? "push" : "unshift";
 
+        // split the input into 64 bit integers
         if (input > 0) {
             
             const overflow = 18446744073709551616n; 
@@ -723,13 +724,21 @@ class SmartInput {
             }
         }
 
+        // append the remaining byte
         byteArray[append](input);
 
+        // determine the required size for the typed array
+        // by taking the amount of 64 bit integers * 8
+        // (8 bytes for each 64 bit integer)
         const byteLen = byteArray.length * 8;
 
+        // create a new buffer with the desired byte amount
         const buffer = new ArrayBuffer(byteLen);
+
+        // create a data view for the fresh buffer
         const view = new DataView(buffer);
 
+        // set all 64 bit integers to the buffer 
         byteArray.forEach((bigInt, i) => {
             const offset = i * 8;
             view.setBigUint64(offset, bigInt, littleEndian);
@@ -830,10 +839,14 @@ class SmartOutput {
         let outArray;
 
         if (type === "int16" || type === "uint16") {
+
             const buffer = this.makeTypedArrayBuffer(inArray, 2, littleEndian);
             outArray = (type === "int16") ? new Int16Array(buffer) : new Uint16Array(buffer);
+
         } else if (type === "int32" || type === "uint32" || type === "float32") {
+
             const buffer = this.makeTypedArrayBuffer(inArray, 4, littleEndian);
+            
             if (type === "int32") {
                 outArray = new Int32Array(buffer);
             } else if (type === "uint32") {
@@ -841,9 +854,19 @@ class SmartOutput {
             } else {
                 outArray = new Float32Array(buffer);
             }
-        } else if (type === "bigint64" || type === "biguint64") {
+
+        } else if (type === "bigint64" || type === "biguint64" || type === "float64") {
+            
             const buffer = this.makeTypedArrayBuffer(inArray, 8, littleEndian);
-            outArray = (type === "bigint64") ? new BigInt64Array(buffer) : new BigUint64Array(buffer);
+            
+            if (type === "bigint64") {
+                outArray = new BigInt64Array(buffer);
+            } else if (type === "biguint64") {
+                outArray = new BigUint64Array(buffer);
+            } else {
+                outArray = new Float64Array(buffer);
+            }
+
         }
 
         return outArray;
@@ -892,7 +915,7 @@ class SmartOutput {
                 if (Uint8ArrayOut.length === 4) {
                     array = Uint8ArrayOut;
                 } else {
-                    array = this.makeTypedArray(compiled, "float32", false);
+                    array = this.makeTypedArray(Uint8ArrayOut, "float32", false);
                 }
 
                 const view = new DataView(array.buffer);
@@ -906,7 +929,7 @@ class SmartOutput {
                 if (Uint8ArrayOut.length === 8) {
                     array = Uint8ArrayOut;
                 } else {
-                    array = this.makeTypedArray(compiled, "float64", false);
+                    array = this.makeTypedArray(Uint8ArrayOut, "float64", false);
                 }
 
                 const view = new DataView(array.buffer);
