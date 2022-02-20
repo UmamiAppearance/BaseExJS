@@ -56,7 +56,7 @@ export class Base85 {
         
         // list of allowed/disallowed args to change
         this.isMutable = {
-            littleEndian: false,
+            littleEndian: true,
             padding: false,
             signed: false,
             upper: false,

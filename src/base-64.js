@@ -33,7 +33,7 @@ export class Base64 {
         
         // list of allowed/disallowed args to change
         this.isMutable = {
-            littleEndian: false,
+            littleEndian: true,
             padding: true,
             signed: false,
             upper: false,
