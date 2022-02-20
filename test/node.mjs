@@ -1,5 +1,5 @@
 import { Base16, Base32, Base58, Base64, Base85, Base91 } from "../src/base-ex.js"
-import {roundUpTests, test, testData} from "./test.esm.js"
+import { roundUpTests, test, testData } from "./test.esm.js"
 
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class
