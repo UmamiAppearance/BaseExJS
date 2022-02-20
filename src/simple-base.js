@@ -25,7 +25,7 @@ export class SimpleBase {
         
         // list of allowed/disallowed args to change
         this.isMutable = {
-            littleEndian: false,
+            littleEndian: true,
             padding: false,
             signed: false,
             upper: true,

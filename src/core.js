@@ -464,6 +464,7 @@ class Utils {
         const parameters = {
             version: this.root.version,
             signed: this.root.signed,
+            upper: this.root.upper,
             littleEndian: this.root.littleEndian,
             padding: this.root.padding,
             outputType: "buffer",

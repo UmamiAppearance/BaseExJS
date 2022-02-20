@@ -1,4 +1,12 @@
-import { SimpleBase } from "../src/base-ex.js"
+import { SimpleBase } from "../src/base-ex.js";
+
+const Base10 = new SimpleBase(10);
+
+function strToBaseX(input, encoder) {
+    const endianness = (encoder.littleEndian) ? "LE" : "BE";
+    const b10Integer = BigInt(Base10.encode(input, endianness));
+    return b10Integer.toString(encoder.converter.radix);
+}
 
 function numberConversions() {
 
@@ -59,6 +67,16 @@ function numberConversions() {
             }
 
         }
+
+
+    const x = strToBaseX("Hello World!!!", baseConverter);
+    const y = baseConverter.encode("Hello World!!!");      
+    
+    console.log("HW", x);
+    console.log("HW", y);
+    
+    console.log(x === y);
+    if (x !== y) throw new Error("BUG !!!");
 
     }
 
