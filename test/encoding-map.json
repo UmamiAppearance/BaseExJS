@@ -1,0 +1,110 @@
+{
+    "Base16": {
+        "str": {
+            "H":                 "48",
+            "He":                "4865",
+            "Hel":               "48656c",
+            "Hell":              "48656c6c",
+            "Hello":             "48656c6c6f",
+            "Hello ":            "48656c6c6f20",
+            "Hello W":           "48656c6c6f2057",
+            "Hello Wo":          "48656c6c6f20576f",
+            "Hello Wor":         "48656c6c6f20576f72",
+            "Hello Worl":        "48656c6c6f20576f726c",
+            "Hello World":       "48656c6c6f20576f726c64",
+            "Hello World!":      "48656c6c6f20576f726c6421",
+            "Hello World!!":     "48656c6c6f20576f726c642121",
+            "Hello World!!!":    "48656c6c6f20576f726c64212121"
+        }
+    },
+    "Base32": {
+        "str": {
+            "H":                 "90======",
+            "He":                "91ig====",
+            "Hel":               "91imo===",
+            "Hell":              "91imor0=",
+            "Hello":             "91imor3f",
+            "Hello ":            "91imor3f40======",
+            "Hello W":           "91imor3f41bg====",
+            "Hello Wo":          "91imor3f41bmu===",
+            "Hello Wor":         "91imor3f41bmusg=",
+            "Hello Worl":        "91imor3f41bmusjc",
+            "Hello World":       "91imor3f41bmusjccg======",
+            "Hello World!":      "91imor3f41bmusjccggg====",
+            "Hello World!!":     "91imor3f41bmusjccggi2===",
+            "Hello World!!!":    "91imor3f41bmusjccggi288="
+        }
+    },
+    "Base58": {
+        "str": {
+            "H":                  "2F",
+            "He":                 "6WY",
+            "Hel":                "RKPh",
+            "Hell":               "2rLBBR",
+            "Hello":              "9Ajdvzr",
+            "Hello ":             "d3yC1LKq",
+            "Hello W":            "3k871aUJ8N",
+            "Hello Wo":           "D7LMXYjUbXc",
+            "Hello Wor":          "vSxRbq4UoQ7T",
+            "Hello Worl":         "54uZdaj8Mho1Vd",
+            "Hello World":        "JxF12TrwUP45BMd",
+            "Hello World!":       "2NEpo7TZRRrLZSi2U",
+            "Hello World!!":      "72k1xXWE6pgmLCU5Uk",
+            "Hello World!!!":     "TcgsE5dzphUWfjcWmTN"
+        }
+    },
+    "Base64": {
+        "str": {
+            "H":                 "SA==",
+            "He":                "SGU=",
+            "Hel":               "SGVs",
+            "Hell":              "SGVsbA==",
+            "Hello":             "SGVsbG8=",
+            "Hello ":            "SGVsbG8g",
+            "Hello W":           "SGVsbG8gVw==",
+            "Hello Wo":          "SGVsbG8gV28=",
+            "Hello Wor":         "SGVsbG8gV29y",
+            "Hello Worl":        "SGVsbG8gV29ybA==",
+            "Hello World":       "SGVsbG8gV29ybGQ=",
+            "Hello World!":      "SGVsbG8gV29ybGQh",
+            "Hello World!!":     "SGVsbG8gV29ybGQhIQ==",
+            "Hello World!!!":    "SGVsbG8gV29ybGQhISE="
+        }
+    },
+    "Base85": {
+        "str": {
+            "H":                 "8,",
+            "He":                "87_",
+            "Hel":               "87cT",
+            "Hell":              "87cUR",
+            "Hello":             "87cURDZ",
+            "Hello ":            "87cURD]f",
+            "Hello W":           "87cURD]i*",
+            "Hello Wo":          "87cURD]i,\"",
+            "Hello Wor":         "87cURD]i,\"EW",
+            "Hello Worl":        "87cURD]i,\"Ebk",
+            "Hello World":       "87cURD]i,\"Ebo7",
+            "Hello World!":      "87cURD]i,\"Ebo80",
+            "Hello World!!":     "87cURD]i,\"Ebo80+T",
+            "Hello World!!!":    "87cURD]i,\"Ebo80+X$"
+        }
+    },
+    "Base92": {
+        "str": {
+            "H":                 ".A",
+            "He":                ">OD",
+            "Hel":               ">OwJ",
+            "Hell":              ">OwJb",
+            "Hello":             ">OwJh>A",
+            "Hello ":            ">OwJh>$A",
+            "Hello W":           ">OwJh>IoF",
+            "Hello Wo":          ">OwJh>Io0T",
+            "Hello Wor":         ">OwJh>Io0T5",
+            "Hello Worl":        ">OwJh>Io0Tv!B",
+            "Hello World":       ">OwJh>Io0Tv!lE",
+            "Hello World!":      ">OwJh>Io0Tv!8PE",
+            "Hello World!!":     ">OwJh>Io0Tv!8P7L",
+            "Hello World!!!":    ">OwJh>Io0Tv!8P7LhA"
+        }
+    }
+}
