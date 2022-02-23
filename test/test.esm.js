@@ -1,5 +1,8 @@
 // +++++++++++++ Test data +++++++++++++ //
 
+import { loadEncodingMap } from "./load-json.js";
+
+
 // Random integer
 const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 
@@ -25,112 +28,7 @@ const randStr = (len) => {
 }
 
 // Generated pre decoded strings for each base
-const encodingList = new Object();
 const helloWorldArray = "Hello World!!!".split("");
-
-// Base16
-encodingList.Base16 = new Map();
-encodingList.Base16.set("H",                 "48");
-encodingList.Base16.set("He",                "4865");
-encodingList.Base16.set("Hel",               "48656c");
-encodingList.Base16.set("Hell",              "48656c6c");
-encodingList.Base16.set("Hello",             "48656c6c6f");
-encodingList.Base16.set("Hello ",            "48656c6c6f20");
-encodingList.Base16.set("Hello W",           "48656c6c6f2057");
-encodingList.Base16.set("Hello Wo",          "48656c6c6f20576f");
-encodingList.Base16.set("Hello Wor",         "48656c6c6f20576f72");
-encodingList.Base16.set("Hello Worl",        "48656c6c6f20576f726c");
-encodingList.Base16.set("Hello World",       "48656c6c6f20576f726c64");
-encodingList.Base16.set("Hello World!",      "48656c6c6f20576f726c6421");
-encodingList.Base16.set("Hello World!!",     "48656c6c6f20576f726c642121");
-encodingList.Base16.set("Hello World!!!",    "48656c6c6f20576f726c64212121");
-
-// Base32 (rfc3548)
-encodingList.Base32 = new Map();
-encodingList.Base32.set("H",                 "90======");
-encodingList.Base32.set("He",                "91ig====");
-encodingList.Base32.set("Hel",               "91imo===");
-encodingList.Base32.set("Hell",              "91imor0=");
-encodingList.Base32.set("Hello",             "91imor3f");
-encodingList.Base32.set("Hello ",            "91imor3f40======");
-encodingList.Base32.set("Hello W",           "91imor3f41bg====");
-encodingList.Base32.set("Hello Wo",          "91imor3f41bmu===");
-encodingList.Base32.set("Hello Wor",         "91imor3f41bmusg=");
-encodingList.Base32.set("Hello Worl",        "91imor3f41bmusjc");
-encodingList.Base32.set("Hello World",       "91imor3f41bmusjccg======");
-encodingList.Base32.set("Hello World!",      "91imor3f41bmusjccggg====");
-encodingList.Base32.set("Hello World!!",     "91imor3f41bmusjccggi2===");
-encodingList.Base32.set("Hello World!!!",    "91imor3f41bmusjccggi288=");
-
-
-// Base58 (bitcoin)
-encodingList.Base58 = new Map();
-encodingList.Base58.set("H",                  "2F");
-encodingList.Base58.set("He",                 "6WY");
-encodingList.Base58.set("Hel",                "RKPh");
-encodingList.Base58.set("Hell",               "2rLBBR");
-encodingList.Base58.set("Hello",              "9Ajdvzr");
-encodingList.Base58.set("Hello ",             "d3yC1LKq");
-encodingList.Base58.set("Hello W",            "3k871aUJ8N");
-encodingList.Base58.set("Hello Wo",           "D7LMXYjUbXc");
-encodingList.Base58.set("Hello Wor",          "vSxRbq4UoQ7T");
-encodingList.Base58.set("Hello Worl",         "54uZdaj8Mho1Vd");
-encodingList.Base58.set("Hello World",        "JxF12TrwUP45BMd");
-encodingList.Base58.set("Hello World!",       "2NEpo7TZRRrLZSi2U");
-encodingList.Base58.set("Hello World!!",      "72k1xXWE6pgmLCU5Uk");
-encodingList.Base58.set("Hello World!!!",     "TcgsE5dzphUWfjcWmTN");
-
-
-// Base64
-encodingList.Base64 = new Map();
-encodingList.Base64.set("H",                 "SA==");
-encodingList.Base64.set("He",                "SGU=");
-encodingList.Base64.set("Hel",               "SGVs");
-encodingList.Base64.set("Hell",              "SGVsbA==");
-encodingList.Base64.set("Hello",             "SGVsbG8=");
-encodingList.Base64.set("Hello ",            "SGVsbG8g");
-encodingList.Base64.set("Hello W",           "SGVsbG8gVw==");
-encodingList.Base64.set("Hello Wo",          "SGVsbG8gV28=");
-encodingList.Base64.set("Hello Wor",         "SGVsbG8gV29y");
-encodingList.Base64.set("Hello Worl",        "SGVsbG8gV29ybA==");
-encodingList.Base64.set("Hello World",       "SGVsbG8gV29ybGQ=");
-encodingList.Base64.set("Hello World!",      "SGVsbG8gV29ybGQh");
-encodingList.Base64.set("Hello World!!",     "SGVsbG8gV29ybGQhIQ==");
-encodingList.Base64.set("Hello World!!!",    "SGVsbG8gV29ybGQhISE=");
-
-// Base85
-encodingList.Base85 = new Map();
-encodingList.Base85.set("H",                 "8,");
-encodingList.Base85.set("He",                "87_");
-encodingList.Base85.set("Hel",               "87cT");
-encodingList.Base85.set("Hell",              "87cUR");
-encodingList.Base85.set("Hello",             "87cURDZ");
-encodingList.Base85.set("Hello ",            "87cURD]f");
-encodingList.Base85.set("Hello W",           "87cURD]i*");
-encodingList.Base85.set("Hello Wo",          "87cURD]i,\"");
-encodingList.Base85.set("Hello Wor",         "87cURD]i,\"EW");
-encodingList.Base85.set("Hello Worl",        "87cURD]i,\"Ebk");
-encodingList.Base85.set("Hello World",       "87cURD]i,\"Ebo7");
-encodingList.Base85.set("Hello World!",      "87cURD]i,\"Ebo80");
-encodingList.Base85.set("Hello World!!",     "87cURD]i,\"Ebo80+T");
-encodingList.Base85.set("Hello World!!!",    "87cURD]i,\"Ebo80+X$");
-
-// Base91
-encodingList.Base91 = new Map();
-encodingList.Base91.set("H",                 ".A");
-encodingList.Base91.set("He",                ">OD");
-encodingList.Base91.set("Hel",               ">OwJ");
-encodingList.Base91.set("Hell",              ">OwJb");
-encodingList.Base91.set("Hello",             ">OwJh>A");
-encodingList.Base91.set("Hello ",            ">OwJh>$A");
-encodingList.Base91.set("Hello W",           ">OwJh>IoF");
-encodingList.Base91.set("Hello Wo",          ">OwJh>Io0T");
-encodingList.Base91.set("Hello Wor",         ">OwJh>Io0T5");
-encodingList.Base91.set("Hello Worl",        ">OwJh>Io0Tv!B");
-encodingList.Base91.set("Hello World",       ">OwJh>Io0Tv!lE");
-encodingList.Base91.set("Hello World!",      ">OwJh>Io0Tv!8PE");
-encodingList.Base91.set("Hello World!!",     ">OwJh>Io0Tv!8P7L");
-encodingList.Base91.set("Hello World!!!",    ">OwJh>Io0Tv!8P7LhA");
 
 
 // +++++++++++++ Utilities +++++++++++++ //
@@ -155,6 +53,8 @@ async function test(base, IOtestRounds, verbose=false) {
     // main test function, builds one
     // set of tests for one class
 
+    const encodingMap = await loadEncodingMap();
+
     const name = base.constructor.name;
 
     if (verbose) console.log(`Testing ${name}...`);
@@ -164,7 +64,7 @@ async function test(base, IOtestRounds, verbose=false) {
     testData[name].testCount = 0;
     testData[name].passed = 0;
     testData[name].failed = 0;
-    
+
     if (verbose) console.log(`> Testing 'Hello World!!!' output.`);
 
     // encoding-list comparison
@@ -176,7 +76,10 @@ async function test(base, IOtestRounds, verbose=false) {
         testStr = testStr.concat(c);
         const encoded = base.encode(testStr);
 
-        const expectedResult = encodingList[name].get(testStr);
+        console.log(testStr);
+        console.log("name", name);
+        const expectedResult = encodingMap[name].str[testStr];
+        
         
         if (encoded === expectedResult) {
             testData[name].passed++;
