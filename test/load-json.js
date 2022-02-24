@@ -12,6 +12,7 @@ const readFileBrowser = async (url) => {
 
 const readFileNode = async (filename) => {
     const fs = await import("fs");
+    //const path = await import("path");
     const readFileAsync = (filename) => new Promise((resolve, reject) => {
         fs.readFile(filename, (err, data) => {
             if (err) { 
@@ -28,12 +29,17 @@ const readFileNode = async (filename) => {
 
 export const loadEncodingMap = async () => {
     let encodingMap;
-    const fileName = "./test/encoding-map.json";
 
     if (isBrowser) {
-        encodingMap = await readFileBrowser(fileName);
+        encodingMap = await readFileBrowser("./encoding-map.json");
     } else {
-        encodingMap = await readFileNode(fileName);
+        const absPath = import.meta.url.
+                            replace("file://", "").
+                            split("/").
+                            slice(0, -1).
+                            concat("encoding-map.json").
+                            join("/");
+        encodingMap = await readFileNode(absPath);
     }
 
     return encodingMap;
