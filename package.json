@@ -12,7 +12,7 @@
     "build": "rollup -c",
     "makeCJS": "rollup src/base-ex.js --file dist/base-ex.cjs --format cjs",
     "lint": "eslint ./",
-    "test": "node test/node.mjs"
+    "test": "node test/test-runner.js"
   },
   "repository": {
     "type": "git",
