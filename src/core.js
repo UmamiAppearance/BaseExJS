@@ -573,7 +573,7 @@ class SmartInput {
         if (input > 0) {
         
             // 32 Bit
-            if (input > 1.18e-38 && input < 3.4e+38) {
+            if ((input).toString(10).length < 9 && input > 1.18e-38 && input < 3.4e+38) {
                 view = this.makeDataView(4);
                 view.setFloat32(0, input, littleEndian);
             }
@@ -590,7 +590,7 @@ class SmartInput {
         }
         
         // 32 Bit (negative)
-        else if (input < -1.18e-38 && input > -3.4e+38) {
+        else if ((input).toString(10).length < 10 && input < -1.18e-38 && input > -3.4e+38) {
                 view = this.makeDataView(4);
                 view.setFloat32(0, input, littleEndian);
         }
