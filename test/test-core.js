@@ -76,8 +76,6 @@ async function test(base, IOtestRounds, verbose=false) {
         testStr = testStr.concat(c);
         const encoded = base.encode(testStr);
 
-        console.log(testStr);
-        console.log("name", name);
         const expectedResult = encodingMap[name].str[testStr];
         
         

@@ -1,18 +1,29 @@
-import { Base16, Base32, Base58, Base64, Base85, Base91 } from "../src/base-ex.js"
-import { roundUpTests, test, testData } from "./test-core.js"
+import * as BaseEx from "../src/base-ex.js";
+import { roundUpTests, test, testData } from "./test-core.js";
+
+const excluded = ["Base1", "SimpleBase", "BaseEx"];
 
 async function runTests(IOtestRounds, verbose) {
-    // call the set of test for each class
-    const classes = [new Base16(), new Base32(), new Base58("bitcoin"), new Base64(), new Base85(), new Base91()];
-        
+    // call the set of test for each class if not excluded
+    
+    const classes = [];
+
     async function testGroup() {
         const base = classes.shift();
         if (base) {
-            test(base, IOtestRounds, verbose).then(() => testGroup())
+            test(new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
         } else {
             roundUpTests(exitFN);
         }
     }
+    
+    
+    for (const cls in BaseEx) {
+        if (!excluded.includes(cls)) {
+            classes.push(cls);
+        }
+    }
+
     testGroup();
 }
 

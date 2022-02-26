@@ -29,7 +29,7 @@ export class Base58 {
         this.signed = false;
         this.upper = null;
         this.utils = new Utils(this);
-        this.version = "default";
+        this.version = "bitcoin";
         
         // list of allowed/disallowed args to change
         this.isMutable = {
