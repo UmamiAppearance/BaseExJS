@@ -45,7 +45,7 @@ export class Base64 {
 
     encode(input, ...args) {
         /* 
-            Encode from string or bytes to base32.
+            Encode from string or bytes to base64.
             -------------------------------------
 
             @input: string or (typed) array of bytes
