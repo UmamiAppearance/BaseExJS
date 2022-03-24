@@ -1,9 +1,8 @@
+import { readFile } from "fs"; 
 
 const readFileNode = async (filename) => {
-    const fs = await import("fs");
-    //const path = await import("path");
     const readFileAsync = (filename) => new Promise((resolve, reject) => {
-        fs.readFile(filename, (err, data) => {
+        readFile(filename, (err, data) => {
             if (err) { 
                 reject(err); 
             } else { 

@@ -21,6 +21,7 @@ export class Base32 {
             rfc3548:   "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567",
             rfc4648:   "0123456789ABCDEFGHIJKLMNOPQRSTUV",
             crockford: "0123456789ABCDEFGHJKMNPQRSTVWXYZ",
+            zbase32: "YBNDRFG8EJKMCPQXOT1UWISZA345H769",
         }
     
         // predefined settings

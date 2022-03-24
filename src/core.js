@@ -14,21 +14,14 @@ class BaseConverter {
             this.bsEnc = bsEnc;
             this.bsDec = bsDec;
         } else {
-            [this.bsEnc, this.bsDec] = this.constructor.calcBS(radix);
+            [this.bsEnc, this.bsDec] = this.constructor.guessBS(radix);
         }
 
         this.decPadVal = decPadVal;
-
-        // precalculate powers for decoding
-        // [radix**bs-1, radix**i, ... radix**0]
-        // bit shifting (as used during encoding)
-        // only works on base conversions with 
-        // powers of 2 (eg. 16, 32, 64), not something
-        // like base85
-        
     }
 
-    static calcBS(radix) {
+    static guessBS(radix) {
+        // experimental feature !
         // Calc how many bits are needed to represent
         // 256 conditions (1 byte)
         // If the radix is less than 8 bits, skip that part
@@ -631,7 +624,7 @@ class SmartInput {
                     minMax = "MAX";
                 }
 
-                throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not possible. Use a BigInt to avoid this issue.`);
+                throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not guaranteed. Use a BigInt to avoid this issue.`);
             }
 
             // Signed Integer
