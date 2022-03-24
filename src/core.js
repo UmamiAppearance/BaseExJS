@@ -880,7 +880,7 @@ class SmartOutput {
             compiled = new DataView(Uint8ArrayOut.buffer);
         } else if (type === "str") {
            compiled = new TextDecoder().decode(Uint8ArrayOut);
-        } else if (type === "number") {
+        } else if (type === "uint_n" || type === "int_n") {
 
             compiled = Uint8ArrayOut;
 
@@ -891,7 +891,15 @@ class SmartOutput {
             let n = 0n;
             compiled.forEach((b) => n = (n << 8n) + BigInt(b));
 
-            if (n <= Number.MAX_SAFE_INTEGER) {
+            const toNumber = (n <= Number.MAX_SAFE_INTEGER);
+
+            if (type === "int_n") {
+                n -= BigInt(2 ** (Uint8ArrayOut.length * 8));
+            }
+            // FIXME: Number > 2**64 fails
+
+
+            if (toNumber) {                
                 compiled = Number(n);
             } else {
                 compiled = n;
@@ -954,11 +962,12 @@ class SmartOutput {
             "int8",
             "int16",
             "int32",
-            "number",
+            "int_n",
             "str",
             "uint8",
             "uint16",
             "uint32",
+            "uint_n",
             "view"
         ];
         return typeList; 

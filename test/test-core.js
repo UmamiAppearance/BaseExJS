@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 // +++++++++++++ Test data +++++++++++++ //
 
 import { loadEncodingMap } from "./load-json.js";
@@ -65,9 +66,11 @@ async function test(base, IOtestRounds, verbose=false) {
     testData[name].passed = 0;
     testData[name].failed = 0;
 
-    if (verbose) console.log(`> Testing 'Hello World!!!' output.`);
 
     // encoding-list comparison
+
+    // hello world
+    if (verbose) console.log(`> Testing 'Hello World!!!' output.`);
     let testStr = ""; 
     helloWorldArray.forEach(c => {
         testData[name].testCount += 2;
@@ -98,12 +101,45 @@ async function test(base, IOtestRounds, verbose=false) {
         }
     });
 
+
+    // integers
+    if (verbose) console.log(`> Testing Integers output.`);
+    for (const int in encodingMap[name].int) {
+        testData[name].testCount += 2;
+        testData.totalTests += 2;
+
+        let integer = (int.length > 12) ? BigInt(int) : Number(int);
+        const outType = (integer < 0) ? "int_n" : "uint_n";
+        
+        const encoded = base.encode(integer);
+
+        const expectedResult = encodingMap[name].int[int];
+
+        if (encoded === expectedResult) {
+            testData[name].passed++;
+        } else {
+            testData[name].failed++;
+            testData.totalErrors++;
+            makeError(name, "integers", int, encoded, expectedResult);
+        }
+
+        const decoded = base.decode(encoded, outType);
+
+        if (decoded === integer) {
+            testData[name].passed++;
+        } else {
+            testData[name].failed++;
+            testData.totalErrors++;
+            makeError(name, "integers", int, decoded, int);
+        }
+    }
+
+
     const intermediate = [testData[name].testCount, testData[name].failed];
     if (verbose) {
         console.log(`< Tests: ${testData[name].testCount}, failed: ${testData[name].failed}\n`);
         console.log(`> Starting IO tests`);
     }
-
 
     // test en- and decoding of random strings and bytes
     for (let i=0; i<IOtestRounds; i++) {
