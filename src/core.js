@@ -875,31 +875,34 @@ class SmartOutput {
         } else if (type === "str") {
            compiled = new TextDecoder().decode(Uint8ArrayOut);
         } else if (type === "uint_n" || type === "int_n") {
-
-            compiled = Uint8ArrayOut;
             
             if (littleEndian) {
-                compiled.reverse();
+                Uint8ArrayOut.reverse();
             }
 
+            // calculate a unsigned big integer
             let n = 0n;
-            compiled.forEach((b) => n = (n << 8n) + BigInt(b));
+            Uint8ArrayOut.forEach((b) => n = (n << 8n) + BigInt(b));
 
-            const toNumber = (n <= Number.MAX_SAFE_INTEGER);
-
+            // if a signed int is requested, change its value if it overflows 
             if (type === "int_n") {
+                
+                // calculate exponent (bytes amount times eight)
                 const exp = Uint8ArrayOut.length * 8;
+
                 if (n >= 2n ** BigInt(exp-1)) {
                     n -= 2n ** BigInt(exp);
                 }
             }
-
-            if (toNumber) {                
+            
+            // convert to regular integer if possible
+            if (n >= Number.MIN_SAFE_INTEGER && n <= Number.MAX_SAFE_INTEGER) {                
                 compiled = Number(n);
             } else {
                 compiled = n;
             }
 
+            // change sign for signed modes (if necessary)
             if (negative) {
                 compiled = -(compiled);
             }
