@@ -130,7 +130,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "integers", int, decoded, int);
+            makeError(name, "integers", decoded, decoded, int);
         }
     }
 

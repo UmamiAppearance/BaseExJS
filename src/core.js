@@ -697,23 +697,17 @@ class SmartInput {
 
         const byteArray = new Array();
         const append = (littleEndian) ? "push" : "unshift";
+        const maxN = 18446744073709551616n;
 
         // split the input into 64 bit integers
-        if (input > 0) {
-            
-            const overflow = 18446744073709551616n; 
-
-            while (input >= overflow) {
-                byteArray[append](input % overflow);
+        if (input < 0) {
+            while (input < -9223372036854775808n) {
+                byteArray[append](input % maxN);
                 input >>= 64n;
             }
-        }
-
-        else if (input < 0) {
-            const overflow = -9223372036854775808n;
-
-            while (input <= overflow) {
-                byteArray[append](input % overflow);
+        } else { 
+            while (input >= maxN) {
+                byteArray[append](input % maxN);
                 input >>= 64n;
             }
         }
@@ -883,7 +877,7 @@ class SmartOutput {
         } else if (type === "uint_n" || type === "int_n") {
 
             compiled = Uint8ArrayOut;
-
+            
             if (littleEndian) {
                 compiled.reverse();
             }
@@ -894,10 +888,11 @@ class SmartOutput {
             const toNumber = (n <= Number.MAX_SAFE_INTEGER);
 
             if (type === "int_n") {
-                n -= BigInt(2 ** (Uint8ArrayOut.length * 8));
+                const exp = Uint8ArrayOut.length * 8;
+                if (n >= 2n ** BigInt(exp-1)) {
+                    n -= 2n ** BigInt(exp);
+                }
             }
-            // FIXME: Number > 2**64 fails
-
 
             if (toNumber) {                
                 compiled = Number(n);
