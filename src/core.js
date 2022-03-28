@@ -556,48 +556,8 @@ class SmartInput {
     }
 
     floatingPoints(input, littleEndian=false) {
-        
-        let view;
-
-        const rangeError = () => {
-            throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.")
-        };
-        
-        if (input > 0) {
-        
-            // 32 Bit
-            if ((input).toString(10).length < 9 && input > 1.18e-38 && input < 3.4e+38) {
-                view = this.makeDataView(4);
-                view.setFloat32(0, input, littleEndian);
-            }
-
-            // 64 Bit
-            else if (input > 2.3e-308 && input < 1.7e+308) {
-                view = this.makeDataView(8);
-                view.setFloat64(0, input, littleEndian);
-            }
-            
-            else {
-                rangeError();
-            }
-        }
-        
-        // 32 Bit (negative)
-        else if ((input).toString(10).length < 10 && input < -1.18e-38 && input > -3.4e+38) {
-                view = this.makeDataView(4);
-                view.setFloat32(0, input, littleEndian);
-        }
-
-        // 64 Bit (negative)
-        else if (input < -2.3e-308 && input > -1.7e+308) {
-                view = this.makeDataView(8);
-                view.setFloat64(0, input, littleEndian);
-        }
-        
-        else {
-            rangeError();
-        }
-
+        const view = this.makeDataView(8);
+        view.setFloat64(0, input, littleEndian);
         return view;
     }
 
