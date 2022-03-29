@@ -1,35 +1,24 @@
-import {  BaseConverter, Utils } from "./core.js";
+import { BaseConverter, BaseTemplate } from "./core.js";
 
-export class SimpleBase {
+export class SimpleBase extends BaseTemplate {
     constructor(radix, ...args) {
-        
+        super();
+
         if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 36) {
             throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
         }
 
-        const charSelection = "0123456789abcdefghijklmnopqrstuvwxyz";
-        this.charsets = {
-            selection: charSelection.substring(0, radix),
-        }
+        this.charsets.selection = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
     
         // predefined settings
-        //this.converter = (radix === 10) ? new BaseConverter(10, 0, 0) : new BaseConverter(radix);
         this.converter = new BaseConverter(radix, 0, 0);
         this.littleEndian = !(radix === 2 || radix === 16);
-        this.outputType = "buffer";
-        this.padding = false;
         this.signed = true;
-        this.upper = false;
-        this.utils = new Utils(this);
         this.version = "selection";
         
         // list of allowed/disallowed args to change
-        this.isMutable = {
-            littleEndian: true,
-            padding: false,
-            signed: false,
-            upper: true,
-        };
+        this.isMutable.littleEndian = true,
+        this.isMutable.upper = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);
@@ -76,8 +65,6 @@ export class SimpleBase {
             const leadingZeros = input.length % 2;
             input = `${"0".repeat(leadingZeros)}${input}`;
         }
-
-        console.log(input);
 
         // Make it lower case
         input = input.toLowerCase();

@@ -1,6 +1,6 @@
-import {  BaseConverter, Utils } from "./core.js";
+import {  BaseConverter, BaseTemplate } from "./core.js";
  
-export class Base85 {
+export class Base85 extends BaseTemplate {
     /*
         En-/decoding to and from Base85.
         -------------------------------
@@ -30,38 +30,17 @@ export class Base85 {
     */
 
     constructor(...args) {
-        /*
-            The charset defined here is used by de- and encoder.
-            This can still be overwritten during the call of the
-            function.
-        */
+        super();
 
-        const asciiChars = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
-        this.charsets = {
-            ascii85: asciiChars,
-            adobe: asciiChars,
-            rfc1924: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~",
-            z85: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#",
-        }
+        this.charsets.ascii85 = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
+        this.charsets.adobe =   this.charsets.ascii85;
+        this.charsets.rfc1924 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+        this.charsets.z85 =     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
 
         // predefined settings
         this.converter = new BaseConverter(85, 4, 5, 84);
-        this.littleEndian = false;
-        this.outputType = "buffer";
-        this.padding = false;
-        this.signed = false;
-        this.upper = null;
-        this.utils = new Utils(this);
         this.version = "ascii85";
         
-        // list of allowed/disallowed args to change
-        this.isMutable = {
-            littleEndian: true,
-            padding: false,
-            signed: false,
-            upper: false,
-        };
-
         // apply user settings
         this.utils.validateArgs(args, true);
     }

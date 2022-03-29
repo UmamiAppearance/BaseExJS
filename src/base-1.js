@@ -1,35 +1,21 @@
-import {  BaseConverter, Utils } from "./core.js";
+import {  BaseConverter, BaseTemplate } from "./core.js";
 
-export class Base1 {
+export class Base1 extends BaseTemplate {
     constructor(...args) {
-        
-        this.charsets = {
-            all: "*",
-            list: "*",
-            default: "1",
-            tmark: "|",
-        }
+        super();
+
+        this.charsets.all = "*";
+        this.charsets.list = "*";
+        this.charsets.default = "1";
+        this.charsets.tmark = "|";
 
         this.base10Chars = "0123456789";
-    
-        // predefined settings
         this.converter = new BaseConverter(10, 0, 0);
         this.littleEndian = true;
-        this.outputType = "buffer";
-        this.padding = false;
-        this.signed = false;
-        this.upper = false;
-        this.utils = new Utils(this);
-        this.version = "default";
         
-        // list of allowed/disallowed args to change
-        this.isMutable = {
-            littleEndian: false,
-            padding: false,
-            signed: true,
-            upper: true,
-        };
-
+        this.isMutable.signed = true;
+        this.isMutable.upper = true;
+        
         // apply user settings
         this.utils.validateArgs(args, true);
     }

@@ -1,43 +1,20 @@
-import {  BaseConverter, Utils } from "./core.js";
+import {  BaseConverter, BaseTemplate } from "./core.js";
 
-export class Base64 {
-    /*
-        En-/decoding to and from Base64.
-        -------------------------------
-        
-        Regular and urlsafe charsets can be used.
-        (Requires "BaseConverter", "Utils")
-    */
+export class Base64 extends BaseTemplate {
 
     constructor(...args) {
-        /*
-            The charset defined here is used by de- and encoder.
-            This can be overwritten during the call of the function.
-        */
+        super();
 
         const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        this.charsets = {
-            default: b62Chars.concat("+/"),
-            urlsafe: b62Chars.concat("-_")
-        }
-
+        this.charsets.default = b62Chars.concat("+/");
+        this.charsets.urlsafe = b62Chars.concat("-_");
+     
         // predefined settings
         this.converter = new BaseConverter(64, 3, 4);
-        this.littleEndian = false;
-        this.outputType = "buffer";
         this.padding = true;
-        this.signed = false;
-        this.upper = null;
-        this.utils = new Utils(this);
-        this.version = "default";
         
         // list of allowed/disallowed args to change
-        this.isMutable = {
-            littleEndian: true,
-            padding: true,
-            signed: false,
-            upper: false,
-        };
+        this.isMutable.padding = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);

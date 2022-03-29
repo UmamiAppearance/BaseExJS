@@ -1,43 +1,22 @@
-import {  BaseConverter, Utils } from "./core.js";
+import {  BaseConverter, BaseTemplate } from "./core.js";
 
-export class Base58 {
-    /*
-        En-/decoding to and from Base64.
-        -------------------------------
-        
-        Regular and urlsafe charsets can be used.
-        (Requires "BaseConverter", "Utils")
-    */
+export class Base58 extends BaseTemplate{
 
     constructor(...args) {
-        /*
-            The charset defined here is used by de- and encoder.
-            This can be overwritten during the call of the function.
-        */
+        super(); 
 
-        this.charsets = {
-            default: "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ",
-            bitcoin: "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz",
-            flickr:  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ",
-        }
+        this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+        this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+        this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
         // predefined settings
         this.converter = new BaseConverter(58, 0, 0);
-        this.littleEndian = false;
-        this.outputType = "buffer";
         this.padding = true;
-        this.signed = false;
-        this.upper = null;
-        this.utils = new Utils(this);
         this.version = "bitcoin";
         
         // list of allowed/disallowed args to change
-        this.isMutable = {
-            littleEndian: true,
-            padding: true,
-            signed: true,
-            upper: false,
-        };
+        this.isMutable.padding = true;
+        this.isMutable.signed = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);

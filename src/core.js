@@ -280,6 +280,32 @@ class BaseConverter {
     }
 }
 
+
+class BaseTemplate {
+    constructor() {
+        
+        this.charsets = {};
+
+        // predefined settings
+        this.littleEndian = false;
+        this.outputType = "buffer";
+        this.padding = false;
+        this.signed = false;
+        this.upper = null;
+        this.utils = new Utils(this);
+        this.version = "default";
+        
+        // list of allowed/disallowed args to change
+        this.isMutable = {
+            littleEndian: false,
+            padding: false,
+            signed: false,
+            upper: false,
+        };
+    }
+}
+
+
 /**
  *  Utilities for every BaseEx class. The main 
  *  purpose is argument validation.
@@ -460,7 +486,7 @@ class Utils {
             upper: this.root.upper,
             littleEndian: this.root.littleEndian,
             padding: this.root.padding,
-            outputType: "buffer",
+            outputType: this.root.outputType
         }
 
         // if no args are provided return the default settings immediately
@@ -926,4 +952,4 @@ class SmartOutput {
     }
 }
 
-export { BaseConverter, SmartInput, SmartOutput, Utils };
+export { BaseConverter, BaseTemplate, SmartInput, SmartOutput, Utils };

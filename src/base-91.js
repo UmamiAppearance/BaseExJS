@@ -1,6 +1,6 @@
-import {  Utils } from "./core.js";
+import {  BaseTemplate } from "./core.js";
 
-export class Base91 {
+export class Base91 extends BaseTemplate {
     /*
         En-/decoding to and from Base91.
         -------------------------------
@@ -14,33 +14,10 @@ export class Base91 {
         (Requires "Utils")
     */
     constructor(...args) {
-        /*
-            The default charset gets initialized, as well as
-            some utilities.
-        */
+        super();
 
-        this.byteOrder = "BE";
-
-        this.charsets = {
-            default: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""
-        }
-
-        // predefined settings
-        this.littleEndian = false;
-        this.outputType = "buffer";
-        this.padding = false;
-        this.signed = false;
-        this.upper = null;
-        this.utils = new Utils(this);
+        this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
         this.version = "default";
-        
-        // list of allowed/disallowed args to change
-        this.isMutable = {
-            littleEndian: false,
-            padding: false,
-            signed: false,
-            upper: false,
-        };
 
         // apply user settings
         this.utils.validateArgs(args, true);

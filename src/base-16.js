@@ -1,29 +1,17 @@
-import {  BaseConverter, Utils } from "./core.js";
+import {  BaseConverter, BaseTemplate } from "./core.js";
 
-export class Base16 {
+export class Base16 extends BaseTemplate {
 
     constructor(...args) {
-        
+        super();
+
         // default settings
-        this.charsets = {
-            default: "0123456789abcdef" 
-        }
+        this.charsets.default = "0123456789abcdef";
         
         this.converter = new BaseConverter(16, 1, 2);
-        this.littleEndian = false;
-        this.outputType = "buffer";
-        this.padding = false;
-        this.signed = false;
-        this.upper = false;
-        this.utils = new Utils(this);
-        this.version = "default";
         
-        this.isMutable = {
-            littleEndian: false,
-            padding: false,
-            signed: true,
-            upper: true,
-        };
+        this.isMutable.signed = true;
+        this.isMutable.upper = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);
