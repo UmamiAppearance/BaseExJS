@@ -1,4 +1,4 @@
-import {  BaseConverter, BaseTemplate } from "./core.js";
+import { BaseConverter, BaseTemplate } from "./core.js";
 
 export class Base1 extends BaseTemplate {
     constructor(...args) {
@@ -26,7 +26,7 @@ export class Base1 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
+        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings);
 
         // Convert to BaseRadix string
         let base10 = this.converter.encode(inputBytes, this.base10Chars, settings.littleEndian)[0];

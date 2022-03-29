@@ -1,4 +1,4 @@
-import {  BaseConverter, BaseTemplate } from "./core.js";
+import { BaseConverter, BaseTemplate } from "./core.js";
 
 export class Base64 extends BaseTemplate {
 
@@ -35,7 +35,7 @@ export class Base64 extends BaseTemplate {
 
         // argument validation and input settings
         const settings = this.utils.validateArgs(args); 
-        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
+        const inputBytes = this.utils.smartInput.toBytes(input, settings)[0];
 
         // Convert to Base64 string
         let output, zeroPadding;

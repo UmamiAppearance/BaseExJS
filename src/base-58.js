@@ -1,4 +1,4 @@
-import {  BaseConverter, BaseTemplate } from "./core.js";
+import { BaseConverter, BaseTemplate } from "./core.js";
 
 export class Base58 extends BaseTemplate{
 
@@ -27,7 +27,7 @@ export class Base58 extends BaseTemplate{
         // argument validation and input settings
         const settings = this.utils.validateArgs(args); 
         let inputBytes, bytesInput;
-        [inputBytes,, bytesInput] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
+        [inputBytes,, bytesInput] = this.utils.smartInput.toBytes(input, settings);
 
         let output;
 

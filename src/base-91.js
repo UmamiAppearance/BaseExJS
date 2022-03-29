@@ -37,7 +37,7 @@ export class Base91 extends BaseTemplate {
        
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);
-        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
+        const inputBytes = this.utils.smartInput.toBytes(input, settings)[0];
   
         // As this base representation splits the bytes
         // the read bits need to be stores somewhere. 

@@ -280,14 +280,20 @@ class BaseConverter {
     }
 }
 
-
+/**
+ * Base of every BaseConverter. Makes sure, 
+ * that every var is set. Also allows global
+ * feature adding. Everything is set to false
+ * by default. This forces to deliberately
+ * activate a specific functionality. 
+ */
 class BaseTemplate {
     constructor() {
-        
-        this.charsets = {};
 
         // predefined settings
+        this.charsets = {};
         this.littleEndian = false;
+        this.numberMode = false;
         this.outputType = "buffer";
         this.padding = false;
         this.signed = false;
@@ -469,8 +475,9 @@ class Utils {
         const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
         const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
         const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+        const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array)";
         
-        throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}\n\nTraceback:`);
+        throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
     }
 
     validateArgs(args, initial=false) {
@@ -481,12 +488,13 @@ class Utils {
         
         // default settings
         const parameters = {
-            version: this.root.version,
+            littleEndian: this.root.littleEndian,
+            numberMode: this.root.numberMode,
+            outputType: this.root.outputType,
+            padding: this.root.padding,
             signed: this.root.signed,
             upper: this.root.upper,
-            littleEndian: this.root.littleEndian,
-            padding: this.root.padding,
-            outputType: this.root.outputType
+            version: this.root.version
         }
 
         // if no args are provided return the default settings immediately
@@ -511,6 +519,9 @@ class Utils {
                 parameters.version = arg;
             } else if (outputTypes.includes(arg)) {
                 parameters.outputType = arg;
+                if (arg === "number") {
+                    parameters.numberMode = true;
+                }
             } else {
                 // set invalid args to true for starters
                 // if a valid arg is found later it will
@@ -722,7 +733,7 @@ class SmartInput {
     }
 
 
-    toBytes(input, signed=false, littleEndian=false) {
+    toBytes(input, settings) {
 
         let inputUint8;
         let negative = false;
@@ -747,20 +758,25 @@ class SmartInput {
         
         // Number:
         else if (typeof input === "number" && !isNaN(input) && input !== Infinity) {
-            if (signed && input < 0) {
+            if (settings.signed && input < 0) {
                 negative = true;
                 input *= -1;
             }
-            inputUint8 = this.numbers(input, littleEndian);    
+            if (settings.numberMode) {
+                const float64 = new Float64Array([input]);
+                inputUint8 = new Uint8Array(float64.buffer);
+            } else {
+                inputUint8 = this.numbers(input, settings.littleEndian);
+            }
         }
 
         // BigInt:
         else if (typeof input === "bigint") {
-            if (signed && input < 0) {
+            if (settings.signed && input < 0) {
                 negative = true;
                 input *= -1n;
             }
-            inputUint8 = this.bigInts(input, littleEndian);
+            inputUint8 = this.bigInts(input, settings.littleEndian);
         }
 
         // Array
@@ -852,15 +868,25 @@ class SmartOutput {
 
         if (type === "buffer") {
             compiled = Uint8ArrayOut.buffer;
-        } else if (type === "bytes" || type === "uint8") {
+        } 
+        
+        else if (type === "bytes" || type === "uint8") {
             compiled = Uint8ArrayOut;
-        } else if (type === "int8") {
+        }
+        
+        else if (type === "int8") {
             compiled = new Int8Array(Uint8ArrayOut.buffer);
-        } else if (type === "view") {
+        } 
+        
+        else if (type === "view") {
             compiled = new DataView(Uint8ArrayOut.buffer);
-        } else if (type === "str") {
+        }
+        
+        else if (type === "str") {
            compiled = new TextDecoder().decode(Uint8ArrayOut);
-        } else if (type === "uint_n" || type === "int_n") {
+        }
+        
+        else if (type === "uint_n" || type === "int_n") {
             
             if (littleEndian) {
                 Uint8ArrayOut.reverse();
@@ -886,8 +912,9 @@ class SmartOutput {
             if (negative) {
                 compiled = -(compiled);
             }
+        } 
         
-        } else if (type === "float_n") {
+        else if (type === "float_n") {
 
             if (Uint8ArrayOut.length <= 4) {
                 
@@ -920,8 +947,18 @@ class SmartOutput {
             else {
                 throw new RangeError("The provided input is to complex to be converted into a floating point.")
             }
+        }
 
-        } else {
+        else if (type === "number") {
+            if (Uint8ArrayOut.length !== 8) {
+                throw new TypeError("Type mismatch. Cannot convert into number.");
+            }
+
+            const float64 = new Float64Array(Uint8ArrayOut.buffer);
+            compiled = Number(float64);
+        }
+
+        else {
             compiled = this.makeTypedArray(Uint8ArrayOut, type, littleEndian);
         } 
 
@@ -941,6 +978,7 @@ class SmartOutput {
             "int16",
             "int32",
             "int_n",
+            "number",
             "str",
             "uint8",
             "uint16",

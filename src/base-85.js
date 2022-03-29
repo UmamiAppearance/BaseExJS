@@ -1,4 +1,4 @@
-import {  BaseConverter, BaseTemplate } from "./core.js";
+import { BaseConverter, BaseTemplate } from "./core.js";
  
 export class Base85 extends BaseTemplate {
     /*
@@ -62,7 +62,7 @@ export class Base85 extends BaseTemplate {
        
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);
-        const inputBytes = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian)[0];
+        const inputBytes = this.utils.smartInput.toBytes(input, settings)[0];
   
         // Initialize the replacing of null bytes for ascii85
         let replacer = null;

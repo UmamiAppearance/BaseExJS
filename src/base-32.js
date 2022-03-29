@@ -51,7 +51,7 @@ export class Base32 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
+        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings);
 
         // Convert to Base32 string
         let output, zeroPadding;
