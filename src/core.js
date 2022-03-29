@@ -584,7 +584,7 @@ class SmartInput {
                     minMax = "MAX";
                 }
 
-                throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not guaranteed. Use a BigInt to avoid this issue.`);
+                throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not guaranteed. Use a BigInt to avoid this issue.\n(If you see this error although a float was provided, the input has to many digits before the decimal point to store the decimal places in a float with 64 bits.)`);
             }
 
             // Signed Integer
@@ -826,7 +826,7 @@ class SmartOutput {
 
         if (type === "buffer") {
             compiled = Uint8ArrayOut.buffer;
-        } else if (type === "bytes" || type === "Uint8") {
+        } else if (type === "bytes" || type === "uint8") {
             compiled = Uint8ArrayOut;
         } else if (type === "int8") {
             compiled = new Int8Array(Uint8ArrayOut.buffer);
@@ -844,15 +844,9 @@ class SmartOutput {
             let n = 0n;
             Uint8ArrayOut.forEach((b) => n = (n << 8n) + BigInt(b));
 
-            // if a signed int is requested, change its value if it overflows 
+            // convert to signed int if requested 
             if (type === "int_n") {
-                
-                // calculate exponent (bytes amount times eight)
-                const exp = Uint8ArrayOut.length * 8;
-
-                if (n >= 2n ** BigInt(exp-1)) {
-                    n -= 2n ** BigInt(exp);
-                }
+                n = BigInt.asIntN(Uint8ArrayOut.length*8, n);
             }
             
             // convert to regular integer if possible
