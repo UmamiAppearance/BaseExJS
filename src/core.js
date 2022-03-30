@@ -475,7 +475,7 @@ class Utils {
         const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
         const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
         const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
-        const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array)";
+        const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
         
         throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
     }
@@ -512,6 +512,12 @@ class Utils {
             upper: ["lower", "upper"],
         }
 
+        if (args.includes("number")) {
+            args.splice(args.indexOf("number"), 1);
+            parameters.numberMode = true;
+            parameters.outputType = "float_n";
+        }
+
         args.forEach((arg) => {
             arg = String(arg).toLowerCase();
 
@@ -519,9 +525,6 @@ class Utils {
                 parameters.version = arg;
             } else if (outputTypes.includes(arg)) {
                 parameters.outputType = arg;
-                if (arg === "number") {
-                    parameters.numberMode = true;
-                }
             } else {
                 // set invalid args to true for starters
                 // if a valid arg is found later it will
@@ -763,8 +766,8 @@ class SmartInput {
                 input *= -1;
             }
             if (settings.numberMode) {
-                const float64 = new Float64Array([input]);
-                inputUint8 = new Uint8Array(float64.buffer);
+                const view = this.floatingPoints(input, settings.littleEndian);
+                inputUint8 = new Uint8Array(view.buffer);
             } else {
                 inputUint8 = this.numbers(input, settings.littleEndian);
             }
@@ -978,7 +981,6 @@ class SmartOutput {
             "int16",
             "int32",
             "int_n",
-            "number",
             "str",
             "uint8",
             "uint16",
