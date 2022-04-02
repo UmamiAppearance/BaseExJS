@@ -70,7 +70,7 @@ async function test(base, IOtestRounds, verbose=false) {
     // encoding-list comparison
 
     // hello world
-    if (verbose) console.log(`> Testing 'Hello World!!!' output.`);
+    if (verbose) console.log(`> Testing 'Hello World!!!' Output.`);
     let testStr = ""; 
     helloWorldArray.forEach(c => {
         testData[name].testCount += 2;
@@ -103,7 +103,7 @@ async function test(base, IOtestRounds, verbose=false) {
 
 
     // integers
-    if (verbose) console.log(`> Testing Integers output.`);
+    if (verbose) console.log(`> Testing Integers Output.`);
     for (const int in encodingMap[name].int) {
         testData[name].testCount += 2;
         testData.totalTests += 2;
@@ -135,7 +135,7 @@ async function test(base, IOtestRounds, verbose=false) {
     }
 
     // float
-    if (verbose) console.log(`> Testing Floating Point output.`);
+    if (verbose) console.log(`> Testing Floating Point Output.`);
     for (const float in encodingMap[name].float) {
         testData[name].testCount += 2;
         testData.totalTests += 2;
@@ -162,6 +162,43 @@ async function test(base, IOtestRounds, verbose=false) {
             testData[name].failed++;
             testData.totalErrors++;
             makeError(name, "floating points", decoded, decoded, float);
+        }
+    }
+
+    // number mode
+    if (!verbose) console.log(`> Testing Number Mode Output.`);
+    const numbers = [
+        Number.MIN_VALUE,
+        -(2*256),
+        -(2**128),
+        -(2**64),
+        -(2**32),
+        -(2**16),
+        -(2**8),
+        -2,
+        -1.23456789,
+        0,
+        1.23456789,
+        2**16,
+        2**32,
+        2**64,
+        2**128,
+        2**256,
+        Number.MAX_VALUE
+    ];
+    for (const num of numbers) {
+        testData[name].testCount++;
+        testData.totalTests++;
+        
+        const encoded = base.encode(num, "number");
+        const decoded = base.decode(encoded, "float_n");
+
+        if (decoded === num) {
+            testData[name].passed++;
+        } else {
+            testData[name].failed++;
+            testData.totalErrors++;
+            makeError(name, "numbers", num, decoded, num);
         }
     }
 
