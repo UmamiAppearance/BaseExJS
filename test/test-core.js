@@ -134,6 +134,37 @@ async function test(base, IOtestRounds, verbose=false) {
         }
     }
 
+    // float
+    if (verbose) console.log(`> Testing Floating Point output.`);
+    for (const float in encodingMap[name].float) {
+        testData[name].testCount += 2;
+        testData.totalTests += 2;
+
+        let float64 = Number(float);
+        
+        const encoded = base.encode(float64);
+
+        const expectedResult = encodingMap[name].float[float];
+
+        if (encoded === expectedResult) {
+            testData[name].passed++;
+        } else {
+            testData[name].failed++;
+            testData.totalErrors++;
+            makeError(name, "floating points", float, encoded, expectedResult);
+        }
+
+        const decoded = base.decode(encoded, "float_n");
+
+        if (decoded === float64) {
+            testData[name].passed++;
+        } else {
+            testData[name].failed++;
+            testData.totalErrors++;
+            makeError(name, "floating points", decoded, decoded, float);
+        }
+    }
+
 
     const intermediate = [testData[name].testCount, testData[name].failed];
     if (verbose) {

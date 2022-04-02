@@ -760,11 +760,18 @@ class SmartInput {
         }
         
         // Number:
-        else if (typeof input === "number" && !isNaN(input) && input !== Infinity) {
+        else if (typeof input === "number") {
+            if (isNaN(input)) {
+                throw new TypeError("Cannot proceed. Input is NaN.");
+            } else if (input == Infinity) {
+                throw new TypeError("Cannot proceed. Input is 'Infinity'.");
+            }
+
             if (settings.signed && input < 0) {
                 negative = true;
-                input *= -1;
+                input = -input;
             }
+
             if (settings.numberMode) {
                 const view = this.floatingPoints(input, settings.littleEndian);
                 inputUint8 = new Uint8Array(view.buffer);
