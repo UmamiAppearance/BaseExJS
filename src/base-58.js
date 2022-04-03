@@ -26,20 +26,24 @@ export class Base58 extends BaseTemplate{
 
         // argument validation and input settings
         const settings = this.utils.validateArgs(args); 
-        let inputBytes, bytesInput;
-        [inputBytes,, bytesInput] = this.utils.smartInput.toBytes(input, settings);
+        let inputBytes, inputType;
+        [inputBytes,, inputType] = this.utils.smartInput.toBytes(input, settings);
 
         let output;
 
-        if (settings.padding && bytesInput) { 
+        if (settings.padding && inputType !== "int") { 
         
             let i = 0;
-            let zeroPadding = 0;
+            const end = inputBytes.length;
             while (!inputBytes[i]) {
-                zeroPadding++;
                 i++;
+                if (i === end) {
+                    i = 0;
+                    break;
+                }
             }
 
+            const zeroPadding = i;
 
             // Convert to Base58 string
             output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
@@ -47,6 +51,7 @@ export class Base58 extends BaseTemplate{
             if (zeroPadding) {
                 output = ("1".repeat(zeroPadding)).concat(output);
             }
+
         } else {
             // Convert to Base58 string directly
             output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];

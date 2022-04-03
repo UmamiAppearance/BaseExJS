@@ -166,10 +166,10 @@ async function test(base, IOtestRounds, verbose=false) {
     }
 
     // number mode
-    if (!verbose) console.log(`> Testing Number Mode Output.`);
+    if (verbose) console.log(`> Testing Number Mode Output.`);
     const numbers = [
-        Number.MIN_VALUE,
-        -(2*256),
+        -Number.MAX_VALUE,
+        -(2**256),
         -(2**128),
         -(2**64),
         -(2**32),
@@ -177,7 +177,9 @@ async function test(base, IOtestRounds, verbose=false) {
         -(2**8),
         -2,
         -1.23456789,
+        -Number.MIN_VALUE,
         0,
+        Number.MIN_VALUE,
         1.23456789,
         2**16,
         2**32,
@@ -192,7 +194,7 @@ async function test(base, IOtestRounds, verbose=false) {
         
         const encoded = base.encode(num, "number");
         const decoded = base.decode(encoded, "float_n");
-
+        
         if (decoded === num) {
             testData[name].passed++;
         } else {

@@ -604,9 +604,12 @@ class SmartInput {
     numbers(input, littleEndian=false) {
 
         let view;
+        let type;
 
         // Integer
         if (Number.isInteger(input)) {
+
+            type = "int";
 
             if (!Number.isSafeInteger(input)) {
                 
@@ -679,10 +682,11 @@ class SmartInput {
         
         // Floating Point Number:
         else {
+            type = "float";
             view = this.floatingPoints(input, littleEndian);
         }
 
-        return new Uint8Array(view.buffer);
+        return [new Uint8Array(view.buffer), type];
 
     }
 
@@ -740,18 +744,16 @@ class SmartInput {
 
         let inputUint8;
         let negative = false;
-        let bytesInput = false;
+        let type = "bytes";
         
         // Buffer:
         if (input instanceof ArrayBuffer) {
             inputUint8 = new Uint8Array(input);
-            bytesInput = true;
         }
 
         // TypedArray or DataView:
         else if (ArrayBuffer.isView(input)) {
             inputUint8 = new Uint8Array(input.buffer);
-            bytesInput = true;
         }
         
         // String:
@@ -775,8 +777,9 @@ class SmartInput {
             if (settings.numberMode) {
                 const view = this.floatingPoints(input, settings.littleEndian);
                 inputUint8 = new Uint8Array(view.buffer);
+                type = "float";
             } else {
-                inputUint8 = this.numbers(input, settings.littleEndian);
+                [inputUint8, type] = this.numbers(input, settings.littleEndian);
             }
         }
 
@@ -787,6 +790,7 @@ class SmartInput {
                 input *= -1n;
             }
             inputUint8 = this.bigInts(input, settings.littleEndian);
+            type = "int";
         }
 
         // Array
@@ -802,7 +806,7 @@ class SmartInput {
             throw new TypeError("The provided input type can not be processed.");
         }
 
-        return [inputUint8, negative, bytesInput];
+        return [inputUint8, negative, type];
     }
 }
 
