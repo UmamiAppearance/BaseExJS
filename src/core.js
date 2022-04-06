@@ -321,6 +321,11 @@ class BaseTemplate {
         let output, zeroPadding;
         [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian);
 
+        // apply settings for results with or without two's complement system
+        if (settings.signed) {
+            output = this.utils.toSignedStr(output, negative);
+        }
+
         return {
             settings,
             inputBytes,
@@ -332,11 +337,32 @@ class BaseTemplate {
     }
 
 
-    preDecode(rawInput, ...args) {
+    decode(rawInput, ...args) {
         
+        const settings = this.utils.validateArgs(args);
+
+        let input = String(rawInput);
+
+        let negative = false;
+        
+        if (this.isMutable.signed) {
+            // Test for a negative sign
+            [input, negative] = this.utils.extractSign(input);   
+            
+            if (negative && !settings.signed) {
+                this.utils.signError();
+            }
+        }
+
+        if (this.isMutable.upper) {
+            // Make it lower case
+            input = input.toLowerCase();
+        }
+
         return {
-            settings: this.utils.validateArgs(args),
-            input: String(rawInput),
+            settings,
+            input,
+            negative
         }
     }
 }
@@ -449,53 +475,6 @@ class Utils {
         }
 
         return [input, negative];
-    }
-
-    normalizeOutput(array) {
-        // calculate a fitting byte length (2,4,8,16...)
-        let bytesPerElem = 2 ** Math.ceil(Math.log(array.byteLength) / Math.log(2));
-        
-        // Take at least 2 bytes (byte amount for a int16/uint16)
-        bytesPerElem = Math.max(bytesPerElem, 2);
-        
-        // calculate the missing bytes
-        const byteDelta = bytesPerElem - array.byteLength;
-
-        // if bytes are missing, construct a new array 
-        // and set the values. The delta is the offset
-        // eg. TypedArray([12, 32, 45]), length: 3 offset = (4-3=1)
-        // --> set values with offset 1 --> [0, 12, 32, 45]
-        if (byteDelta) {
-            const normalizedArray = new Uint8Array(bytesPerElem);
-            normalizedArray.set(array, byteDelta);
-            array = normalizedArray;
-        }
-
-        return array;
-    }
-
-    negate(array) {
-        // set the negative value of each byte 
-        // which gets converted to the equivalent
-        // positive value
-
-        // xor with 255 
-        array.forEach((b, i) => array[i] = b ^ 255);
-        const lastElem = array.byteLength - 1;
-        
-        // add one to the last byte
-        array[lastElem] += 1;
-    }
-
-    toSignedArray(array, negative) {
-        array = this.normalizeOutput(array);
-
-        // Negate the value if the input is negative
-        if (negative) {
-            this.negate(array);
-        }
-
-        return array;
     }
 
     invalidArgument(arg, versions, outputTypes) {

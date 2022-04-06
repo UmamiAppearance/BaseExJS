@@ -14,10 +14,10 @@ export class Base32 extends BaseTemplate {
     constructor(...args) {
         super();
 
-        this.charsets.rfc3548 =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-        this.charsets.rfc4648 =  "0123456789ABCDEFGHIJKLMNOPQRSTUV";
-        this.charsets.crockford = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-        this.charsets.zbase32 =   "YBNDRFG8EJKMCPQXOT1UWISZA345H769";
+        this.charsets.rfc3548 =  "abcdefghijklmnopqrstuvwxyz234567";
+        this.charsets.rfc4648 =  "0123456789abcdefghijklmnopqrstuv";
+        this.charsets.crockford = "0123456789abcdefghjkmnpqrstvwxyz";
+        this.charsets.zbase32 =   "ybndrfg8ejkmcpqxot1uwisza345h769";
     
         // predefined settings
         this.converter = new BaseConverter(32, 5, 8);
@@ -38,7 +38,6 @@ export class Base32 extends BaseTemplate {
         
         let {
             settings,
-            negative,
             output,
             zeroPadding
         } = super.encode(input, ...args);
@@ -54,48 +53,17 @@ export class Base32 extends BaseTemplate {
                     output = output.concat("=".repeat(padValue));
                 }
             }
-        } else {
-            
-            // apply settings without two's complement system
-            
-            output = this.utils.toSignedStr(output, negative);
         }
 
-        if (!settings.upper) {
-            output = output.toLowerCase();
+        if (settings.upper) {
+            output = output.toUpperCase();
         }
         
         return output;
     }
 
-    decode(input, ...args) {
-        /* 
-            Decode from base32 string to utf8-string or bytes.
-            -------------------------------------------------
-
-            @input: base32-string
-            @args:
-                "str"       :  tells the encoder, that output should be a string (default)
-                "bytes"     :  tells the encoder, that output should be an array
-                "rfc3548"   :  defines to use the charset of this version
-                "rfc4648"   :  defines to use the charset of this version (default)
-        */
-
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
-
-        // Make it a string, whatever goes in
-        input = String(input);
-        
-        // Test for a negative sign
-        let negative;
-        [input, negative] = this.utils.extractSign(input);   
-        
-        if (negative && !settings.signed) {
-            this.utils.signError();
-        }
-        // Make it upper case
-        input = input.toUpperCase();
+    decode(rawInput, ...args) {
+        let { settings, input, negative } = super.decode(rawInput, ...args);
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);

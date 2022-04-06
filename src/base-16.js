@@ -21,14 +21,8 @@ export class Base16 extends BaseTemplate {
         
         let {
             settings,
-            negative,
             output
         } = super.encode(input, ...args);
-
-        // apply settings for results with or without two's complement system
-        if (settings.signed) {
-            output = this.utils.toSignedStr(output, negative);
-        }
 
         if (settings.upper) {
             output = output.toUpperCase();
@@ -39,21 +33,10 @@ export class Base16 extends BaseTemplate {
 
     decode(rawInput, ...args) {
         
-        let { settings, input } = super.preDecode(rawInput, ...args);
+        let { settings, input, negative } = super.decode(rawInput, ...args);
         
-        // Test for a negative sign
-        let negative;
-        [input, negative] = this.utils.extractSign(input);   
-        
-        if (negative && !settings.signed) {
-            this.utils.signError();
-        }
-
         // Remove "0x" if present
         input = input.replace(/^0x/, "");
-
-        // Make it lower case
-        input = input.toLowerCase();
 
         // Ensure even number of characters
         if (input.length % 2) {
@@ -63,13 +46,6 @@ export class Base16 extends BaseTemplate {
         // Run the decoder
         let output = this.converter.decode(input, this.charsets[settings.version]);
 
-        // If signed mode is set, calculate the bytes per element to
-        // allow the conversion of output to an integer.
-        
-        if (settings.signed) {
-            output = this.utils.toSignedArray(output, negative);
-        }
-        
         // Return the output
         return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
     }

@@ -28,11 +28,8 @@ export class SimpleBase extends BaseTemplate {
 
         let {
             settings,
-            negative,
             output
         } = super.encode(input, ...args);
-
-        output = this.utils.toSignedStr(output, negative);
 
         if (settings.upper) {
             output = output.toUpperCase();

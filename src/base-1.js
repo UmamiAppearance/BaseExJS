@@ -37,7 +37,7 @@ export class Base1 extends BaseTemplate {
         // Limit the input before it even starts.
         // the executing engine will most likely
         // give up much earlier.
-        // (2^29-24 during tests
+        // (2^29-24 during tests)
 
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");

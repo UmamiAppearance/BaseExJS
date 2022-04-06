@@ -62,18 +62,7 @@ export class Base58 extends BaseTemplate{
     }
 
     decode(input, ...args) {
-        /* 
-            Decode from base64 string to utf8-string or bytes.
-            -------------------------------------------------
-
-            @input: base32-string
-            @args:
-                "str"       :  tells the encoder, that output should be a string (default)
-                "bytes"     :  tells the encoder, that output should be an array
-                "rfc3548"   :  defines to use the charset of this version
-                "rfc4648"   :  defines to use the charset of this version (default)
-        */
-
+        
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
 
@@ -84,11 +73,11 @@ export class Base58 extends BaseTemplate{
         if (settings.padding) {
             
             let i = 0;
-            let zeroPadding = 0;
             while (input[i] === "1") {
-                zeroPadding++;
                 i++;
             }
+
+            const zeroPadding = i;
 
             // Run the decoder
             output = this.converter.decode(input, this.charsets[settings.version]);

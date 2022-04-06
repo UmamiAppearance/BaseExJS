@@ -40,24 +40,9 @@ export class Base64 extends BaseTemplate {
         return output;
     }
 
-    decode(input, ...args) {
-        /* 
-            Decode from base64 string to utf8-string or bytes.
-            -------------------------------------------------
+    decode(rawInput, ...args) {
 
-            @input: base32-string
-            @args:
-                "str"       :  tells the encoder, that output should be a string (default)
-                "bytes"     :  tells the encoder, that output should be an array
-                "rfc3548"   :  defines to use the charset of this version
-                "rfc4648"   :  defines to use the charset of this version (default)
-        */
-
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
-
-        // Make it a string, whatever goes in
-        input = String(input);
+        let { settings, input } = super.decode(rawInput, ...args);
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[settings.version]);
