@@ -24,14 +24,14 @@ export class Base58 extends BaseTemplate{
 
     encode(input, ...args) {
 
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args); 
-        let inputBytes, inputType;
-        [inputBytes,, inputType] = this.utils.smartInput.toBytes(input, settings);
+        let { 
+            settings,
+            inputBytes,
+            type,
+            output,
+         } = super.encode(input, ...args);
 
-        let output;
-
-        if (settings.padding && inputType !== "int") { 
+        if (settings.padding && type !== "int") { 
         
             let i = 0;
             const end = inputBytes.length;

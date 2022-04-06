@@ -46,19 +46,6 @@ export class Base85 extends BaseTemplate {
     }
     
     encode(input, ...args) {
-        /* 
-            Encode from string or bytes to base85.
-            -------------------------------------
-
-            @input: string or (typed) array of bytes
-            @args:
-                "str"       :  tells the encoder, that input is a string (default)
-                "bytes"     :  tells the encoder, that input is an array
-                "adobe"     :  sets charset to ascii85 + <~frame~> 
-                "ascii85"   :  sets charset to this commonly used one
-                "rfc1924"   :  uses the charset (and only the charset) of this april fool
-                    this.converter.padGroups = [0];    "z85"       :  sets the used charset to this variant
-        */
        
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);

@@ -309,6 +309,36 @@ class BaseTemplate {
             upper: false,
         };
     }
+
+
+    encode(input, ...args) {
+        const settings = this.utils.validateArgs(args);
+        
+        let inputBytes, negative, type;
+        [inputBytes, negative, type] = this.utils.smartInput.toBytes(input, settings);
+
+        // Convert to BaseX string
+        let output, zeroPadding;
+        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian);
+
+        return {
+            settings,
+            inputBytes,
+            negative,
+            type,
+            output,
+            zeroPadding
+        }
+    }
+
+
+    preDecode(rawInput, ...args) {
+        
+        return {
+            settings: this.utils.validateArgs(args),
+            input: String(rawInput),
+        }
+    }
 }
 
 

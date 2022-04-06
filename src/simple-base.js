@@ -26,14 +26,11 @@ export class SimpleBase extends BaseTemplate {
     
     encode(input, ...args) {
 
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args);
-        
-        let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings);
-
-        // Convert to BaseRadix string
-        let output = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian)[0];
+        let {
+            settings,
+            negative,
+            output
+        } = super.encode(input, ...args);
 
         output = this.utils.toSignedStr(output, negative);
 

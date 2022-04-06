@@ -35,28 +35,14 @@ export class Base32 extends BaseTemplate {
     }
     
     encode(input, ...args) {
-        /* 
-            Encode from string or bytes to base32.
-            -------------------------------------
-
-            @input: string or (typed) array of bytes
-            @args:
-                "str"       :  tells the encoder, that input is a string (default)
-                "bytes"     :  tells the encoder, that input is an array
-                "rfc3548"   :  sets the used charset to this standard
-                "rfc4648"   :  sets the used charset to this standard
-        */
-
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args);
         
-        let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings);
+        let {
+            settings,
+            negative,
+            output,
+            zeroPadding
+        } = super.encode(input, ...args);
 
-        // Convert to Base32 string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian);
-        
         if (!settings.littleEndian) {
             
             // Cut of redundant chars and append padding if set

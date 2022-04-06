@@ -40,14 +40,14 @@ function simpleBaseTests() {
                     const passedEnc = output === expected;
                     let passedDec = false;
                     if (passedEnc) {
-                        const backDecoded = baseConverter.decode(output, "number");
-                        //console.log("BackDec: ", backDecoded);
+                        const backDecoded = baseConverter.decode(output, "uint_n");
+                        console.log("BackDec: ", backDecoded);
 
                         passedDec = backDecoded === nn;
 
                     }
 
-                    //console.log("Passed: ", passedEnc, "/", "Passed: ", passedDec);
+                    console.log("Passed: ", passedEnc, "/", "Passed: ", passedDec);
                     if (!(passedEnc === true && passedDec === true)) {
                         console.log("RADIX", radix);
                         throw new Error("BUG!");

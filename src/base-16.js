@@ -18,22 +18,12 @@ export class Base16 extends BaseTemplate {
     }
 
     encode(input, ...args) {
-        /* 
-            Hex string encoder from string or bytes.
-            -------------------------------
-
-            @input: string or (typed) array of bytes
-            @args:  possible alternative charset
-        */
         
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args);
-        
-        let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings);
-
-        // Convert to Base16 string
-        let output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
+        let {
+            settings,
+            negative,
+            output
+        } = super.encode(input, ...args);
 
         // apply settings for results with or without two's complement system
         if (settings.signed) {
@@ -47,20 +37,9 @@ export class Base16 extends BaseTemplate {
         return output;
     }
 
-    decode(input, ...args) {
-        /*
-            Hex string decoder.
-            ------------------
-
-            @input: hex-string
-            @args:  possible alternative charset
-        */
+    decode(rawInput, ...args) {
         
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
-
-        // Make it a string, whatever goes in
-        input = String(input);
+        let { settings, input } = super.preDecode(rawInput, ...args);
         
         // Test for a negative sign
         let negative;
