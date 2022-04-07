@@ -22,11 +22,7 @@ export class Base64 extends BaseTemplate {
 
     encode(input, ...args) {
         
-        let {
-            settings,
-            output,
-            zeroPadding
-        } = super.encode(input, ...args);
+        let { settings, output, zeroPadding } = super.encode(input, null, ...args);
     
         // Cut of redundant chars and append padding if set
         if (zeroPadding) {

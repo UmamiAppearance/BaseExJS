@@ -24,16 +24,6 @@ export class Base91 extends BaseTemplate {
     }
 
     encode(input, ...args) {
-        /* 
-            Encode from string or bytes to base92.
-            -------------------------------------
-
-            @input: string or (typed) array of bytes
-            @args:
-                "str"       :  tells the encoder, that input is a string (default)
-                "bytes"     :  tells the encoder, that input is an array
-                "default"   :  default charset 
-        */
        
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);

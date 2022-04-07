@@ -36,11 +36,7 @@ export class Base32 extends BaseTemplate {
     
     encode(input, ...args) {
         
-        let {
-            settings,
-            output,
-            zeroPadding
-        } = super.encode(input, ...args);
+        let { settings, output, zeroPadding } = super.encode(input, null, ...args);
 
         if (!settings.littleEndian) {
             
@@ -53,10 +49,6 @@ export class Base32 extends BaseTemplate {
                     output = output.concat("=".repeat(padValue));
                 }
             }
-        }
-
-        if (settings.upper) {
-            output = output.toUpperCase();
         }
         
         return output;

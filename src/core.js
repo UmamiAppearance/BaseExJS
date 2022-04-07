@@ -311,19 +311,28 @@ class BaseTemplate {
     }
 
 
-    encode(input, ...args) {
+    encode(input, replacerFN, ...args) {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative, type;
         [inputBytes, negative, type] = this.utils.smartInput.toBytes(input, settings);
 
+        let replacer = null;
+        if (replacerFN) {
+            replacer = replacerFN(settings);
+        }
+        
         // Convert to BaseX string
         let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian);
+        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
         // apply settings for results with or without two's complement system
         if (settings.signed) {
             output = this.utils.toSignedStr(output, negative);
+        }
+
+        if (this.isMutable.upper && settings.upper) {
+            output = output.toUpperCase();
         }
 
         return {

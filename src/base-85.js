@@ -46,21 +46,17 @@ export class Base85 extends BaseTemplate {
     }
     
     encode(input, ...args) {
-       
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args);
-        const inputBytes = this.utils.smartInput.toBytes(input, settings)[0];
-  
-        // Initialize the replacing of null bytes for ascii85
-        let replacer = null;
-        if (settings.version.match(/adobe|ascii85/)) {
-            replacer = (frame, zPad) => (!zPad && frame === "!!!!!") ? "z" : frame;
-        }
 
-        // Convert to Base85 string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], false, replacer);
+        const replacerFN = (settings) => {
+            let replacer;
+            if (settings.version.match(/adobe|ascii85/)) {
+                replacer = (frame, zPad) => (!zPad && frame === "!!!!!") ? "z" : frame;
+            }
+            return replacer;
+        }
         
+        let { settings, output, zeroPadding } = super.encode(input, replacerFN, ...args);
+ 
         // Cut of redundant chars
         if (zeroPadding) {
             const padValue = this.converter.padBytes(zeroPadding);

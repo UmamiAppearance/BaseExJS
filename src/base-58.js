@@ -24,12 +24,7 @@ export class Base58 extends BaseTemplate{
 
     encode(input, ...args) {
 
-        let { 
-            settings,
-            inputBytes,
-            type,
-            output,
-         } = super.encode(input, ...args);
+        let { settings, inputBytes, type, output } = super.encode(input, null, ...args);
 
         if (settings.padding && type !== "int") { 
         
@@ -45,16 +40,9 @@ export class Base58 extends BaseTemplate{
 
             const zeroPadding = i;
 
-            // Convert to Base58 string
-            output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
-
             if (zeroPadding) {
                 output = ("1".repeat(zeroPadding)).concat(output);
             }
-
-        } else {
-            // Convert to Base58 string directly
-            output = this.converter.encode(inputBytes, this.charsets[settings.version])[0];
         }
 
         

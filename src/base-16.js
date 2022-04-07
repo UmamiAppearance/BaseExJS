@@ -18,16 +18,7 @@ export class Base16 extends BaseTemplate {
     }
 
     encode(input, ...args) {
-        
-        let {
-            settings,
-            output
-        } = super.encode(input, ...args);
-
-        if (settings.upper) {
-            output = output.toUpperCase();
-        }
-
+        const { output } = super.encode(input, null, ...args);
         return output;
     }
 
