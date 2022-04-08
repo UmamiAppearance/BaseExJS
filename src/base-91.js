@@ -1,18 +1,19 @@
+/*
+ * En-/decoding to and from Base91.
+ * -------------------------------
+ * 
+ * This is an implementation of Joachim Henkes method to
+ * encode binary data as ASCII characters -> basE91
+ * http://base91.sourceforge.net/
+ * 
+ * As this method requires to split the bytes, the default
+ * conversion class "BaseConverter" is not used in this case.
+ */
+
 import {  BaseTemplate } from "./core.js";
 
 export class Base91 extends BaseTemplate {
-    /*
-        En-/decoding to and from Base91.
-        -------------------------------
-        
-        This is an implementation of Joachim Henkes method to
-        encode binary data as ASCII characters -> basE91
-        http://base91.sourceforge.net/
-
-        As this method requires to split the bytes, the default
-        conversion class "BaseConverter" is not used in this case.
-        (Requires "Utils")
-    */
+    
     constructor(...args) {
         super();
 

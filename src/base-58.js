@@ -29,7 +29,10 @@ export class Base58 extends BaseTemplate{
             let { inputBytes, output, settings, type } = scope;
 
             if (settings.padding && type !== "int") { 
-            
+                
+                // Count all null bytes at the start of the array
+                // stop if a byte with a value is reached.
+                // If it goes through it, reset index and stop.
                 let i = 0;
                 const end = inputBytes.length;
                 while (!inputBytes[i]) {
@@ -40,8 +43,11 @@ export class Base58 extends BaseTemplate{
                     }
                 }
 
+                // The value for zero padding is the index of the
+                // first byte with a value plus one.
                 const zeroPadding = i;
 
+                // Set a one for every leading null byte
                 if (zeroPadding) {
                     output = ("1".repeat(zeroPadding)).concat(output);
                 }
@@ -61,14 +67,18 @@ export class Base58 extends BaseTemplate{
             let { input, output, settings } = scope;
 
             if (settings.padding) {
-            
+                
+                // Count leading ones 
                 let i = 0;
                 while (input[i] === "1") {
                     i++;
                 }
     
+                // The counter becomes the zero padding value
                 const zeroPadding = i;
     
+                // Create a new Uint8Array with leading null bytes 
+                // with the amount of zeroPadding
                 if (zeroPadding) {
                     output = Uint8Array.from([...new Array(zeroPadding).fill(0), ...output]);
                 }

@@ -43,9 +43,7 @@ export class Base1 extends BaseTemplate {
             throw new RangeError("Invalid string length.");
         }
 
-        console.log(this.charsets[settings.version]);
         output = this.charsets[settings.version].repeat(Number(n))
-
         output = this.utils.toSignedStr(output, negative);
 
         if (settings.upper) {
@@ -70,10 +68,7 @@ export class Base1 extends BaseTemplate {
         // remove all but the relevant character
         const regex = new RegExp(`[^${this.charsets[settings.version]}]`,"g");
         input = input.replace(regex, "");
-
         input = String(input.length);
-
-        console.log(input);
 
         // Run the decoder
         const output = this.converter.decode(input, this.base10Chars, settings.littleEndian);

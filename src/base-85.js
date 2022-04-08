@@ -1,33 +1,29 @@
+/*
+ * En-/decoding to and from Base85.
+ * -------------------------------
+ *
+ * Four versions are supported: 
+ *   
+ *     * adobe
+ *     * ascii85
+ *     * rfc1924
+ *     * z85
+ * 
+ * Adobe and ascii85 are the basically the same.
+ * Adobe will produce the same output, apart from
+ * the <~wrapping~>.
+ * 
+ * Z85 is an important variant, because of the 
+ * more interpreter-friendly character set.
+ * 
+ * The RFC 1924 version is a hybrid. It is not using
+ * the mandatory 128 bit calculation. Instead only 
+ * the charset is getting used.
+ */
+
 import { BaseConverter, BaseTemplate } from "./core.js";
  
 export class Base85 extends BaseTemplate {
-    /*
-        En-/decoding to and from Base85.
-        -------------------------------
-
-        Four versions are supported: 
-          
-            * adobe
-            * ascii85
-            * rfc1924
-            * z85
-        
-        Adobe and ascii85 are the basically the same.
-        Adobe will produce the same output, apart from
-        the <~wrapping~>.
-        
-        Z85 is an important variant, because of the 
-        more interpreter-friendly character set.
-        
-        The RFC 1924 version is a hybrid. It is not using
-        the mandatory 128 bit calculation. Instead only 
-        the charset is used. Do not use this for any real
-        project. (Keep in mind, that even the original is
-        based on a joke).
-
-        (Requires "BaseConverter", "Utils")
-        
-    */
 
     constructor(...args) {
         super();
@@ -47,6 +43,8 @@ export class Base85 extends BaseTemplate {
     
     encode(input, ...args) {
 
+        // Replace five consecutive "!" with a "z"
+        // for adobe and ascii85
         const replacerFN = (settings) => {
             let replacer;
             if (settings.version.match(/adobe|ascii85/)) {
@@ -54,8 +52,10 @@ export class Base85 extends BaseTemplate {
             }
             return replacer;
         }
+                
         
-        
+        // Remove padded values and add a frame for the
+        // adobe variant
         const framesAndPadding = (scope) => {
 
             let { output, settings, zeroPadding } = scope;
@@ -86,6 +86,7 @@ export class Base85 extends BaseTemplate {
             let { input, settings } = scope;
 
             // For default ascii85 convert "z" back to "!!!!!"
+            // Remove the adobe <~frame~>
             if (settings.version.match(/adobe|ascii85/)) {
                 input = input.replace(/z/g, "!!!!!");
                 if (settings.version === "adobe") {

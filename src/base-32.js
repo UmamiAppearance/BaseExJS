@@ -42,9 +42,7 @@ export class Base32 extends BaseTemplate {
             let { output, settings, zeroPadding } = scope;
 
             if (!settings.littleEndian) {
-                
                 // Cut of redundant chars and append padding if set
-
                 if (zeroPadding) {
                     const padValue = this.converter.padBytes(zeroPadding);
                     output = output.slice(0, output.length-padValue);
