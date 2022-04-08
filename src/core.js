@@ -342,6 +342,7 @@ class BaseTemplate {
             output = output.toUpperCase();
         }
 
+        // modify the output based on a given function (or not)
         if (postEncodeFN) {
             output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
@@ -360,7 +361,7 @@ class BaseTemplate {
         // set negative to false for starters
         let negative = false;
         
-        // Test for a negative sign if converter has supports it
+        // Test for a negative sign if converter supports it
         if (this.hasSignedMode) {
             [input, negative] = this.utils.extractSign(input);   
             
