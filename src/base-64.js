@@ -38,7 +38,7 @@ export class Base64 extends BaseTemplate {
 
     decode(rawInput, ...args) {
 
-        let { settings, input } = super.decode(rawInput, ...args);
+        let { settings, input } = super.decode(rawInput, null, ...args);
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[settings.version]);

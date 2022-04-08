@@ -55,7 +55,7 @@ export class Base32 extends BaseTemplate {
     }
 
     decode(rawInput, ...args) {
-        let { settings, input, negative } = super.decode(rawInput, ...args);
+        let { settings, input, negative } = super.decode(rawInput, null, ...args);
 
         // Run the decoder
         const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);

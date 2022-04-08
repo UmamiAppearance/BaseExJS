@@ -24,19 +24,22 @@ export class Base16 extends BaseTemplate {
 
     decode(rawInput, ...args) {
         
-        let { settings, input, negative } = super.decode(rawInput, ...args);
-        
-        // Remove "0x" if present
-        input = input.replace(/^0x/, "");
+        const normalizeInput = (scope) => {
 
-        // Ensure even number of characters
-        if (input.length % 2) {
-            input = "0".concat(input);
+            let { input } = scope;
+            // Remove "0x" if present
+            input = input.replace(/^0x/, "");
+
+            // Ensure even number of characters
+            if (input.length % 2) {
+                input = "0".concat(input);
+            }
+
+            return input;
         }
-        
-        // Run the decoder
-        let output = this.converter.decode(input, this.charsets[settings.version]);
 
+        let { settings, negative, output } = super.decode(rawInput, normalizeInput, ...args);
+        
         // Return the output
         return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
     }

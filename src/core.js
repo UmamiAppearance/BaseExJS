@@ -312,26 +312,31 @@ class BaseTemplate {
 
 
     encode(input, replacerFN, ...args) {
+
+        // apply settings
         const settings = this.utils.validateArgs(args);
         
+        // handle input
         let inputBytes, negative, type;
         [inputBytes, negative, type] = this.utils.smartInput.toBytes(input, settings);
 
+        // generate replacer function if given
         let replacer = null;
         if (replacerFN) {
             replacer = replacerFN(settings);
         }
         
-        // Convert to BaseX string
+        // Convert to base string
         let output, zeroPadding;
         [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
-        // apply settings for results with or without two's complement system
+        // set sign if requested
         if (settings.signed) {
             output = this.utils.toSignedStr(output, negative);
         }
 
-        if (this.isMutable.upper && settings.upper) {
+        // set upper case if requested
+        if (settings.upper) {
             output = output.toUpperCase();
         }
 
@@ -346,32 +351,49 @@ class BaseTemplate {
     }
 
 
-    decode(rawInput, ...args) {
-        
+    decode(rawInput, preDecode, ...args) {
+    
+        // apply settings
         const settings = this.utils.validateArgs(args);
 
+        // ensure a string input
         let input = String(rawInput);
 
+        // set negative to false for starters
         let negative = false;
         
+        // If a sign can be used, test for a negative sign
         if (this.isMutable.signed) {
-            // Test for a negative sign
             [input, negative] = this.utils.extractSign(input);   
             
+            // Don't allow a sign if not set
             if (negative && !settings.signed) {
                 this.utils.signError();
             }
         }
 
+        // Make the input lower case if alphabet has only one case
+        // (single case alphabets are stored as lower case strings)
         if (this.isMutable.upper) {
-            // Make it lower case
             input = input.toLowerCase();
         }
+
+        let output;
+        if (preDecode) {
+            input = preDecode({ input });
+
+            // prev
+            output = this.converter.decode(input, this.charsets[settings.version]);
+        }
+
+        // Run the decoder
+        //let output = this.converter.decode(input, this.charsets[settings.version]);
 
         return {
             settings,
             input,
-            negative
+            negative,
+            output
         }
     }
 }
