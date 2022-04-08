@@ -35,21 +35,25 @@ export class Base58 extends BaseTemplate{
                 // If it goes through it, reset index and stop.
                 let i = 0;
                 const end = inputBytes.length;
-                while (!inputBytes[i]) {
-                    i++;
-                    if (i === end) {
-                        i = 0;
-                        break;
+
+                // only proceed if input has a length at all
+                if (end) {
+                    while (!inputBytes[i]) {
+                        i++;
+                        if (i === end) {
+                            i = 0;
+                            break;
+                        }
                     }
-                }
 
-                // The value for zero padding is the index of the
-                // first byte with a value plus one.
-                const zeroPadding = i;
+                    // The value for zero padding is the index of the
+                    // first byte with a value plus one.
+                    const zeroPadding = i;
 
-                // Set a one for every leading null byte
-                if (zeroPadding) {
-                    output = ("1".repeat(zeroPadding)).concat(output);
+                    // Set a one for every leading null byte
+                    if (zeroPadding) {
+                        output = ("1".repeat(zeroPadding)).concat(output);
+                    }
                 }
             }
 
@@ -66,7 +70,7 @@ export class Base58 extends BaseTemplate{
 
             let { input, output, settings } = scope;
 
-            if (settings.padding) {
+            if (settings.padding && input.length > 1) {
                 
                 // Count leading ones 
                 let i = 0;

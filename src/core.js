@@ -758,14 +758,11 @@ class SmartInput {
         // by taking the amount of 64 bit integers * 8
         // (8 bytes for each 64 bit integer)
         const byteLen = byteArray.length * 8;
+        
+        // create a fresh data view
+        const view = this.makeDataView(byteLen);
 
-        // create a new buffer with the desired byte amount
-        const buffer = new ArrayBuffer(byteLen);
-
-        // create a data view for the fresh buffer
-        const view = new DataView(buffer);
-
-        // set all 64 bit integers to the buffer 
+        // set all 64 bit integers 
         byteArray.forEach((bigInt, i) => {
             const offset = i * 8;
             view.setBigUint64(offset, bigInt, littleEndian);
