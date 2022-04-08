@@ -12,6 +12,7 @@ export class SimpleBase extends BaseTemplate {
     
         // predefined settings
         this.converter = new BaseConverter(radix, 0, 0);
+        this.hasSignedMode = true;
         this.littleEndian = !(radix === 2 || radix === 16);
         this.signed = true;
         this.version = "selection";
@@ -25,39 +26,28 @@ export class SimpleBase extends BaseTemplate {
     }
     
     encode(input, ...args) {
-        const { output } = super.encode(input, null, ...args);
-        return output;
+        return super.encode(input, null, null, ...args);
     }
 
-    decode(input, ...args) {
+    decode(rawInput, ...args) {
 
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
+        // pre decoding function
+        const normalizeInput = (scope) => {
 
-        // Make it a string, whatever goes in
-        input = String(input);
-        
-        // Test for a negative sign
-        let negative;
-        [input, negative] = this.utils.extractSign(input);   
-        
-        // Ensure correct length of characters
-        // for binary and hexadecimal
-        if (this.converter.radix === 2) {
-            const leadingZeros = (8 - (input.length % 8)) % 8;
-            input = `${"0".repeat(leadingZeros)}${input}`;
-        } else if (this.converter.radix === 16) {
-            const leadingZeros = input.length % 2;
-            input = `${"0".repeat(leadingZeros)}${input}`;
+            let { input } = scope;
+
+            if (this.converter.radix === 2) {
+                const leadingZeros = (8 - (input.length % 8)) % 8;
+                input = `${"0".repeat(leadingZeros)}${input}`;
+            } else if (this.converter.radix === 16) {
+                const leadingZeros = input.length % 2;
+                input = `${"0".repeat(leadingZeros)}${input}`;
+            }
+
+            return input;
         }
-
-        // Make it lower case
-        input = input.toLowerCase();
-
-        // Run the decoder
-        const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
         
-        // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
+        return super.decode(rawInput, normalizeInput, null, ...args);
+
     }
 }

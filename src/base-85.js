@@ -55,55 +55,47 @@ export class Base85 extends BaseTemplate {
             return replacer;
         }
         
-        let { settings, output, zeroPadding } = super.encode(input, replacerFN, ...args);
- 
-        // Cut of redundant chars
-        if (zeroPadding) {
-            const padValue = this.converter.padBytes(zeroPadding);
-            output = output.slice(0, output.length-padValue);
+        
+        const framesAndPadding = (scope) => {
+
+            let { output, settings, zeroPadding } = scope;
+
+            // Cut of redundant chars
+            if (zeroPadding) {
+                const padValue = this.converter.padBytes(zeroPadding);
+                output = output.slice(0, output.length-padValue);
+            }
+
+            // Adobes variant gets its <~framing~>
+            if (settings.version === "adobe") {
+                output = `<~${output}~>`;
+            }
+            
+            return output;
         }
 
-        // Adobes variant gets its <~framing~>
-        if (settings.version === "adobe") {
-            output = `<~${output}~>`;
-        }
-        
-        return output;
+        return super.encode(input, replacerFN, framesAndPadding, ...args);
+
     }
 
-    decode(input, ...args) {
-        /* 
-            Decode from base85 string to utf8-string or bytes.
-            -------------------------------------------------
+    decode(rawInput, ...args) {
 
-            @input: base85-string
-            @args:
-                "str"       :  tells the encoder, that output should be a string (default)
-                "bytes"     :  tells the encoder, that output should be an array
-                "adobe"     :  sets charset to ascii85 + <~frame~> 
-                "ascii85"   :  sets charset to this commonly used one
-                "rfc1924"   :  uses the charset (and only the charset) of this april fool
-                "z85"       :  sets the used charset to this variant
-        */
 
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
+        const prepareInput = (scope) => {
 
-        // Make it a string, whatever goes in
-        input = String(input);
+            let { input, settings } = scope;
 
-        // For default ascii85 convert "z" back to "!!!!!"
-        if (settings.version.match(/adobe|ascii85/)) {
-            input = input.replace(/z/g, "!!!!!");
-            if (settings.version === "adobe") {
-                input = input.replace(/^<~|~>$/g, "");
+            // For default ascii85 convert "z" back to "!!!!!"
+            if (settings.version.match(/adobe|ascii85/)) {
+                input = input.replace(/z/g, "!!!!!");
+                if (settings.version === "adobe") {
+                    input = input.replace(/^<~|~>$/g, "");
+                }
             }
+
+            return input
         }
 
-        // Run the decoder
-        const output = this.converter.decode(input, this.charsets[settings.version]);
-        
-        // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType);
+        return super.decode(rawInput, prepareInput, null, ...args);
     }
 }

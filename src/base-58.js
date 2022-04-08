@@ -24,63 +24,60 @@ export class Base58 extends BaseTemplate{
 
     encode(input, ...args) {
 
-        let { settings, inputBytes, type, output } = super.encode(input, null, ...args);
+        const applyPadding = (scope) => {
 
-        if (settings.padding && type !== "int") { 
-        
-            let i = 0;
-            const end = inputBytes.length;
-            while (!inputBytes[i]) {
-                i++;
-                if (i === end) {
-                    i = 0;
-                    break;
+            let { inputBytes, output, settings, type } = scope;
+
+            if (settings.padding && type !== "int") { 
+            
+                let i = 0;
+                const end = inputBytes.length;
+                while (!inputBytes[i]) {
+                    i++;
+                    if (i === end) {
+                        i = 0;
+                        break;
+                    }
+                }
+
+                const zeroPadding = i;
+
+                if (zeroPadding) {
+                    output = ("1".repeat(zeroPadding)).concat(output);
                 }
             }
 
-            const zeroPadding = i;
-
-            if (zeroPadding) {
-                output = ("1".repeat(zeroPadding)).concat(output);
-            }
+            return output;
         }
-
-        
-        return output;
+    
+        return super.encode(input, null, applyPadding, ...args);
     }
 
-    decode(input, ...args) {
+    decode(rawInput, ...args) {
         
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
+        // post decoding function
+        const applyPadding = (scope) => {
 
-        // Make it a string, whatever goes in
-        input = String(input);
+            let { input, output, settings } = scope;
 
-        let output;
-        if (settings.padding) {
+            if (settings.padding) {
             
-            let i = 0;
-            while (input[i] === "1") {
-                i++;
+                let i = 0;
+                while (input[i] === "1") {
+                    i++;
+                }
+    
+                const zeroPadding = i;
+    
+                if (zeroPadding) {
+                    output = Uint8Array.from([...new Array(zeroPadding).fill(0), ...output]);
+                }
+    
             }
 
-            const zeroPadding = i;
-
-            // Run the decoder
-            output = this.converter.decode(input, this.charsets[settings.version]);
-
-            if (zeroPadding) {
-                output = Uint8Array.from([...new Array(zeroPadding).fill(0), ...output]);
-            }
-
-        } else {
-            // Run the decoder
-            output = this.converter.decode(input, this.charsets[settings.version]);
+            return output;
         }
 
-        
-        // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType);
+        return super.decode(rawInput, null, applyPadding, ...args);
     }
 }

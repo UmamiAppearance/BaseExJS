@@ -21,6 +21,7 @@ export class Base32 extends BaseTemplate {
     
         // predefined settings
         this.converter = new BaseConverter(32, 5, 8);
+        this.hasSignedMode = true;
         this.padding = true;
         this.version = "rfc4648";
         
@@ -35,32 +36,31 @@ export class Base32 extends BaseTemplate {
     }
     
     encode(input, ...args) {
-        
-        let { settings, output, zeroPadding } = super.encode(input, null, ...args);
 
-        if (!settings.littleEndian) {
-            
-            // Cut of redundant chars and append padding if set
+        const applyPadding = (scope) => {
 
-            if (zeroPadding) {
-                const padValue = this.converter.padBytes(zeroPadding);
-                output = output.slice(0, output.length-padValue);
-                if (settings.padding) { 
-                    output = output.concat("=".repeat(padValue));
+            let { output, settings, zeroPadding } = scope;
+
+            if (!settings.littleEndian) {
+                
+                // Cut of redundant chars and append padding if set
+
+                if (zeroPadding) {
+                    const padValue = this.converter.padBytes(zeroPadding);
+                    output = output.slice(0, output.length-padValue);
+                    if (settings.padding) { 
+                        output = output.concat("=".repeat(padValue));
+                    }
                 }
             }
+
+            return output;
         }
         
-        return output;
+        return super.encode(input, null, applyPadding, ...args);
     }
 
     decode(rawInput, ...args) {
-        let { settings, input, negative } = super.decode(rawInput, null, ...args);
-
-        // Run the decoder
-        const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
-        
-        // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
+        return super.decode(rawInput, null, null, ...args);
     }
 }

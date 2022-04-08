@@ -22,28 +22,26 @@ export class Base64 extends BaseTemplate {
 
     encode(input, ...args) {
         
-        let { settings, output, zeroPadding } = super.encode(input, null, ...args);
-    
-        // Cut of redundant chars and append padding if set
-        if (zeroPadding) {
-            const padValue = this.converter.padBytes(zeroPadding);
-            output = output.slice(0, output.length-padValue);
-            if (settings.padding) { 
-                output = output.concat("=".repeat(padValue));
+        const applyPadding = (scope) => {
+
+            let { output, settings, zeroPadding } = scope;
+
+            // Cut of redundant chars and append padding if set
+            if (zeroPadding) {
+                const padValue = this.converter.padBytes(zeroPadding);
+                output = output.slice(0, output.length-padValue);
+                if (settings.padding) { 
+                    output = output.concat("=".repeat(padValue));
+                }
             }
+
+            return output;
         }
-        
-        return output;
+            
+        return super.encode(input, null, applyPadding, ...args);
     }
 
     decode(rawInput, ...args) {
-
-        let { settings, input } = super.decode(rawInput, null, ...args);
-
-        // Run the decoder
-        const output = this.converter.decode(input, this.charsets[settings.version]);
-        
-        // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType);
+        return super.decode(rawInput, null, null, ...args);
     }
 }

@@ -281,17 +281,20 @@ class BaseConverter {
 }
 
 /**
- * Base of every BaseConverter. Makes sure, 
- * that every var is set. Also allows global
- * feature adding. Everything is set to false
- * by default. This forces to deliberately
- * activate a specific functionality. 
+ * Base of every BaseConverter. Provides basic
+ * en- and decoding, makes sure, that every 
+ * property is set (to false by default).
+ * Also allows global feature additions.
+ * 
+ * Requires:
+ * -> Utils
  */
 class BaseTemplate {
     constructor() {
 
         // predefined settings
         this.charsets = {};
+        this.hasSignedMode = false;
         this.littleEndian = false;
         this.numberMode = false;
         this.outputType = "buffer";
@@ -310,8 +313,7 @@ class BaseTemplate {
         };
     }
 
-
-    encode(input, replacerFN, ...args) {
+    encode(input, replacerFN, postEncodeFN, ...args) {
 
         // apply settings
         const settings = this.utils.validateArgs(args);
@@ -340,18 +342,14 @@ class BaseTemplate {
             output = output.toUpperCase();
         }
 
-        return {
-            settings,
-            inputBytes,
-            negative,
-            type,
-            output,
-            zeroPadding
+        if (postEncodeFN) {
+            output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
+
+        return output;
     }
 
-
-    decode(rawInput, preDecode, ...args) {
+    decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
@@ -362,11 +360,11 @@ class BaseTemplate {
         // set negative to false for starters
         let negative = false;
         
-        // If a sign can be used, test for a negative sign
-        if (this.isMutable.signed) {
+        // Test for a negative sign if converter has supports it
+        if (this.hasSignedMode) {
             [input, negative] = this.utils.extractSign(input);   
             
-            // Don't allow a sign if not set
+            // But don't allow a sign if the decoder is not configured to use it
             if (negative && !settings.signed) {
                 this.utils.signError();
             }
@@ -378,33 +376,30 @@ class BaseTemplate {
             input = input.toLowerCase();
         }
 
-        let output;
-        if (preDecode) {
-            input = preDecode({ input });
-
-            // prev
-            output = this.converter.decode(input, this.charsets[settings.version]);
+        // Run pre decode function if provided
+        if (preDecodeFN) {
+            input = preDecodeFN({ input, settings });
         }
 
         // Run the decoder
-        //let output = this.converter.decode(input, this.charsets[settings.version]);
+        let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
 
-        return {
-            settings,
-            input,
-            negative,
-            output
+        // Run post decode function if provided
+        if (postDecodeFN) {
+            output = postDecodeFN({ input, output, settings });
         }
+
+        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 }
 
 
 /**
- *  Utilities for every BaseEx class. The main 
- *  purpose is argument validation.
+ *  Utilities for every BaseEx class.
  * 
  * Requires:
  * -> SmartInput
+ * -> SmartOutput
  */
 class Utils {
 

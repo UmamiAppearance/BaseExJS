@@ -41,6 +41,7 @@ function simpleBaseTests() {
                     let passedDec = false;
                     if (passedEnc) {
                         const backDecoded = baseConverter.decode(output, "uint_n");
+                        console.log("Expectred", nn);
                         console.log("BackDec: ", backDecoded);
 
                         passedDec = backDecoded === nn;

@@ -7,6 +7,7 @@ export class Base16 extends BaseTemplate {
 
         // default settings
         this.charsets.default = "0123456789abcdef";
+        this.hasSignedMode = true;
         
         this.converter = new BaseConverter(16, 1, 2);
         
@@ -18,12 +19,12 @@ export class Base16 extends BaseTemplate {
     }
 
     encode(input, ...args) {
-        const { output } = super.encode(input, null, ...args);
-        return output;
+        return super.encode(input, null, null, ...args);
     }
 
     decode(rawInput, ...args) {
         
+        // pre decoding function
         const normalizeInput = (scope) => {
 
             let { input } = scope;
@@ -37,10 +38,7 @@ export class Base16 extends BaseTemplate {
 
             return input;
         }
-
-        let { settings, negative, output } = super.decode(rawInput, normalizeInput, ...args);
         
-        // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
+        return super.decode(rawInput, normalizeInput, null, ...args);
     }
 }
