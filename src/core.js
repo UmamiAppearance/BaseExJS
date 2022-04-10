@@ -595,12 +595,15 @@ class Utils {
             }
         });
 
-        // overwrite the default parameters for the initial call
+        // If padding and signed are true, padding
+        // is set to false and a warning is getting
+        // displayed.
         if (parameters.padding && parameters.signed) {
             parameters.padding = false;
             this.constructor.warning("Padding was set to false due to the signed conversion.");
         }
         
+        // overwrite the default parameters for the initial call
         if (initial) {
             for (const param in parameters) {
                 this.root[param] = parameters[param];
@@ -933,7 +936,7 @@ class SmartOutput {
            compiled = new TextDecoder().decode(Uint8ArrayOut);
         }
         
-        else if (type === "uint_n" || type === "int_n") {
+        else if (type === "uint_n" || type === "int_n" || type === "bigint_n") {
             
             if (littleEndian) {
                 Uint8ArrayOut.reverse();
@@ -948,8 +951,8 @@ class SmartOutput {
                 n = BigInt.asIntN(Uint8ArrayOut.length*8, n);
             }
             
-            // convert to regular integer if possible
-            if (n >= Number.MIN_SAFE_INTEGER && n <= Number.MAX_SAFE_INTEGER) {                
+            // convert to regular number if possible (and no bigint was requested)
+            if (type !== "bigint_n" && n >= Number.MIN_SAFE_INTEGER && n <= Number.MAX_SAFE_INTEGER) {                
                 compiled = Number(n);
             } else {
                 compiled = n;
@@ -1015,6 +1018,7 @@ class SmartOutput {
     static validTypes() {
         const typeList = [
             "bigint64",
+            "bigint_n",
             "biguint64",
             "buffer",
             "bytes",
