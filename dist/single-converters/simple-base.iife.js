@@ -17,21 +17,14 @@ var SimpleBase = (function (exports) {
               this.bsEnc = bsEnc;
               this.bsDec = bsDec;
           } else {
-              [this.bsEnc, this.bsDec] = this.constructor.calcBS(radix);
+              [this.bsEnc, this.bsDec] = this.constructor.guessBS(radix);
           }
 
           this.decPadVal = decPadVal;
-
-          // precalculate powers for decoding
-          // [radix**bs-1, radix**i, ... radix**0]
-          // bit shifting (as used during encoding)
-          // only works on base conversions with 
-          // powers of 2 (eg. 16, 32, 64), not something
-          // like base85
-          
       }
 
-      static calcBS(radix) {
+      static guessBS(radix) {
+          // experimental feature !
           // Calc how many bits are needed to represent
           // 256 conditions (1 byte)
           // If the radix is less than 8 bits, skip that part
@@ -291,11 +284,126 @@ var SimpleBase = (function (exports) {
   }
 
   /**
-   *  Utilities for every BaseEx class. The main 
-   *  purpose is argument validation.
+   * Base of every BaseConverter. Provides basic
+   * en- and decoding, makes sure, that every 
+   * property is set (to false by default).
+   * Also allows global feature additions.
+   * 
+   * Requires:
+   * -> Utils
+   */
+  class BaseTemplate {
+      constructor() {
+
+          // predefined settings
+          this.charsets = {};
+          this.hasSignedMode = false;
+          this.littleEndian = false;
+          this.numberMode = false;
+          this.outputType = "buffer";
+          this.padding = false;
+          this.signed = false;
+          this.upper = null;
+          this.utils = new Utils(this);
+          this.version = "default";
+          
+          // list of allowed/disallowed args to change
+          this.isMutable = {
+              littleEndian: false,
+              padding: false,
+              signed: false,
+              upper: false,
+          };
+      }
+
+      encode(input, replacerFN, postEncodeFN, ...args) {
+
+          // apply settings
+          const settings = this.utils.validateArgs(args);
+          
+          // handle input
+          let inputBytes, negative, type;
+          [inputBytes, negative, type] = this.utils.smartInput.toBytes(input, settings);
+
+          // generate replacer function if given
+          let replacer = null;
+          if (replacerFN) {
+              replacer = replacerFN(settings);
+          }
+          
+          // Convert to base string
+          let output, zeroPadding;
+          [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
+
+          // set sign if requested
+          if (settings.signed) {
+              output = this.utils.toSignedStr(output, negative);
+          }
+
+          // set upper case if requested
+          if (settings.upper) {
+              output = output.toUpperCase();
+          }
+
+          // modify the output based on a given function (or not)
+          if (postEncodeFN) {
+              output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
+          }
+
+          return output;
+      }
+
+      decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
+      
+          // apply settings
+          const settings = this.utils.validateArgs(args);
+
+          // ensure a string input
+          let input = String(rawInput);
+
+          // set negative to false for starters
+          let negative = false;
+          
+          // Test for a negative sign if converter supports it
+          if (this.hasSignedMode) {
+              [input, negative] = this.utils.extractSign(input);   
+              
+              // But don't allow a sign if the decoder is not configured to use it
+              if (negative && !settings.signed) {
+                  this.utils.signError();
+              }
+          }
+
+          // Make the input lower case if alphabet has only one case
+          // (single case alphabets are stored as lower case strings)
+          if (this.isMutable.upper) {
+              input = input.toLowerCase();
+          }
+
+          // Run pre decode function if provided
+          if (preDecodeFN) {
+              input = preDecodeFN({ input, settings });
+          }
+
+          // Run the decoder
+          let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+
+          // Run post decode function if provided
+          if (postDecodeFN) {
+              output = postDecodeFN({ input, output, settings });
+          }
+
+          return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
+      }
+  }
+
+
+  /**
+   *  Utilities for every BaseEx class.
    * 
    * Requires:
    * -> SmartInput
+   * -> SmartOutput
    */
   class Utils {
 
@@ -399,53 +507,6 @@ var SimpleBase = (function (exports) {
           return [input, negative];
       }
 
-      normalizeOutput(array) {
-          // calculate a fitting byte length (2,4,8,16...)
-          let bytesPerElem = 2 ** Math.ceil(Math.log(array.byteLength) / Math.log(2));
-          
-          // Take at least 2 bytes (byte amount for a int16/uint16)
-          bytesPerElem = Math.max(bytesPerElem, 2);
-          
-          // calculate the missing bytes
-          const byteDelta = bytesPerElem - array.byteLength;
-
-          // if bytes are missing, construct a new array 
-          // and set the values. The delta is the offset
-          // eg. TypedArray([12, 32, 45]), length: 3 offset = (4-3=1)
-          // --> set values with offset 1 --> [0, 12, 32, 45]
-          if (byteDelta) {
-              const normalizedArray = new Uint8Array(bytesPerElem);
-              normalizedArray.set(array, byteDelta);
-              array = normalizedArray;
-          }
-
-          return array;
-      }
-
-      negate(array) {
-          // set the negative value of each byte 
-          // which gets converted to the equivalent
-          // positive value
-
-          // xor with 255 
-          array.forEach((b, i) => array[i] = b ^ 255);
-          const lastElem = array.byteLength - 1;
-          
-          // add one to the last byte
-          array[lastElem] += 1;
-      }
-
-      toSignedArray(array, negative) {
-          array = this.normalizeOutput(array);
-
-          // Negate the value if the input is negative
-          if (negative) {
-              this.negate(array);
-          }
-
-          return array;
-      }
-
       invalidArgument(arg, versions, outputTypes) {
           const signedHint = (this.root.isMutable.signed) ? "\n * 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers" : "";
           const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
@@ -453,8 +514,9 @@ var SimpleBase = (function (exports) {
           const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
           const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
           const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+          const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
           
-          throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}\n\nTraceback:`);
+          throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
       }
 
       validateArgs(args, initial=false) {
@@ -465,11 +527,13 @@ var SimpleBase = (function (exports) {
           
           // default settings
           const parameters = {
-              version: this.root.version,
-              signed: this.root.signed,
               littleEndian: this.root.littleEndian,
+              numberMode: this.root.numberMode,
+              outputType: this.root.outputType,
               padding: this.root.padding,
-              outputType: "buffer",
+              signed: this.root.signed,
+              upper: this.root.upper,
+              version: this.root.version
           };
 
           // if no args are provided return the default settings immediately
@@ -486,6 +550,12 @@ var SimpleBase = (function (exports) {
               signed: ["unsigned", "signed"],
               upper: ["lower", "upper"],
           };
+
+          if (args.includes("number")) {
+              args.splice(args.indexOf("number"), 1);
+              parameters.numberMode = true;
+              parameters.outputType = "float_n";
+          }
 
           args.forEach((arg) => {
               arg = String(arg).toLowerCase();
@@ -528,12 +598,15 @@ var SimpleBase = (function (exports) {
               }
           });
 
-          // overwrite the default parameters for the initial call
+          // If padding and signed are true, padding
+          // is set to false and a warning is getting
+          // displayed.
           if (parameters.padding && parameters.signed) {
               parameters.padding = false;
               this.constructor.warning("Padding was set to false due to the signed conversion.");
           }
           
+          // overwrite the default parameters for the initial call
           if (initial) {
               for (const param in parameters) {
                   this.root[param] = parameters[param];
@@ -565,34 +638,20 @@ var SimpleBase = (function (exports) {
       }
 
       floatingPoints(input, littleEndian=false) {
-          
-          let view;
-          
-          // 32 Bit
-          if (input > 1.2e-38 && input < 3.4e+38) {
-              view = this.makeDataView(4);
-              view.setFloat32(0, input, littleEndian);
-          }
-
-          // 64 Bit
-          else if (input > 2.3e-308 && input < 1.7e+308) {
-              view = this.makeDataView(8);
-              view.setFloat64(0, input, littleEndian);
-          }
-
-          else {
-              throw new RangeError("Float is too complex to handle. Convert it to bytes manually before encoding.");
-          }
-
+          const view = this.makeDataView(8);
+          view.setFloat64(0, input, littleEndian);
           return view;
       }
 
       numbers(input, littleEndian=false) {
 
           let view;
+          let type;
 
           // Integer
           if (Number.isInteger(input)) {
+
+              type = "int";
 
               if (!Number.isSafeInteger(input)) {
                   
@@ -610,7 +669,7 @@ var SimpleBase = (function (exports) {
                       minMax = "MAX";
                   }
 
-                  throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not possible. Use a BigInt to avoid this issue.`);
+                  throw new RangeError(`The provided integer is ${smallerOrBigger} than ${minMax}_SAFE_INTEGER: '${safeInt}'\nData integrity is not guaranteed. Use a BigInt to avoid this issue.\n(If you see this error although a float was provided, the input has to many digits before the decimal point to store the decimal places in a float with 64 bits.)`);
               }
 
               // Signed Integer
@@ -665,10 +724,11 @@ var SimpleBase = (function (exports) {
           
           // Floating Point Number:
           else {
+              type = "float";
               view = this.floatingPoints(input, littleEndian);
           }
 
-          return new Uint8Array(view.buffer);
+          return [new Uint8Array(view.buffer), type];
 
       }
 
@@ -679,37 +739,37 @@ var SimpleBase = (function (exports) {
           // handwork is therefore needed.
 
           // as the integer size is not known yet, the bytes get a
-          // makeshift home
+          // makeshift home "byteArray", which is a regular array
 
           const byteArray = new Array();
           const append = (littleEndian) ? "push" : "unshift";
+          const maxN = 18446744073709551616n;
 
-          if (input > 0) {
-              
-              const overflow = 18446744073709551616n; 
-
-              while (input >= overflow) {
-                  byteArray[append](input % overflow);
+          // split the input into 64 bit integers
+          if (input < 0) {
+              while (input < -9223372036854775808n) {
+                  byteArray[append](input % maxN);
+                  input >>= 64n;
+              }
+          } else { 
+              while (input >= maxN) {
+                  byteArray[append](input % maxN);
                   input >>= 64n;
               }
           }
 
-          else if (input < 0) {
-              const overflow = -9223372036854775808n;
-
-              while (input <= overflow) {
-                  byteArray[append](input % overflow);
-                  input >>= 64n;
-              }
-          }
-
+          // append the remaining byte
           byteArray[append](input);
 
+          // determine the required size for the typed array
+          // by taking the amount of 64 bit integers * 8
+          // (8 bytes for each 64 bit integer)
           const byteLen = byteArray.length * 8;
+          
+          // create a fresh data view
+          const view = this.makeDataView(byteLen);
 
-          const buffer = new ArrayBuffer(byteLen);
-          const view = new DataView(buffer);
-
+          // set all 64 bit integers 
           byteArray.forEach((bigInt, i) => {
               const offset = i * 8;
               view.setBigUint64(offset, bigInt, littleEndian);
@@ -719,22 +779,20 @@ var SimpleBase = (function (exports) {
       }
 
 
-      toBytes(input, signed=false, littleEndian=false) {
+      toBytes(input, settings) {
 
           let inputUint8;
           let negative = false;
-          let bytesInput = false;
+          let type = "bytes";
           
           // Buffer:
           if (input instanceof ArrayBuffer) {
               inputUint8 = new Uint8Array(input);
-              bytesInput = true;
           }
 
           // TypedArray or DataView:
           else if (ArrayBuffer.isView(input)) {
               inputUint8 = new Uint8Array(input.buffer);
-              bytesInput = true;
           }
           
           // String:
@@ -743,21 +801,35 @@ var SimpleBase = (function (exports) {
           }
           
           // Number:
-          else if (typeof input === "number" && !isNaN(input) && input !== Infinity) {
-              if (signed && input < 0) {
-                  negative = true;
-                  input *= -1;
+          else if (typeof input === "number") {
+              if (isNaN(input)) {
+                  throw new TypeError("Cannot proceed. Input is NaN.");
+              } else if (input == Infinity) {
+                  throw new TypeError("Cannot proceed. Input is 'Infinity'.");
               }
-              inputUint8 = this.numbers(input, littleEndian);    
+
+              if (settings.signed && input < 0) {
+                  negative = true;
+                  input = -input;
+              }
+
+              if (settings.numberMode) {
+                  const view = this.floatingPoints(input, settings.littleEndian);
+                  inputUint8 = new Uint8Array(view.buffer);
+                  type = "float";
+              } else {
+                  [inputUint8, type] = this.numbers(input, settings.littleEndian);
+              }
           }
 
           // BigInt:
           else if (typeof input === "bigint") {
-              if (signed && input < 0) {
+              if (settings.signed && input < 0) {
                   negative = true;
                   input *= -1n;
               }
-              inputUint8 = this.bigInts(input, littleEndian);
+              inputUint8 = this.bigInts(input, settings.littleEndian);
+              type = "int";
           }
 
           // Array
@@ -773,7 +845,7 @@ var SimpleBase = (function (exports) {
               throw new TypeError("The provided input type can not be processed.");
           }
 
-          return [inputUint8, negative, bytesInput];
+          return [inputUint8, negative, type];
       }
   }
 
@@ -810,14 +882,34 @@ var SimpleBase = (function (exports) {
           let outArray;
 
           if (type === "int16" || type === "uint16") {
+
               const buffer = this.makeTypedArrayBuffer(inArray, 2, littleEndian);
               outArray = (type === "int16") ? new Int16Array(buffer) : new Uint16Array(buffer);
-          } else if (type === "int32" || type === "uint32") {
+
+          } else if (type === "int32" || type === "uint32" || type === "float32") {
+
               const buffer = this.makeTypedArrayBuffer(inArray, 4, littleEndian);
-              outArray = (type === "int32") ? new Int32Array(buffer) : new Uint32Array(buffer);
-          } else if (type === "bigint64" || type === "biguint64") {
+              
+              if (type === "int32") {
+                  outArray = new Int32Array(buffer);
+              } else if (type === "uint32") {
+                  outArray = new Uint32Array(buffer);
+              } else {
+                  outArray = new Float32Array(buffer);
+              }
+
+          } else if (type === "bigint64" || type === "biguint64" || type === "float64") {
+              
               const buffer = this.makeTypedArrayBuffer(inArray, 8, littleEndian);
-              outArray = (type === "bigint64") ? new BigInt64Array(buffer) : new BigUint64Array(buffer);
+              
+              if (type === "bigint64") {
+                  outArray = new BigInt64Array(buffer);
+              } else if (type === "biguint64") {
+                  outArray = new BigUint64Array(buffer);
+              } else {
+                  outArray = new Float64Array(buffer);
+              }
+
           }
 
           return outArray;
@@ -829,36 +921,97 @@ var SimpleBase = (function (exports) {
 
           if (type === "buffer") {
               compiled = Uint8ArrayOut.buffer;
-          } else if (type === "bytes" || type === "Uint8") {
+          } 
+          
+          else if (type === "bytes" || type === "uint8") {
               compiled = Uint8ArrayOut;
-          } else if (type === "int8") {
+          }
+          
+          else if (type === "int8") {
               compiled = new Int8Array(Uint8ArrayOut.buffer);
-          } else if (type === "view") {
+          } 
+          
+          else if (type === "view") {
               compiled = new DataView(Uint8ArrayOut.buffer);
-          } else if (type === "str") {
+          }
+          
+          else if (type === "str") {
              compiled = new TextDecoder().decode(Uint8ArrayOut);
-          } else if (type === "number") {
-
-              compiled = Uint8ArrayOut;
-
+          }
+          
+          else if (type === "uint_n" || type === "int_n" || type === "bigint_n") {
+              
               if (littleEndian) {
-                  compiled.reverse();
+                  Uint8ArrayOut.reverse();
               }
 
+              // calculate a unsigned big integer
               let n = 0n;
-              compiled.forEach((b) => n = (n << 8n) + BigInt(b));
+              Uint8ArrayOut.forEach((b) => n = (n << 8n) + BigInt(b));
 
-              if (n < Number.MAX_SAFE_INTEGER) {
+              // convert to signed int if requested 
+              if (type === "int_n") {
+                  n = BigInt.asIntN(Uint8ArrayOut.length*8, n);
+              }
+              
+              // convert to regular number if possible (and no bigint was requested)
+              if (type !== "bigint_n" && n >= Number.MIN_SAFE_INTEGER && n <= Number.MAX_SAFE_INTEGER) {                
                   compiled = Number(n);
               } else {
                   compiled = n;
               }
 
+              // change sign for signed modes (if necessary)
               if (negative) {
                   compiled = -(compiled);
               }
+          } 
+          
+          else if (type === "float_n") {
 
-          } else {
+              if (Uint8ArrayOut.length <= 4) {
+                  
+                  let array;
+                  if (Uint8ArrayOut.length === 4) {
+                      array = Uint8ArrayOut;
+                  } else {
+                      array = this.makeTypedArray(Uint8ArrayOut, "float32", false);
+                  }
+
+                  const view = new DataView(array.buffer);
+                  compiled = view.getFloat32(0, littleEndian);
+              
+              }
+              
+              else if (Uint8ArrayOut.length <= 8) {
+                  
+                  let array;
+                  if (Uint8ArrayOut.length === 8) {
+                      array = Uint8ArrayOut;
+                  } else {
+                      array = this.makeTypedArray(Uint8ArrayOut, "float64", false);
+                  }
+
+                  const view = new DataView(array.buffer);
+                  compiled = view.getFloat64(0, littleEndian);
+              
+              }
+
+              else {
+                  throw new RangeError("The provided input is to complex to be converted into a floating point.")
+              }
+          }
+
+          else if (type === "number") {
+              if (Uint8ArrayOut.length !== 8) {
+                  throw new TypeError("Type mismatch. Cannot convert into number.");
+              }
+
+              const float64 = new Float64Array(Uint8ArrayOut.buffer);
+              compiled = Number(float64);
+          }
+
+          else {
               compiled = this.makeTypedArray(Uint8ArrayOut, type, littleEndian);
           } 
 
@@ -868,109 +1021,78 @@ var SimpleBase = (function (exports) {
       static validTypes() {
           const typeList = [
               "bigint64",
+              "bigint_n",
               "biguint64",
               "buffer",
               "bytes",
+              "float32",
+              "float64",
+              "float_n",
               "int8",
               "int16",
               "int32",
-              "number",
+              "int_n",
               "str",
               "uint8",
               "uint16",
               "uint32",
+              "uint_n",
               "view"
           ];
           return typeList; 
       }
   }
 
-  class SimpleBase {
+  class SimpleBase extends BaseTemplate {
       constructor(radix, ...args) {
-          
+          super();
+
           if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 36) {
               throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
           }
 
-          const charSelection = "0123456789abcdefghijklmnopqrstuvwxyz";
-          this.charsets = {
-              selection: charSelection.substring(0, radix),
-          };
+          this.charsets.selection = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
       
           // predefined settings
-          this.converter = (radix === 10) ? new BaseConverter(10, 0, 0) : new BaseConverter(radix);
+          this.converter = new BaseConverter(radix, 0, 0);
+          this.hasSignedMode = true;
           this.littleEndian = !(radix === 2 || radix === 16);
-          this.outputType = "buffer";
-          this.padding = false;
           this.signed = true;
-          this.upper = false;
-          this.utils = new Utils(this);
           this.version = "selection";
           
           // list of allowed/disallowed args to change
-          this.isMutable = {
-              littleEndian: false,
-              padding: false,
-              signed: false,
-              upper: true,
-          };
+          this.isMutable.littleEndian = true,
+          this.isMutable.upper = true;
 
           // apply user settings
           this.utils.validateArgs(args, true);
       }
       
       encode(input, ...args) {
-
-          // argument validation and input settings
-          const settings = this.utils.validateArgs(args);
-          
-          let inputBytes, negative;
-          [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings.signed, settings.littleEndian);
-
-          // Convert to BaseRadix string
-          let output = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian)[0];
-
-          output = this.utils.toSignedStr(output, negative);
-
-          if (settings.upper) {
-              output = output.toUpperCase();
-          }
-          
-          return output;
+          return super.encode(input, null, null, ...args);
       }
 
-      decode(input, ...args) {
+      decode(rawInput, ...args) {
 
-          // Argument validation and output settings
-          const settings = this.utils.validateArgs(args);
+          // pre decoding function
+          const normalizeInput = (scope) => {
 
-          // Make it a string, whatever goes in
-          input = String(input);
+              let { input } = scope;
+
+              // normalize input (add leading zeros) for base 2 and 16
+              if (this.converter.radix === 2) {
+                  const leadingZeros = (8 - (input.length % 8)) % 8;
+                  input = `${"0".repeat(leadingZeros)}${input}`;
+              } else if (this.converter.radix === 16) {
+                  const leadingZeros = input.length % 2;
+                  input = `${"0".repeat(leadingZeros)}${input}`;
+              }
+
+              return input;
+          };
           
-          // Test for a negative sign
-          let negative;
-          [input, negative] = this.utils.extractSign(input);   
-          
-          // Ensure correct length of characters
-          // for binary and hexadecimal
-          if (this.converter.radix === 2) {
-              const leadingZeros = (8 - (input.length % 8)) % 8;
-              input = `${"0".repeat(leadingZeros)}${input}`;
-          } else if (this.converter.radix === 16) {
-              const leadingZeros = input.length % 2;
-              input = `${"0".repeat(leadingZeros)}${input}`;
-          }
+          return super.decode(rawInput, normalizeInput, null, ...args);
 
-          console.log(input);
-
-          // Make it lower case
-          input = input.toLowerCase();
-
-          // Run the decoder
-          const output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
-          
-          // Return the output
-          return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
       }
   }
 
