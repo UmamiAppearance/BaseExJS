@@ -16,14 +16,14 @@
  * -> Utils (-> SmartInput)
  */
 
-import { Base1 }  from "./base-1.js";
-import { Base16 } from "./base-16.js";
-import { Base32 } from "./base-32.js";
-import { Base58 } from "./base-58.js";
-import { Base64 } from "./base-64.js";
-import { Base85 } from "./base-85.js";
-import { Base91 } from "./base-91.js";
-import { SimpleBase } from "./simple-base.js";
+import { Base1 }  from "./converters/base-1.js";
+import { Base16 } from "./converters/base-16.js";
+import { Base32 } from "./converters/base-32.js";
+import { Base58 } from "./converters/base-58.js";
+import { Base64 } from "./converters/base-64.js";
+import { Base85 } from "./converters/base-85.js";
+import { Base91 } from "./converters/base-91.js";
+import { SimpleBase } from "./converters/simple-base.js";
 
 
 class BaseEx {

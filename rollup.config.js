@@ -5,43 +5,45 @@ const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replace
 
 const converters = new Array();
 
-readdirSync("./src/").forEach(inputFile => {
-    if (inputFile !== "core.js") { 
-        
-        const filename = inputFile.replace(/\.js$/, "");
+const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
+    const filename = inputFile.replace(/\.js$/, "");
         const modName = toInitCap(filename);
-
-        const subDir = (modName !== "BaseEx") ? "dist/single-converters/" : "dist/";
+        const groupDir = (useGroupDir) ? `${modName}/`: "";
 
         converters.push({
-            input: `src/${inputFile}`,
+            input: `${srcDir}${inputFile}`,
             output: [ 
                 {   
                     format: "iife",
                     name: modName,
-                    file: `${subDir}${filename}.iife.js`
+                    file: `${distDir}${groupDir}${filename}.iife.js`
                 },
                 {   
                     format: "iife",
                     name: modName,
-                    file: `${subDir}${filename}.iife.min.js`,
+                    file: `${distDir}${groupDir}${filename}.iife.min.js`,
                     plugins: [terser()]
                 },
                 {   
                     format: "es",
                     name: modName,
-                    file: `${subDir}${filename}.esm.js`
+                    file: `${distDir}${groupDir}${filename}.esm.js`
                 },
                 {   
                     format: "es",
                     name: modName,
-                    file: `${subDir}${filename}.esm.min.js`,
+                    file: `${distDir}${groupDir}${filename}.esm.min.js`,
                     plugins: [terser()]
                 },
             ]
         });
-    }
-});
+}
 
+
+makeConverter("base-ex.js", "src/", "dist/");
+
+readdirSync("./src/converters").forEach(inputFile => {
+    makeConverter(inputFile, "src/converters/", "dist/single-converters/", true)
+});
 
 export default converters;

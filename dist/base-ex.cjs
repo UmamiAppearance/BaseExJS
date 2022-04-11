@@ -1,3 +1,7 @@
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
 class SmartInput {
 
     makeDataView(byteLen) {
@@ -1729,4 +1733,12 @@ class BaseEx {
     }
 }
 
-export { Base1, Base16, Base32, Base58, Base64, Base85, Base91, BaseEx, SimpleBase };
+exports.Base1 = Base1;
+exports.Base16 = Base16;
+exports.Base32 = Base32;
+exports.Base58 = Base58;
+exports.Base64 = Base64;
+exports.Base85 = Base85;
+exports.Base91 = Base91;
+exports.BaseEx = BaseEx;
+exports.SimpleBase = SimpleBase;
