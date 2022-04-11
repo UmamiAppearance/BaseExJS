@@ -2,7 +2,7 @@
   "name": "base-ex",
   "version": "0.4.0",
   "description": "A collection of classes for data representation from Base16 (hex) to basE91 written in JavaScript.",
-  "main": "dist/base-ex.cjs",
+  "main": "cjs/base-ex.cjs",
   "module": "src/base-ex.js",
   "type": "module",
   "directories": {
@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "rollup -c",
-    "makeCJS": "rollup src/base-ex.js --file dist/base-ex.cjs --format cjs",
+    "makeCJS": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
     "lint": "eslint ./",
     "test": "node test/test-runner.js"
   },
@@ -19,8 +19,12 @@
     "url": "git+https://github.com/UmamiAppearance/BaseExJS.git"
   },
   "keywords": [
+    "binary",
+    "bytes",
+    "base conversion",
     "Base16",
     "Base32",
+    "Base58",
     "Base64",
     "Base85",
     "Base91"

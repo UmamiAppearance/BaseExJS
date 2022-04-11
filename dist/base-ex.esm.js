@@ -1254,8 +1254,8 @@ class Base58 extends BaseTemplate{
             if (settings.padding && type !== "int") { 
                 
                 // Count all null bytes at the start of the array
-                // stop if a byte with a value is reached.
-                // If it goes through it, reset index and stop.
+                // stop if a byte with a value is reached. If it goes
+                // all the way through it, reset index and stop.
                 let i = 0;
                 const end = inputBytes.length;
 

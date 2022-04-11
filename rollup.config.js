@@ -43,7 +43,7 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
 makeConverter("base-ex.js", "src/", "dist/");
 
 readdirSync("./src/converters").forEach(inputFile => {
-    makeConverter(inputFile, "src/converters/", "dist/single-converters/", true)
+    makeConverter(inputFile, "src/converters/", "dist/converters/", true)
 });
 
 export default converters;
