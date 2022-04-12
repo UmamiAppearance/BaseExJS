@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "rollup -c",
+    "build-bytes-only": "rollup -c --environment BYTES_ONLY",
     "makeCJS": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
     "lint": "eslint ./",
     "test": "node test/test-runner.js"
@@ -39,6 +40,7 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme",
   "devDependencies": {
+    "@rollup/plugin-replace": "^4.0.0",
     "eslint": "^7.32.0",
     "rollup": "^2.57.0",
     "rollup-plugin-terser": "^7.0.2"

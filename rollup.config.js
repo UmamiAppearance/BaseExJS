@@ -1,16 +1,17 @@
 import { readdirSync } from 'fs';
+import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
 
 const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
-
 const converters = new Array();
+const bytesOnly = process.argv.includes("BYTES_ONLY");
 
 const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
     const filename = inputFile.replace(/\.js$/, "");
         const modName = toInitCap(filename);
         const groupDir = (useGroupDir) ? `${modName}/`: "";
 
-        converters.push({
+        const converter = {
             input: `${srcDir}${inputFile}`,
             output: [ 
                 {   
@@ -36,7 +37,21 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
                     plugins: [terser()]
                 },
             ]
-        });
+        };
+
+        if (bytesOnly) {
+            converter.plugins = [
+                replace({
+                    values: {
+                        "DEFAULT_INPUT_HANDLER": "BytesInput",
+                        "DEFAULT_OUTPUT_HANDLER": "BytesOutput",
+                    },
+                    preventAssignment: true,
+                })
+            ]
+        }
+
+        converters.push(converter);
 }
 
 

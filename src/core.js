@@ -282,6 +282,7 @@ class BaseConverter {
     }
 }
 
+
 /**
  * Base of every BaseConverter. Provides basic
  * en- and decoding, makes sure, that every 

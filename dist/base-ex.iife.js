@@ -1,6 +1,80 @@
 var BaseEx = (function (exports) {
     'use strict';
 
+    /*
+     * Simple Input Handler.
+     * --------------------
+     * Accepts only bytes eg. TypedArray, ArrayBuffer,
+     * DataView, also a regular array (filled with integers)
+     * is possible.
+     */
+    class BytesInput {
+        toBytes(input) {
+            if (ArrayBuffer.isView(input)) {
+                input = input.buffer;
+            } 
+            return [new Uint8Array(input), false, "bytes"];
+        }
+    }
+
+    /*
+     * Simple Output Handler.
+     * ---------------------
+     * Returns bytes in the form of:
+     *  - ArrayBuffer
+     *  - Uint8Array
+     *  - DataView 
+     */
+    class BytesOutput {
+
+        constructor () {
+            this.typeList = this.constructor.validTypes();
+        }
+
+        getType(type) {
+            if (!this.typeList.includes(type)) {
+                throw new TypeError(`Unknown output type: '${type}'`);
+            }
+            return type;
+        }
+
+        compile(Uint8ArrayOut, type) {
+            type = this.getType(type);
+            let compiled;
+
+            if (type === "buffer") {
+                compiled = Uint8ArrayOut.buffer;
+            } 
+
+            else if (type === "view") {
+                compiled = new DataView(Uint8ArrayOut.buffer);
+            }
+
+            else {
+                compiled = Uint8ArrayOut;
+            }
+        
+            return compiled;
+        }
+
+        static validTypes() {
+            const typeList = [
+                "buffer",
+                "bytes",
+                "uint8",
+                "view"
+            ];
+            return typeList; 
+        }
+    }
+
+
+    /*
+     * Advanced Input Handler.
+     * ----------------------
+     * Accepts almost every Input and converts it
+     * into an Uint8Array (bytes).
+     */
     class SmartInput {
 
         makeDataView(byteLen) {
@@ -220,7 +294,15 @@ var BaseEx = (function (exports) {
         }
     }
 
-
+    /*
+     * Advanced Output Handler.
+     * ----------------------- 
+     * This Output handler makes it possible to
+     * convert an Uint8Array (bytes) into a desired
+     * format of a big variety.
+     * 
+     * The default output is an ArrayBuffer.
+     */
     class SmartOutput {
         
         constructor () {
@@ -414,17 +496,18 @@ var BaseEx = (function (exports) {
         }
     }
 
-    /**
-     *  Utilities for every BaseEx class.
-     * 
-     * Requires:
-     * -> SmartInput
-     * -> SmartOutput
-     */
+    let DEFAULT_INPUT_HANDLER = SmartInput;
+    let DEFAULT_OUTPUT_HANDLER = SmartOutput;
 
+
+    /**
+     * Utilities for every BaseEx class.
+     * --------------------------------
+     * Requires IO Handlers
+     */
     class Utils {
 
-        constructor(main, inputHandler=SmartInput, outputHandler=SmartOutput) {
+        constructor(main) {
 
             // Store the calling class in this.root
             // for accessability.
@@ -433,7 +516,9 @@ var BaseEx = (function (exports) {
             // If charsets are uses by the parent class,
             // add extra functions for the user.
             if ("charsets" in main) this.charsetUserToolsConstructor();
+        }
 
+        setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
             this.inputHandler = new inputHandler();
             this.outputHandler = new outputHandler();
         }
@@ -524,16 +609,17 @@ var BaseEx = (function (exports) {
             return [input, negative];
         }
 
-        invalidArgument(arg, versions, outputTypes) {
-            const signedHint = (this.root.isMutable.signed) ? "\n * 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers" : "";
+        invalidArgument(arg, versions, outputTypes, initial) {
+            const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
+            const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers" : "";
             const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
-            const padHint = (this.root.isMutable.padding) ? "\n * 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
+            const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
             const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
             const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
             const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
             const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
             
-            throw new TypeError(`'${arg}'\n\nValid parameters are:${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
+            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
         }
 
         validateArgs(args, initial=false) {
@@ -555,12 +641,28 @@ var BaseEx = (function (exports) {
 
             // if no args are provided return the default settings immediately
             if (!args.length) {
+
+                // if initial call set default IO handlers
+                if (initial) {
+                    this.setIOHandlers();
+                }
+                
                 return parameters;
             }
 
-            const versions = Object.keys(this.root.charsets);
-            const outputTypes = this.outputHandler.typeList;
+            // Helper function to test the presence of
+            // a particular arg. If found it gets removed
+            // from the array.
+            const extractArg = (arg) => {
+                if (args.includes(arg)) {
+                    args.splice(args.indexOf(arg), 1);
+                    return true;
+                }
+                return false;
+            };
 
+            // set available versions and extra arguments
+            const versions = Object.keys(this.root.charsets);
             const extraArgList = {
                 littleEndian: ["be", "le"],
                 padding: ["nopad", "pad"],
@@ -568,12 +670,27 @@ var BaseEx = (function (exports) {
                 upper: ["lower", "upper"],
             };
 
-            if (args.includes("number")) {
-                args.splice(args.indexOf("number"), 1);
+            // if initial, look for IO specifications
+            if (initial) {
+                if (extractArg("bytes_only")) {
+                    this.setIOHandlers(BytesInput, BytesOutput);
+                } else {
+                    const inHandler = (extractArg("bytes_in")) ? BytesInput : DEFAULT_INPUT_HANDLER;
+                    const outHandler = (extractArg("bytes_out")) ? BytesOutput : DEFAULT_OUTPUT_HANDLER;
+                    this.setIOHandlers(inHandler, outHandler);
+                }
+            }
+
+            // set valid output types
+            const outputTypes = this.outputHandler.typeList;
+
+            // test for special "number" keyword
+            if (extractArg("number")) {
                 parameters.numberMode = true;
                 parameters.outputType = "float_n";
             }
 
+            // walk through the remaining arguments
             args.forEach((arg) => {
                 arg = String(arg).toLowerCase();
 
@@ -610,7 +727,7 @@ var BaseEx = (function (exports) {
                     }
 
                     if (invalidArg) {
-                        this.invalidArgument(arg, versions, outputTypes);
+                        this.invalidArgument(arg, versions, outputTypes, initial);
                     }
                 }
             });
@@ -927,6 +1044,7 @@ var BaseEx = (function (exports) {
             return [(x / y), (x % y)];
         }
     }
+
 
     /**
      * Base of every BaseConverter. Provides basic
