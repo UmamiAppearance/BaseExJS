@@ -75,7 +75,7 @@ export class Utils {
             } else if (inputLen === setLen) {
                 throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
             } else {
-                throw new Error(`The the length of the charset must be ${setLen}.`);
+                throw new Error(`The length of the charset must be ${setLen}.`);
             }
         }
 
