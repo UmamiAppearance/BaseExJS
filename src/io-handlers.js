@@ -1,3 +1,77 @@
+/*
+ * Simple Input Handler.
+ * --------------------
+ * Accepts only bytes eg. TypedArray, ArrayBuffer,
+ * DataView, also a regular array (filled with integers)
+ * is possible.
+ */
+class BytesInput {
+    toBytes(input) {
+        if (ArrayBuffer.isView(input)) {
+            input = input.buffer;
+        } 
+        return [new Uint8Array(input), false, "bytes"];
+    }
+}
+
+/*
+ * Simple Output Handler.
+ * ---------------------
+ * Returns bytes in the form of:
+ *  - ArrayBuffer
+ *  - Uint8Array
+ *  - DataView 
+ */
+class BytesOutput {
+
+    constructor () {
+        this.typeList = this.constructor.validTypes();
+    }
+
+    getType(type) {
+        if (!this.typeList.includes(type)) {
+            throw new TypeError(`Unknown output type: '${type}'`);
+        }
+        return type;
+    }
+
+    compile(Uint8ArrayOut, type) {
+        type = this.getType(type);
+        let compiled;
+
+        if (type === "buffer") {
+            compiled = Uint8ArrayOut.buffer;
+        } 
+
+        else if (type === "view") {
+            compiled = new DataView(Uint8ArrayOut.buffer);
+        }
+
+        else {
+            compiled = Uint8ArrayOut;
+        }
+    
+        return compiled;
+    }
+
+    static validTypes() {
+        const typeList = [
+            "buffer",
+            "bytes",
+            "uint8",
+            "view"
+        ];
+        return typeList; 
+    }
+}
+
+
+/*
+ * Advanced Input Handler.
+ * ----------------------
+ * Accepts almost every Input and converts it
+ * into an Uint8Array (bytes).
+ */
 class SmartInput {
 
     makeDataView(byteLen) {
@@ -217,7 +291,15 @@ class SmartInput {
     }
 }
 
-
+/*
+ * Advanced Output Handler.
+ * ----------------------- 
+ * This Output handler makes it possible to
+ * convert an Uint8Array (bytes) into a desired
+ * format of a big variety.
+ * 
+ * The default output is an ArrayBuffer.
+ */
 class SmartOutput {
     
     constructor () {
@@ -411,78 +493,4 @@ class SmartOutput {
     }
 }
 
-
-class BytesInput {
-    toBytes(input) {
-
-        let inputUint8;
-        let negative = false;
-        let type = "bytes";
-        
-        // Buffer:
-        if (input instanceof ArrayBuffer) {
-            inputUint8 = new Uint8Array(input);
-        }
-
-        // TypedArray or DataView:
-        else if (ArrayBuffer.isView(input)) {
-            inputUint8 = new Uint8Array(input.buffer);
-        }
-
-        else {
-            throw new TypeError("The provided input type can not be processed.");
-        }
-
-        return [inputUint8, negative, type];
-    }
-}
-
-class BytesOutput {
-
-    constructor () {
-        this.typeList = this.constructor.validTypes();
-    }
-
-    getType(type) {
-        if (!this.typeList.includes(type)) {
-            throw new TypeError(`Unknown output type: '${type}'`);
-        }
-        return type;
-    }
-
-    compile(Uint8ArrayOut, type) {
-        type = this.getType(type);
-        let compiled;
-
-        if (type === "buffer") {
-            compiled = Uint8ArrayOut.buffer;
-        } 
-        
-        else if (type === "bytes" || type === "uint8") {
-            compiled = Uint8ArrayOut;
-        }
-
-        else if (type === "view") {
-            compiled = new DataView(Uint8ArrayOut.buffer);
-        }
-
-        else {
-            throw new TypeError("The provided input type can not be processed.");
-        }
-    
-        return compiled;
-    }
-
-    static validTypes() {
-        const typeList = [
-            "buffer",
-            "bytes",
-            "uint8",
-            "view"
-        ];
-        return typeList; 
-    }
-}
-
-
-export { SmartInput, SmartOutput, BytesInput, BytesOutput };
+export { BytesInput, BytesOutput, SmartInput, SmartOutput };

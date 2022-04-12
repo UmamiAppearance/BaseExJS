@@ -5,11 +5,11 @@
  * -> SmartInput
  * -> SmartOutput
  */
-import { SmartInput, SmartOutput } from "./io-handlers.js";
+import { BytesInput, BytesOutput, SmartInput, SmartOutput } from "./io-handlers.js";
 
 export class Utils {
 
-    constructor(main, inputHandler=SmartInput, outputHandler=SmartOutput) {
+    constructor(main, inputHandler=BytesInput, outputHandler=BytesOutput) {
 
         // Store the calling class in this.root
         // for accessability.
