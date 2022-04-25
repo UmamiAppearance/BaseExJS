@@ -1,7 +1,7 @@
 import * as BaseEx from "../src/base-ex.js";
-import { roundUpTests, test, testData } from "./test-core.js";
+import { test, testData } from "./base.test.js";
 
-const excluded = ["Base1", "SimpleBase", "BaseEx"];
+const EXCLUDED = ["Base1", "SimpleBase", "BaseEx"];
 
 async function runTests(IOtestRounds, verbose) {
     // call the set of test for each class if not excluded
@@ -13,13 +13,13 @@ async function runTests(IOtestRounds, verbose) {
         if (base) {
             test(new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
         } else {
-            roundUpTests(exitFN);
+            summery();
         }
     }
     
     
     for (const cls in BaseEx) {
-        if (!excluded.includes(cls)) {
+        if (!EXCLUDED.includes(cls)) {
             classes.push(cls);
         }
     }
@@ -27,7 +27,15 @@ async function runTests(IOtestRounds, verbose) {
     testGroup();
 }
 
-function exitFN() {
+function summery() {
+    // final function after tests are done
+
+    if (!testData.totalErrors) {
+        testData.successRate = 100;
+    } else {
+        testData.successRate = ((1 - testData.totalErrors / testData.totalTests) * 100).toFixed(2);
+    }
+    
     if (testData.totalErrors === 0) {
         console.log("Everything seems to work fine.");
         process.exit(0);

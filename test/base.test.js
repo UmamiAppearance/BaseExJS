@@ -271,14 +271,4 @@ async function test(base, IOtestRounds, verbose=false) {
     return true;
 }
 
-function roundUpTests(callback) {
-    // final function after tests are done
-    if (!testData.totalErrors) {
-        testData.successRate = 100;
-    } else {
-        testData.successRate = ((1 - testData.totalErrors / testData.totalTests) * 100).toFixed(2);
-    }
-    callback();
-}
-
-export {test, testData, randInt, roundUpTests};
+export {test, testData, randInt};
