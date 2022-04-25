@@ -1,4 +1,4 @@
-import { helloWorldArray, makeError } from "./base.test.js";
+import { helloWorldArray, makeError } from "./helpers.js";
 import { SimpleBase } from "../src/base-ex.js";
 
 
@@ -13,6 +13,7 @@ async function simpleBaseTests(testData, verbose=false) {
 
     const Base10 = new SimpleBase(10);
     const randInt = (max, min=0) => BigInt(Math.floor(Math.random() * (max - min) + min));
+
     const strToBase = (input, encoder) => {
         const endianness = (encoder.littleEndian) ? "LE" : "BE";
         const b10Integer = BigInt(Base10.encode(input, endianness));
@@ -138,6 +139,7 @@ async function simpleBaseTests(testData, verbose=false) {
             }
         });
     }
+    return true;
 }
 
 export { simpleBaseTests };

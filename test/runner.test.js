@@ -1,6 +1,6 @@
 import * as BaseEx from "../src/base-ex.js";
+import { baseTest } from "./base.test.js";
 import { simpleBaseTests } from "./simple-base.test.js";
-import { test } from "./base.test.js";
 
 const EXCLUDED = [
     "Base1",
@@ -26,9 +26,9 @@ const TEST_DATA = {
 function runTests(IOtestRounds, verbose) {
     // recursive test function
     async function testGroup() {
-        const base = MAIN_TESTS.shift();
-        if (base) {
-            test(TEST_DATA, new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
+        if (MAIN_TESTS.length) {
+            const base = MAIN_TESTS.shift();
+            baseTest(TEST_DATA, new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
         } else if (EXTRA_TESTS.length) {
             const extraTest = EXTRA_TESTS.shift();
             extraTest(TEST_DATA, verbose).then(testGroup());

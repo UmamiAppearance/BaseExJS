@@ -1,55 +1,11 @@
 /* eslint-disable complexity */
-// +++++++++++++ Test data +++++++++++++ //
 
+import { helloWorldArray, makeError, randArray, randInt, randStr } from "./helpers.js"
 import { loadEncodingMap } from "./load-json.js";
 
 
-// Random integer
-const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
-
-// Random byte value
-const randByte = () => randInt(0, 256);
-
-// Random array with a length (between 8 and 24 by default)
-const randArray = (nullBytes, start=8, end=24) => {
-    const array = new Array();
-    const dataGenerator = (nullBytes) ? () => 0 : () => randByte();
-    let i = randInt(start, end);
-    while (i--) {
-        array.push(dataGenerator());
-    }
-    return array
-}
-
-// Random string of printable ascii-chars including space
-const randStr = (len) => {
-    const array = new Uint8Array(len);
-    array.forEach((b, i) => array[i] = randInt(32, 127));
-    return new TextDecoder("ascii").decode(array);
-}
-
-// Generated pre decoded strings for each base
-const helloWorldArray = "Hello World!!!".split("");
-
-
-// +++++++++++++ Utilities +++++++++++++ //
-
-// In the case of a error run this function to store it and alert 
-function makeError(testData, className, unit, input, output, expected) {
-    if (!(unit in testData[className].errorList)) testData[className].errorList[unit] = new Object();
-    testData[className].errorList[unit].input = input;
-    testData[className].errorList[unit].output = output;
-    testData[className].errorList[unit].expected = expected;
-    console.error(`___\nFound error while testing class: '${className}', unit: '${unit}'\n\ninput: ${input}\noutput: ${output}\nexpected: ${expected}\n`);
-}
-
-// +++++++++++++ Running the tests +++++++++++++ //
-async function test(testData, base, IOtestRounds, verbose=false) {
-    // main test function, builds one
-    // set of tests for one class
-
+async function baseTest(testData, base, IOtestRounds, verbose=false) {
     const encodingMap = await loadEncodingMap();
-
     const name = base.constructor.name;
 
     if (verbose) console.log(`Testing ${name}...`);
@@ -265,4 +221,4 @@ async function test(testData, base, IOtestRounds, verbose=false) {
     return true;
 }
 
-export { helloWorldArray, makeError, test, randInt};
+export { baseTest };
