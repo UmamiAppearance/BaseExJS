@@ -34,14 +34,8 @@ const helloWorldArray = "Hello World!!!".split("");
 
 // +++++++++++++ Utilities +++++++++++++ //
 
-// Initialize object to store test data
-const testData = {
-    totalTests: 0,
-    totalErrors: 0
-}
-
 // In the case of a error run this function to store it and alert 
-function makeError(className, unit, input, output, expected) {
+function makeError(testData, className, unit, input, output, expected) {
     if (!(unit in testData[className].errorList)) testData[className].errorList[unit] = new Object();
     testData[className].errorList[unit].input = input;
     testData[className].errorList[unit].output = output;
@@ -50,7 +44,7 @@ function makeError(className, unit, input, output, expected) {
 }
 
 // +++++++++++++ Running the tests +++++++++++++ //
-async function test(base, IOtestRounds, verbose=false) {
+async function test(testData, base, IOtestRounds, verbose=false) {
     // main test function, builds one
     // set of tests for one class
 
@@ -87,7 +81,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "hello", testStr, encoded, expectedResult);
+            makeError(testData, name, "hello", testStr, encoded, expectedResult);
         }
 
         const decoded = base.decode(encoded, "str");
@@ -97,7 +91,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "hello", testStr, decoded, testStr);
+            makeError(testData, name, "hello", testStr, decoded, testStr);
         }
     });
 
@@ -120,7 +114,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "integers", int, encoded, expectedResult);
+            makeError(testData, name, "integers", int, encoded, expectedResult);
         }
 
         const decoded = base.decode(encoded, outType);
@@ -130,7 +124,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "integers", decoded, decoded, int);
+            makeError(testData, name, "integers", decoded, decoded, int);
         }
     }
 
@@ -151,7 +145,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "floating points", float, encoded, expectedResult);
+            makeError(testData, name, "floating points", float, encoded, expectedResult);
         }
 
         const decoded = base.decode(encoded, "float_n");
@@ -161,7 +155,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "floating points", decoded, decoded, float);
+            makeError(testData, name, "floating points", decoded, decoded, float);
         }
     }
 
@@ -200,7 +194,7 @@ async function test(base, IOtestRounds, verbose=false) {
         } else {
             testData[name].failed++;
             testData.totalErrors++;
-            makeError(name, "numbers", num, decoded, num);
+            makeError(testData, name, "numbers", num, decoded, num);
         }
     }
 
@@ -256,7 +250,7 @@ async function test(base, IOtestRounds, verbose=false) {
 
                         curErrors++;
                         testData.totalErrors++;
-                        makeError(name, `IO-${charset}-${IOtype} #${testData.totalErrors}`, input, decoded, "<=input");
+                        makeError(testData, name, `IO-${charset}-${IOtype} #${testData.totalErrors}`, input, decoded, "<=input");
                     }
                 }
                 if (verbose) console.log(`<<<< Tests: ${curCount}, failed: ${curErrors}\n`);
@@ -271,4 +265,4 @@ async function test(base, IOtestRounds, verbose=false) {
     return true;
 }
 
-export {test, testData, randInt};
+export { helloWorldArray, makeError, test, randInt};

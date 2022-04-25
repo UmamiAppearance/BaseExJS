@@ -1,6 +1,8 @@
+import { helloWorldArray, makeError } from "./base.test.js";
 import { SimpleBase } from "../src/base-ex.js";
 
-function simpleBaseTests(testData, verbose=true) {
+
+async function simpleBaseTests(testData, verbose=false) {
 
     if (verbose) console.log("Testing Simple Base Converters...");
     testData.SimpleBase = new Object();
@@ -23,7 +25,6 @@ function simpleBaseTests(testData, verbose=true) {
         const baseConverter = new SimpleBase(radix);
         const baseName = `Base${radix}`;
         testData.SimpleBase[baseName] = new Object();
-        testData.SimpleBase[baseName].errorList = new Object();
         testData.SimpleBase[baseName].testCount = 0;
         testData.SimpleBase[baseName].passed = 0;
         testData.SimpleBase[baseName].failed = 0;
@@ -44,6 +45,7 @@ function simpleBaseTests(testData, verbose=true) {
 
                     if (verbose) console.log(`Testing Number input >>> ${nn} <<<`);
                     if (verbose) console.log("Testing encoding...");
+                    testData.totalTests++;
                     testData.SimpleBase.testCount++;
                     testData.SimpleBase[baseName].testCount++;
                     
@@ -56,13 +58,16 @@ function simpleBaseTests(testData, verbose=true) {
                         testData.SimpleBase.passed++;
                         testData.SimpleBase[baseName].passed++;
                     } else {
+                        testData.totalErrors++;
                         testData.SimpleBase.failed++;
                         testData.SimpleBase[baseName].failed++;
+                        makeError(testData, "SimpleBase", `base${radix}-numbers-encoding`, nn, output, expected);
                     }
 
                     let passedDec = false;
                     if (passedEnc) {
                         if (verbose) console.log("Testing decoding...");
+                        testData.totalTests++;
                         testData.SimpleBase.testCount++;
                         testData.SimpleBase[baseName].testCount++;
 
@@ -73,8 +78,10 @@ function simpleBaseTests(testData, verbose=true) {
                             testData.SimpleBase.passed++;
                             testData.SimpleBase[baseName].passed++;
                         } else {
+                            testData.totalErrors++;
                             testData.SimpleBase.failed++;
                             testData.SimpleBase[baseName].failed++;
+                            makeError(testData, "SimpleBase", `base${radix}-numbers-decoding`, output, backDecoded, nn);
                         }
                     }
                 }            
@@ -83,12 +90,13 @@ function simpleBaseTests(testData, verbose=true) {
 
         
         let helloInput = "";
-        "Hello World!!!".split("").forEach(c => {
+        helloWorldArray.forEach(c => {
             
             helloInput += c;
 
             if (verbose) console.log(`Testing String input >>> ${helloInput} <<<`);
             if (verbose) console.log("Testing encoding...");
+            testData.totalTests++;
             testData.SimpleBase.testCount++;
             testData.SimpleBase[baseName].testCount++;        
 
@@ -101,14 +109,17 @@ function simpleBaseTests(testData, verbose=true) {
                 testData.SimpleBase.passed++;
                 testData.SimpleBase[baseName].passed++;
             } else {
+                testData.totalErrors++;
                 testData.SimpleBase.failed++;
                 testData.SimpleBase[baseName].failed++;
+                makeError(testData, "SimpleBase", `base${radix}-hello-encoding`, helloInput, output, expected);
             }
 
             let passedDec = false;
             
             if (passedEnc) {
                 if (verbose) console.log("Testing decoding...");
+                testData.totalTests++;
                 testData.SimpleBase.testCount++;
                 testData.SimpleBase[baseName].testCount++;
                 
@@ -119,18 +130,14 @@ function simpleBaseTests(testData, verbose=true) {
                     testData.SimpleBase.passed++;
                     testData.SimpleBase[baseName].passed++;
                 } else {
+                    testData.totalErrors++;
                     testData.SimpleBase.failed++;
                     testData.SimpleBase[baseName].failed++;
+                    makeError(testData, "SimpleBase", `base${radix}-hello-decoding`, output, backDecoded, helloInput);
                 }
             }
         });
     }
-    console.log(testData);
 }
 
-const testData = {
-    totalTests: 0,
-    totalErrors: 0
-}
-
-simpleBaseTests(testData);
+export { simpleBaseTests };

@@ -1,46 +1,59 @@
 import * as BaseEx from "../src/base-ex.js";
-import { test, testData } from "./base.test.js";
+import { simpleBaseTests } from "./simple-base.test.js";
+import { test } from "./base.test.js";
 
-const EXCLUDED = ["Base1", "SimpleBase", "BaseEx"];
+const EXCLUDED = [
+    "Base1",
+    "SimpleBase",
+    "BaseEx"
+];
 
-async function runTests(IOtestRounds, verbose) {
-    // call the set of test for each class if not excluded
-    
-    const classes = [];
+const MAIN_TESTS = [];
+for (const cls in BaseEx) {
+    if (!EXCLUDED.includes(cls)) {
+        MAIN_TESTS.push(cls);
+    }
+}
 
+const EXTRA_TESTS = [simpleBaseTests];
+
+// Initialize object to store test data
+const TEST_DATA = {
+    totalTests: 0,
+    totalErrors: 0
+}
+
+function runTests(IOtestRounds, verbose) {
+    // recursive test function
     async function testGroup() {
-        const base = classes.shift();
+        const base = MAIN_TESTS.shift();
         if (base) {
-            test(new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
+            test(TEST_DATA, new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
+        } else if (EXTRA_TESTS.length) {
+            const extraTest = EXTRA_TESTS.shift();
+            extraTest(TEST_DATA, verbose).then(testGroup());
         } else {
             summery();
         }
     }
     
-    
-    for (const cls in BaseEx) {
-        if (!EXCLUDED.includes(cls)) {
-            classes.push(cls);
-        }
-    }
-
     testGroup();
 }
 
 function summery() {
     // final function after tests are done
 
-    if (!testData.totalErrors) {
-        testData.successRate = 100;
+    if (!TEST_DATA.totalErrors) {
+        TEST_DATA.successRate = 100;
     } else {
-        testData.successRate = ((1 - testData.totalErrors / testData.totalTests) * 100).toFixed(2);
+        TEST_DATA.successRate = ((1 - TEST_DATA.totalErrors / TEST_DATA.totalTests) * 100).toFixed(2);
     }
     
-    if (testData.totalErrors === 0) {
+    if (TEST_DATA.totalErrors === 0) {
         console.log("Everything seems to work fine.");
         process.exit(0);
     } else {
-        console.log(`${testData.totalErrors} error(s) occurred.`);
+        console.log(`${TEST_DATA.totalErrors} error(s) occurred.`);
         process.exit(1);
     }
 }
