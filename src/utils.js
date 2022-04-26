@@ -23,8 +23,8 @@ export class Utils {
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
-        this.inputHandler = new inputHandler();
-        this.outputHandler = new outputHandler();
+        this.inputHandler = inputHandler;
+        this.outputHandler = outputHandler;
     }
 
     charsetUserToolsConstructor() {
@@ -154,9 +154,9 @@ export class Utils {
             return parameters;
         }
 
-        // Helper function to test the presence of
-        // a particular arg. If found it gets removed
-        // from the array.
+        // Helper function to test the presence of a 
+        // particular arg. If found, true is returned
+        // and it gets removed from the array.
         const extractArg = (arg) => {
             if (args.includes(arg)) {
                 args.splice(args.indexOf(arg), 1);

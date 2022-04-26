@@ -23,6 +23,7 @@ import { Base58 } from "./converters/base-58.js";
 import { Base64 } from "./converters/base-64.js";
 import { Base85 } from "./converters/base-85.js";
 import { Base91 } from "./converters/base-91.js";
+import { ByteConverter } from "./converters/byte-converter.js";
 import { SimpleBase } from "./converters/simple-base.js";
 
 
@@ -45,4 +46,4 @@ class BaseEx {
     }
 }
 
-export { Base1, Base16, Base32, Base58, Base64, Base85, Base91, SimpleBase, BaseEx };
+export { Base1, Base16, Base32, Base58, Base64, Base85, Base91, SimpleBase, BaseEx, ByteConverter };
