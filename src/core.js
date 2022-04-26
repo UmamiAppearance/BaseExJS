@@ -1,15 +1,13 @@
 import { Utils } from "./utils.js";
 
+/**
+ * Core class for base-conversion and substitution
+ * based on a given charset.
+ */
 class BaseConverter {
-    /*
-        Core class for base-conversion and substitution
-        based on a given charset.
-    */
 
     constructor(radix, bsEnc=null, bsDec=null, decPadVal=0) {
-        /*
-            Stores the radix and blocksize for en-/decoding.
-        */
+        
         this.radix = radix;
 
         if (bsEnc !== null && bsDec !== null) {
@@ -22,12 +20,14 @@ class BaseConverter {
         this.decPadVal = decPadVal;
     }
 
+    /**
+     * Experimental feature!
+     * Calc how many bits are needed to represent
+     * 256 conditions (1 byte). If the radix is 
+     * less than 8 bits, skip that part and use
+     * the radix value directly.
+     */
     static guessBS(radix) {
-        // experimental feature !
-        // Calc how many bits are needed to represent
-        // 256 conditions (1 byte)
-        // If the radix is less than 8 bits, skip that part
-        // and use the radix value directly.
 
         let bsDecPre = (radix < 8) ? radix : Math.ceil(256 / radix);
         

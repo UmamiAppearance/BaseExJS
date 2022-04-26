@@ -5,7 +5,8 @@ import { simpleBaseTests } from "./simple-base.test.js";
 const EXCLUDED = [
     "Base1",
     "SimpleBase",
-    "BaseEx"
+    "BaseEx",
+    "ByteConverter"
 ];
 
 const MAIN_TESTS = [];

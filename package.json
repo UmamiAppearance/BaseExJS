@@ -11,7 +11,7 @@
   "scripts": {
     "build": "rollup -c",
     "build-bytes-only": "rollup -c --environment BYTES_ONLY",
-    "makeCJS": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
+    "build-cjs": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
     "lint": "eslint ./",
     "test": "node test/runner.test.js"
   },
