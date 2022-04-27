@@ -19,7 +19,7 @@ export class Utils {
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
-        if ("charsets" in main) this.charsetUserToolsConstructor();
+        if ("charsets" in main) this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -27,7 +27,7 @@ export class Utils {
         this.outputHandler = outputHandler;
     }
 
-    charsetUserToolsConstructor() {
+    #charsetUserToolsConstructor() {
         /*
             Constructor for the ability to add a charset and 
             change the default version.
@@ -166,7 +166,7 @@ export class Utils {
         }
 
         // set available versions and extra arguments
-        const versions = Object.keys(this.root.charsets);
+        const versions = this.root.hasOwnProperty("charsets") ? Object.keys(this.root.charsets) : [];
         const extraArgList = {
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],

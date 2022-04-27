@@ -87,14 +87,25 @@ class BaseConverter {
         // Iterate over the input array in groups with the length
         // of the given blocksize.
 
-        for (let i=0, l=byteArray.length; i<l; i+=bs) {
+        // If the radix is 10, make a shortcut here by converting
+        // all bytes into the decimal number "n" and return the
+        // result as a string.
+        if (this.radix === 10) {
+            let n = 0n;
             
-            // Convert the subarray into a bs*8-bit binary 
-            // number "n".
-            // The blocksize defines the size of the corresponding
-            // integer. Dependent on the blocksize this may lead  
-            // to values, that are higher than the "MAX_SAFE_INTEGER",
-            // therefore BigInts are used.
+            for (let i=0; i<bs; i++) {
+                n = (n << 8n) + BigInt(byteArray[i]);
+            }
+            return [n.toString(), 0];
+        }
+        
+        // For any other radix, convert the subarray into a 
+        // bs*8-bit binary number "n".
+        // The blocksize defines the size of the corresponding
+        // integer. Dependent on the blocksize this may lead  
+        // to values, that are higher than the "MAX_SAFE_INTEGER",
+        // therefore BigInts are used.
+        for (let i=0, l=byteArray.length; i<l; i+=bs) {
   
             let n = 0n;
             
@@ -293,7 +304,7 @@ class BaseConverter {
  * -> Utils
  */
 class BaseTemplate {
-    constructor() {
+    constructor(appendUtils=true) {
 
         // predefined settings
         this.charsets = {};
@@ -304,7 +315,7 @@ class BaseTemplate {
         this.padding = false;
         this.signed = false;
         this.upper = null;
-        this.utils = new Utils(this);
+        if (appendUtils) this.utils = new Utils(this);
         this.version = "default";
         
         // list of allowed/disallowed args to change

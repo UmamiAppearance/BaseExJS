@@ -18,7 +18,6 @@ export class Base91 extends BaseTemplate {
         super();
 
         this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
-        this.version = "default";
 
         // apply user settings
         this.utils.validateArgs(args, true);

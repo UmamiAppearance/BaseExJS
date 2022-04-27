@@ -9,7 +9,6 @@ export class Base1 extends BaseTemplate {
         this.charsets.default = "1";
         this.charsets.tmark = "|";
 
-        this.base10Chars = "0123456789";
         this.converter = new BaseConverter(10, 0, 0);
         this.littleEndian = true;
         
@@ -26,10 +25,10 @@ export class Base1 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.smartInput.toBytes(input, settings);
+        [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
-        let base10 = this.converter.encode(inputBytes, this.base10Chars, settings.littleEndian)[0];
+        let base10 = this.converter.encode(inputBytes, "0123456789", settings.littleEndian)[0];
         
         let n = BigInt(base10);
         let output = "";
@@ -71,9 +70,11 @@ export class Base1 extends BaseTemplate {
         input = String(input.length);
 
         // Run the decoder
-        const output = this.converter.decode(input, this.base10Chars, settings.littleEndian);
+        const output = this.converter.decode(input, "0123456789", settings.littleEndian);
         
         // Return the output
-        return this.utils.smartOutput.compile(output, settings.outputType, settings.littleEndian, negative);
+        return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 }
+
+// TODO: charset adding expects 10 values....

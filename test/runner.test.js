@@ -6,7 +6,8 @@ const EXCLUDED = [
     "Base1",
     "SimpleBase",
     "BaseEx",
-    "ByteConverter"
+    "ByteConverter",
+    "LEB128"
 ];
 
 const MAIN_TESTS = [];
