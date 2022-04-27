@@ -413,6 +413,12 @@ class SmartOutput {
             let n = 0n;
             Uint8ArrayOut.forEach((b) => n = (n << 8n) + BigInt(b));
 
+            /*
+            if (negative) {
+                negate(Uint8ArrayOut);
+            }
+            */
+
             // convert to signed int if requested 
             if (type === "int_n") {
                 n = BigInt.asIntN(Uint8ArrayOut.length*8, n);
@@ -481,6 +487,19 @@ class SmartOutput {
 
         return compiled;
     }
+}
+
+function negate(array) {
+    // set the negative value of each byte 
+    // which gets converted to the equivalent
+    // positive value
+
+    // xor with 255 
+    array.forEach((b, i) => array[i] = b ^ 255);
+    const lastElem = array.byteLength - 1;
+    
+    // add one to the last byte
+    array[lastElem] += 1;
 }
 
 export { BytesInput, BytesOutput, SmartInput, SmartOutput };

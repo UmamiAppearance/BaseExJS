@@ -72,7 +72,7 @@ async function simpleBaseTests(testData, verbose=false) {
                         testData.SimpleBase.testCount++;
                         testData.SimpleBase[baseName].testCount++;
 
-                        const backDecoded = baseConverter.decode(output, "uint_n");
+                        const backDecoded = baseConverter.decode(output, "int_n");
                         passedDec = backDecoded === nn;
 
                         if (passedDec) {

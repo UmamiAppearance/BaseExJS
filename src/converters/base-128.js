@@ -82,49 +82,25 @@ export class LEB128 extends BaseTemplate {
         input = Array.from(input);
 
         let n = 0n;
-        let shift = 0;
-        let negative = false;
+        let shiftVal = -7n;
+        let byte;
 
-        /*
-        for (;;) {
-            const byte = input.shift();
-            n |= BigInt((byte & 127) << shift);
-            console.log(n);
-            shift += 7;
-            if ((128 & byte) === 0) {
-                if (shift < 32 && (byte & 64) !== 0) {
-                    n |= BigInt(~0 << shift);
-                    negative = true;
-                    n = -n;
-                    console.log("negative");
-                }
-                break;
-            }
+        for (byte of input) {
+            shiftVal += 7n;
+            n += (BigInt(byte & 127) << shiftVal);
         }
-        */
-
-        let r = 0n;
-        let a, b;
-        input.forEach((e, i) => {
-            console.log("index:", i);
-            console.log("byte:", e);
-            r += BigInt((BigInt(e & 127) << BigInt(i * 7)))
-            console.log("num:", r);
-            [a,b] = [e,i];
-        });
-        const x = a & 64;
-        console.log("e&64", x);
-        console.log("settings.signed: ", settings.signed);
-        if (settings.signed && (a & 64) != 0) {
-            console.log(b);
-            console.log("right:", -(1n << BigInt(b * 7) + 7n));
-            r |= -(1n << BigInt(b * 7) + 7n);
+        
+        if (settings.signed && (byte & 64) != 0) {
+            n |= -(1n << shiftVal + 7n);
         }
-        console.log(r);
 
-        const output = this.converter.decode(r.toString(), "0123456789", true);
+        // Test for a negative sign
+        let decimalNum, negative;
+        [decimalNum, negative] = this.utils.extractSign(n.toString());
+
+        const output = this.converter.decode(decimalNum, "0123456789", true);
 
         // Return the output
-        return this.utils.outputHandler.compile(output, settings.outputType, false, negative);
+        return this.utils.outputHandler.compile(output, settings.outputType, true, negative);
     }
 }
