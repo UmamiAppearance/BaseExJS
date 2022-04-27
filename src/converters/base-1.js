@@ -28,7 +28,7 @@ export class Base1 extends BaseTemplate {
         [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
-        let base10 = this.converter.encode(inputBytes, "0123456789", settings.littleEndian)[0];
+        let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
         
         let n = BigInt(base10);
         let output = "";
@@ -36,7 +36,7 @@ export class Base1 extends BaseTemplate {
         // Limit the input before it even starts.
         // the executing engine will most likely
         // give up much earlier.
-        // (2^29-24 during tests)
+        // (2**29-24 during tests)
 
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
