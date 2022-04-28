@@ -399,11 +399,12 @@ class SmartOutput {
     static compile(Uint8ArrayOut, type, littleEndian=false, negative=false) {
         type = SmartOutput.getType(type);
         let compiled;
-
         // negate the array if gt 1
         if (negative && Uint8ArrayOut.length > 1) {
+            console.log("NEGATE!");
+            console.log("in", Uint8ArrayOut.toString());
             negateArray(Uint8ArrayOut, littleEndian);
-            console.log("NEGATE!", Uint8ArrayOut);
+            console.log("out", Uint8ArrayOut.toString());
         }
 
         if (type === "buffer") {
@@ -529,6 +530,8 @@ function negateArray(array, littleEndian) {
             break;
         } 
     }
+
+    // FIXME: expand array if all values are 255
 
     if (!littleEndian) {
         array.reverse();
