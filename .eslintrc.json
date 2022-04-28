@@ -32,7 +32,7 @@
             "error",
             "last"
         ],
-        "complexity": ["warn", 25],
+        "complexity": ["warn", 28],
         "computed-property-spacing": [
             "error",
             "never"
