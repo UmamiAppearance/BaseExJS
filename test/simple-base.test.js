@@ -64,7 +64,7 @@ async function simpleBaseTests(testData, verbose=false) {
                         testData.SimpleBase[baseName].failed++;
                         makeError(testData, "SimpleBase", `base${radix}-numbers-encoding`, nn, output, expected);
                     }
-
+                    
                     let passedDec = false;
                     if (passedEnc) {
                         if (verbose) console.log("Testing decoding...");

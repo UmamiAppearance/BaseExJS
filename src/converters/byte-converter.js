@@ -2,10 +2,6 @@ import { SmartInput, SmartOutput } from "../io-handlers.js";
 
 class ByteConverter {
     constructor() {
-        this.converter = {
-            encode: SmartInput.toBytes,
-            decode: SmartOutput.compile
-        }
 
         this.littleEndian = true;
         this.numberMode = false;
@@ -60,12 +56,12 @@ class ByteConverter {
 
     encode(input, ...args) {
         const settings = this.utils.validateArgs(args);
-        return this.converter.encode(input, settings)[0];
+        return SmartInput.toBytes(input, settings)[0];
     }
 
     decode(input, ...args) {
         const settings = this.utils.validateArgs(args);
-        return this.converter.decode(input, settings.outputType, settings.littleEndian);
+        return SmartOutput.compile(input, settings.outputType, settings.littleEndian);
     }
 }
 
