@@ -8,7 +8,7 @@ async function baseTest(testData, base, IOtestRounds, verbose=false) {
     const encodingMap = await loadEncodingMap();
     const name = base.constructor.name;
 
-    if (verbose) console.log(`Testing ${name}...`);
+    if (verbose) console.log(`Testing ${name} Converter...`);
 
     testData[name] = new Object();
     testData[name].errorList = new Object();
@@ -19,7 +19,7 @@ async function baseTest(testData, base, IOtestRounds, verbose=false) {
 
     // encoding-list comparison
 
-    // hello world
+    // string -> hello world
     if (verbose) console.log(`> Testing 'Hello World!!!' Output.`);
     let testStr = ""; 
     helloWorldArray.forEach(c => {
@@ -30,7 +30,6 @@ async function baseTest(testData, base, IOtestRounds, verbose=false) {
         const encoded = base.encode(testStr);
 
         const expectedResult = encodingMap[name].str[testStr];
-        
         
         if (encoded === expectedResult) {
             testData[name].passed++;

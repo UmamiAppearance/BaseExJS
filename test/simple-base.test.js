@@ -1,7 +1,6 @@
 import { helloWorldArray, makeError } from "./helpers.js";
 import { SimpleBase } from "../src/base-ex.js";
 
-
 async function simpleBaseTests(testData, verbose=false) {
 
     if (verbose) console.log("Testing Simple Base Converters...");
@@ -22,7 +21,7 @@ async function simpleBaseTests(testData, verbose=false) {
 
     for (let radix=2; radix<=36; radix++) {
 
-        if (verbose) console.log(`Testing Radix: ${radix}`);
+        if (verbose) console.log(`> Testing Radix: ${radix}`);
         const baseConverter = new SimpleBase(radix);
         const baseName = `Base${radix}`;
         testData.SimpleBase[baseName] = new Object();
@@ -30,6 +29,7 @@ async function simpleBaseTests(testData, verbose=false) {
         testData.SimpleBase[baseName].passed = 0;
         testData.SimpleBase[baseName].failed = 0;
 
+        // integers
         for (let i=8; i<=1024; i*=2) {
 
             const n = 2n**BigInt(i);
@@ -44,8 +44,8 @@ async function simpleBaseTests(testData, verbose=false) {
                         nn = Number(nn);
                     } 
 
-                    if (verbose) console.log(`Testing Number input >>> ${nn} <<<`);
-                    if (verbose) console.log("Testing encoding...");
+                    if (verbose) console.log(`>> Testing Number input >>> ${nn} <<<`);
+                    if (verbose) console.log(">>> Testing encoding");
                     testData.totalTests++;
                     testData.SimpleBase.testCount++;
                     testData.SimpleBase[baseName].testCount++;
@@ -67,12 +67,12 @@ async function simpleBaseTests(testData, verbose=false) {
                     
                     let passedDec = false;
                     if (passedEnc) {
-                        if (verbose) console.log("Testing decoding...");
+                        if (verbose) console.log(">>> Testing decoding");
                         testData.totalTests++;
                         testData.SimpleBase.testCount++;
                         testData.SimpleBase[baseName].testCount++;
                         
-                        const numVal = (nn > 0) ? "uint_n" : "int_n";
+                        const numVal = (nn < 0) ? "int_n" : "uint_n";
                         const backDecoded = baseConverter.decode(output, numVal);
                         passedDec = backDecoded === nn;
 
@@ -90,14 +90,14 @@ async function simpleBaseTests(testData, verbose=false) {
             }
         }
 
-        
+        // string -> hello world        
         let helloInput = "";
         helloWorldArray.forEach(c => {
             
             helloInput += c;
 
-            if (verbose) console.log(`Testing String input >>> ${helloInput} <<<`);
-            if (verbose) console.log("Testing encoding...");
+            if (verbose) console.log(`>> Testing String input >>> ${helloInput} <<<`);
+            if (verbose) console.log(">>> Testing encoding");
             testData.totalTests++;
             testData.SimpleBase.testCount++;
             testData.SimpleBase[baseName].testCount++;        
@@ -120,7 +120,7 @@ async function simpleBaseTests(testData, verbose=false) {
             let passedDec = false;
             
             if (passedEnc) {
-                if (verbose) console.log("Testing decoding...");
+                if (verbose) console.log(">>> Testing decoding");
                 testData.totalTests++;
                 testData.SimpleBase.testCount++;
                 testData.SimpleBase[baseName].testCount++;

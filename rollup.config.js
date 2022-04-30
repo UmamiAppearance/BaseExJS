@@ -38,7 +38,7 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
                 },
             ]
         };
-        console.log("\n________\nbytesOnly", bytesOnly);
+        
         if (bytesOnly) {
             converter.plugins = [
                 replace({

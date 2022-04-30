@@ -75,7 +75,7 @@ class SmartInput {
     }
 
     static floatingPoints(input, littleEndian=false) {
-        const view = SmartInput.makeDataView(8);
+        const view = this.makeDataView(8);
         view.setFloat64(0, input, littleEndian);
         return view;
     }
@@ -114,19 +114,19 @@ class SmartInput {
                 
                 // 64 bit
                 if (input < -2147483648) {
-                    view = SmartInput.makeDataView(8);
+                    view = this.makeDataView(8);
                     view.setBigInt64(0, BigInt(input), littleEndian);
                 }
                 
                 // 32 littleEndian
                 else if (input < -32768) {
-                    view = SmartInput.makeDataView(4);
+                    view = this.makeDataView(4);
                     view.setInt32(0, input, littleEndian);
                 }
 
                 // 16 littleEndian
                 else {
-                    view = SmartInput.makeDataView(2);
+                    view = this.makeDataView(2);
                     view.setInt16(0, input, littleEndian);
                 }
             }
@@ -136,19 +136,19 @@ class SmartInput {
 
                 // 64 bit
                 if (input > 4294967295) {
-                    view = SmartInput.makeDataView(8);
+                    view = this.makeDataView(8);
                     view.setBigUint64(0, BigInt(input), littleEndian);
                 }
                 
                 // 32 bit
                 else if (input > 65535) {
-                    view = SmartInput.makeDataView(4);
+                    view = this.makeDataView(4);
                     view.setUint32(0, input, littleEndian);
                 }
                 
                 // 16 bit
                 else {
-                    view = SmartInput.makeDataView(2);
+                    view = this.makeDataView(2);
                     view.setInt16(0, input, littleEndian);
                 }
             }
@@ -162,7 +162,7 @@ class SmartInput {
         // Floating Point Number:
         else {
             type = "float";
-            view = SmartInput.floatingPoints(input, littleEndian);
+            view = this.floatingPoints(input, littleEndian);
         }
 
         return [new Uint8Array(view.buffer), type];
@@ -204,7 +204,7 @@ class SmartInput {
         const byteLen = byteArray.length * 8;
         
         // create a fresh data view
-        const view = SmartInput.makeDataView(byteLen);
+        const view = this.makeDataView(byteLen);
 
         // set all 64 bit integers 
         byteArray.forEach((bigInt, i) => {
@@ -251,11 +251,11 @@ class SmartInput {
             }
 
             if (settings.numberMode) {
-                const view = SmartInput.floatingPoints(input, settings.littleEndian);
+                const view = this.floatingPoints(input, settings.littleEndian);
                 inputUint8 = new Uint8Array(view.buffer);
                 type = "float";
             } else {
-                [inputUint8, type] = SmartInput.numbers(input, settings.littleEndian);
+                [inputUint8, type] = this.numbers(input, settings.littleEndian);
             }
         }
 
@@ -265,7 +265,7 @@ class SmartInput {
                 negative = true;
                 input *= -1n;
             }
-            inputUint8 = SmartInput.bigInts(input, settings.littleEndian);
+            inputUint8 = this.bigInts(input, settings.littleEndian);
             type = "int";
         }
 
@@ -273,7 +273,7 @@ class SmartInput {
         else if (Array.isArray(input)) {
             const collection = new Array();
             for (const elem of input) {
-                collection.push(...SmartInput.toBytes(elem));
+                collection.push(...this.toBytes(elem));
             }
             inputUint8 = Uint8Array.from(collection);
         }
@@ -321,38 +321,47 @@ class SmartOutput {
     }
 
     static getType(type) {
-        if (!SmartOutput.typeList.includes(type)) {
+        if (!this.typeList.includes(type)) {
             throw new TypeError(`Unknown output type: '${type}'`);
         }
         return type;
     }
 
-    static makeTypedArrayBuffer(Uint8ArrayOut, bytesPerElem, littleEndian) {
+    static makeTypedArrayBuffer(Uint8ArrayOut, bytesPerElem, littleEndian, negative) {
         
         const len = Uint8ArrayOut.byteLength;
         const delta = (bytesPerElem - (Uint8ArrayOut.byteLength % bytesPerElem)) % bytesPerElem;
-        let newArray = Uint8ArrayOut;
+        const newLen = len + delta;
         
+        // if the array is negative and the len is gt 1
+        // fill the whole array with 255
+        const fillVal = (negative && len > 1) ? 255 : 0;
+
+        let newArray = Uint8ArrayOut;
+
         if (delta) {
-            newArray = new Uint8Array(len + delta);
-            const offset = (littleEndian) ? delta : 0;
+            newArray = new Uint8Array(newLen);
+            newArray.fill(fillVal);
+            
+            const offset = (littleEndian) ? 0 : delta;
             newArray.set(Uint8ArrayOut, offset);
         }
+
 
         return newArray.buffer;
     }
 
-    static makeTypedArray(inArray, type, littleEndian) {
+    static makeTypedArray(inArray, type, littleEndian, negative) {
         let outArray;
 
         if (type === "int16" || type === "uint16") {
 
-            const buffer = SmartOutput.makeTypedArrayBuffer(inArray, 2, littleEndian);
+            const buffer = this.makeTypedArrayBuffer(inArray, 2, littleEndian, negative);
             outArray = (type === "int16") ? new Int16Array(buffer) : new Uint16Array(buffer);
 
         } else if (type === "int32" || type === "uint32" || type === "float32") {
 
-            const buffer = SmartOutput.makeTypedArrayBuffer(inArray, 4, littleEndian);
+            const buffer = this.makeTypedArrayBuffer(inArray, 4, littleEndian, negative);
             
             if (type === "int32") {
                 outArray = new Int32Array(buffer);
@@ -364,7 +373,7 @@ class SmartOutput {
 
         } else if (type === "bigint64" || type === "biguint64" || type === "float64") {
             
-            const buffer = SmartOutput.makeTypedArrayBuffer(inArray, 8, littleEndian);
+            const buffer = this.makeTypedArrayBuffer(inArray, 8, littleEndian, negative);
             
             if (type === "bigint64") {
                 outArray = new BigInt64Array(buffer);
@@ -380,8 +389,19 @@ class SmartOutput {
     }
 
     static compile(Uint8ArrayOut, type, littleEndian=false, negative=false) {
-        type = SmartOutput.getType(type);
+        type = this.getType(type);
         let compiled;
+
+        // If the array is negative (which is only
+        // true for signed encoding) get the positive
+        // decimal number first and feed it with a 
+        // negative sign to SmartInput to construct
+        // the unsigned output which is not shortened.
+
+        if (negative) {
+            const n = this.compile(Uint8ArrayOut, "uint_n", littleEndian);
+            Uint8ArrayOut = SmartInput.toBytes(-n, {littleEndian, numberMode: false, signed: false})[0];
+        }
 
         if (type === "buffer") {
             compiled = Uint8ArrayOut.buffer;
@@ -404,6 +424,12 @@ class SmartOutput {
         }
         
         else if (type === "uint_n" || type === "int_n" || type === "bigint_n") {
+
+            // If the input consists of only one byte, expand it
+            if (Uint8ArrayOut.length === 1) {
+                const uint16Buffer = this.makeTypedArrayBuffer(Uint8ArrayOut, 2, littleEndian, negative);
+                Uint8ArrayOut = new Uint8Array(uint16Buffer);
+            }
             
             if (littleEndian) {
                 Uint8ArrayOut.reverse();
@@ -414,7 +440,7 @@ class SmartOutput {
             Uint8ArrayOut.forEach((b) => n = (n << 8n) + BigInt(b));
 
             // convert to signed int if requested 
-            if (type === "int_n") {
+            if (type !== "uint_n") {
                 n = BigInt.asIntN(Uint8ArrayOut.length*8, n);
             }
             
@@ -423,11 +449,6 @@ class SmartOutput {
                 compiled = Number(n);
             } else {
                 compiled = n;
-            }
-
-            // change sign for signed modes (if necessary)
-            if (negative) {
-                compiled = -(compiled);
             }
         } 
         
@@ -439,7 +460,7 @@ class SmartOutput {
                 if (Uint8ArrayOut.length === 4) {
                     array = Uint8ArrayOut;
                 } else {
-                    array = SmartOutput.makeTypedArray(Uint8ArrayOut, "float32", false);
+                    array = this.makeTypedArray(Uint8ArrayOut, "float32", false, negative);
                 }
 
                 const view = new DataView(array.buffer);
@@ -453,7 +474,7 @@ class SmartOutput {
                 if (Uint8ArrayOut.length === 8) {
                     array = Uint8ArrayOut;
                 } else {
-                    array = SmartOutput.makeTypedArray(Uint8ArrayOut, "float64", false);
+                    array = this.makeTypedArray(Uint8ArrayOut, "float64", false, negative);
                 }
 
                 const view = new DataView(array.buffer);
@@ -476,7 +497,7 @@ class SmartOutput {
         }
 
         else {
-            compiled = SmartOutput.makeTypedArray(Uint8ArrayOut, type, littleEndian);
+            compiled = this.makeTypedArray(Uint8ArrayOut, type, littleEndian, negative);
         } 
 
         return compiled;
@@ -502,7 +523,7 @@ class Utils {
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
-        if ("charsets" in main) this.charsetUserToolsConstructor();
+        if ("charsets" in main) this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -510,7 +531,7 @@ class Utils {
         this.outputHandler = outputHandler;
     }
 
-    charsetUserToolsConstructor() {
+    #charsetUserToolsConstructor() {
         /*
             Constructor for the ability to add a charset and 
             change the default version.
@@ -649,7 +670,7 @@ class Utils {
         };
 
         // set available versions and extra arguments
-        const versions = Object.keys(this.root.charsets);
+        const versions = this.root.hasOwnProperty("charsets") ? Object.keys(this.root.charsets) : [];
         const extraArgList = {
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],
@@ -760,7 +781,7 @@ class Utils {
  * -> Utils
  */
 class BaseTemplate {
-    constructor() {
+    constructor(appendUtils=true) {
 
         // predefined settings
         this.charsets = {};
@@ -771,7 +792,7 @@ class BaseTemplate {
         this.padding = false;
         this.signed = false;
         this.upper = null;
-        this.utils = new Utils(this);
+        if (appendUtils) this.utils = new Utils(this);
         this.version = "default";
         
         // list of allowed/disallowed args to change
@@ -882,7 +903,6 @@ class Base91 extends BaseTemplate {
         super();
 
         this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
-        this.version = "default";
 
         // apply user settings
         this.utils.validateArgs(args, true);
