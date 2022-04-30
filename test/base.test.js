@@ -54,6 +54,7 @@ async function baseTest(testData, base, IOtestRounds, verbose=false) {
     // integers
     if (verbose) console.log(`> Testing Integers Output.`);
     for (const int in encodingMap[name].int) {
+
         testData[name].testCount += 2;
         testData.totalTests += 2;
 

@@ -244,5 +244,46 @@
             "0.123456789":      "]|JkanMS+Q",
             "-0.123456789":     "c~JkanMS+Q"
         }
+    },
+    "LEB128": {
+        "str": {
+            "H":                 "c800",
+            "He":                "c8ca01",
+            "Hel":               "c8cab103",
+            "Hell":              "c8cab1e306",
+            "Hello":             "c8cab1e3f60d",
+            "Hello ":            "c8cab1e3f68d08",
+            "Hello W":           "c8cab1e3f68dc82b",
+            "Hello Wo":          "c8cab1e3f68dc8abef00",
+            "Hello Wor":         "c8cab1e3f68dc8abefe401",
+            "Hello Worl":        "c8cab1e3f68dc8abefe4b103",
+            "Hello World":       "c8cab1e3f68dc8abefe4b1a306",
+            "Hello World!":      "c8cab1e3f68dc8abefe4b1a39604",
+            "Hello World!!":     "c8cab1e3f68dc8abefe4b1a396a408",
+            "Hello World!!!":    "c8cab1e3f68dc8abefe4b1a396a4c810"
+        },
+        "int": {
+            "-16046861389479279198165015672292295884":
+                                "b4f6b4ffbad6d1cde48681c8f9cba9beed67",
+            "-3378262585965042561":
+                                "ffc8beecba82808f51",
+            "-2115059214":      "f283bb8f78",
+            "-32144":           "f0847e",
+            "-75":              "b57f",
+            "-1":               "7f",
+            "0":                "00",
+            "1":                "01",
+            "233":              "e901",
+            "4284":             "bc21",
+            "443362345":        "a9d8b4d301",
+            "984237832472249413":
+                                "c58889d880e3add40d",
+            "43841267567829453252317345472434342234":
+                                "da92dcc0d4e8d6e8ebb1e992848ad8c2fbc100"
+        },
+        "float": {
+            "0.123456789":      "dfc6e5b9d3dbe6df3f",
+            "-0.123456789":     "a1b99ac6aca499a040"
+        }
     }
 }

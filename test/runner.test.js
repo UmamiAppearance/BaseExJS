@@ -6,9 +6,13 @@ const EXCLUDED = [
     "Base1",
     "SimpleBase",
     "BaseEx",
-    "ByteConverter",
-    "LEB128"
+    "ByteConverter"
 ];
+
+// non default charsets
+const EXTRA_ARGS = {
+    LEB128: ["hex", "signed"]
+}
 
 const MAIN_TESTS = [];
 for (const cls in BaseEx) {
@@ -30,7 +34,8 @@ function runTests(IOtestRounds, verbose) {
     async function testGroup() {
         if (MAIN_TESTS.length) {
             const base = MAIN_TESTS.shift();
-            baseTest(TEST_DATA, new BaseEx[base], IOtestRounds, verbose).then(() => testGroup())
+            const instance = (base in EXTRA_ARGS) ? new BaseEx[base](...EXTRA_ARGS[base]) : new BaseEx[base]();
+            baseTest(TEST_DATA, instance, IOtestRounds, verbose).then(() => testGroup())
         } else if (EXTRA_TESTS.length) {
             const extraTest = EXTRA_TESTS.shift();
             extraTest(TEST_DATA, verbose).then(testGroup());

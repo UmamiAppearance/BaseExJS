@@ -20,7 +20,6 @@ export class Utils {
         // If charsets are uses by the parent class,
         // add extra functions for the user.
 
-        console.log("addCharsetTools", addCharsetTools);
         if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
     }
 

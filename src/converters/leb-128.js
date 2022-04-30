@@ -28,24 +28,24 @@ export class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        
         const signed = settings.signed;
         settings.signed = true;
         [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
-        let base10 = this.converter.encode(inputBytes, null, true)[0];
+        let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
 
         let n = BigInt(base10);
         let output = new Array();
         
         if (negative) {
-
             if (!signed) {
-                Utils.warning("Unsigned mode was switched to signed, due to a negative input.");
+                throw new TypeError("Negative values in unsigned mode are invalid.");
             }
-             
             n = -n;
+        }
+          
+        if (signed) {
 
             for (;;) {
                 const byte = Number(n & 127n);
@@ -85,10 +85,14 @@ export class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         if (settings.version === "hex") {
-            input = this.hexlify.decode(String(input), "0123456789abcdef", false);
+            input = this.hexlify.decode(String(input).toLowerCase(), "0123456789abcdef", false);
         } else if (input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
-        } 
+        }
+
+        if (input.length === 1 && !input[0]) {
+            return this.utils.outputHandler.compile(new Uint8Array(1), settings.outputType, true);
+        }
 
         input = Array.from(input);
 
@@ -101,7 +105,7 @@ export class LEB128 extends BaseTemplate {
             n += (BigInt(byte & 127) << shiftVal);
         }
         
-        if (settings.signed && (byte & 64) != 0) {
+        if (settings.signed && ((byte & 64) !== 0)) {
             n |= -(1n << shiftVal + 7n);
         }
 
