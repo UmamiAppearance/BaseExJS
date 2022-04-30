@@ -11,7 +11,7 @@ let DEFAULT_OUTPUT_HANDLER = SmartOutput;
  */
 export class Utils {
 
-    constructor(main) {
+    constructor(main, addCharsetTools=true) {
 
         // Store the calling class in this.root
         // for accessability.
@@ -19,7 +19,9 @@ export class Utils {
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
-        if ("charsets" in main) this.#charsetUserToolsConstructor();
+
+        console.log("addCharsetTools", addCharsetTools);
+        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {

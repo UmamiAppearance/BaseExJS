@@ -1,4 +1,4 @@
-import {  BaseConverter, BaseTemplate } from "../core.js";
+import { BaseConverter, BaseTemplate } from "../core.js";
 import { Utils } from "../utils.js";
 
 export class LEB128 extends BaseTemplate {
@@ -6,11 +6,14 @@ export class LEB128 extends BaseTemplate {
     constructor(...args) {
         super(false);
 
-        delete this.charsets;
-        delete this.version;
-
         this.converter = new BaseConverter(10, 0, 0);
-        this.utils = new Utils(this);
+        this.hexlify = new BaseConverter(16, 1, 2);
+
+        this.charsets.default = "<placeholder>",
+        this.charsets.hex = "<placeholder>"
+        this.version = "default";
+
+        this.utils = new Utils(this, false);
         
         this.littleEndian = true;
         this.hasSignedMode = true;
@@ -67,7 +70,13 @@ export class LEB128 extends BaseTemplate {
             }
         }
 
-        return Uint8Array.from(output);
+        const Uint8Output = Uint8Array.from(output);
+
+        if (settings.version === "hex") {
+            return this.hexlify.encode(Uint8Output, "0123456789abcdef", false)[0];
+        }
+
+        return Uint8Output;
     }
 
     decode(input, ...args) {
@@ -75,7 +84,9 @@ export class LEB128 extends BaseTemplate {
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
 
-        if (input instanceof ArrayBuffer) {
+        if (settings.version === "hex") {
+            input = this.hexlify.decode(String(input), "0123456789abcdef", false);
+        } else if (input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
         } 
 
