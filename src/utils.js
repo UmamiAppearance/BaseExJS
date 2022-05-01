@@ -82,7 +82,10 @@ export class Utils {
 
         // Save method (argument gets validated) to 
         // change the default version.
-        this.root.setDefaultVersion = (version) => [this.root.version] = this.validateArgs([version]);
+        this.root.setDefaultVersion = (version) => {
+            ( {version } = this.validateArgs([version]) );
+            this.root.version = version;
+        }
     }
 
     makeArgList(args) {
