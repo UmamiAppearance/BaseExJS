@@ -4,9 +4,15 @@ import { helloWorldArray, makeError, randArray, randInt, randStr } from "./helpe
 import { loadEncodingMap } from "./load-json.js";
 
 
-async function baseTest(testData, base, IOtestRounds, verbose=false) {
+async function baseTest(testData, base, IOtestRounds, verbose=false) { 
     const encodingMap = await loadEncodingMap();
     const name = base.constructor.name;
+    
+    const limitTests = (base.signed);
+    if (limitTests) {
+        IOtestRounds = 0;
+        if (verbose) console.log("Input class is signed. Byte tests will not be executed.");
+    }
 
     if (verbose) console.log(`Testing ${name} Converter...`);
 
@@ -138,6 +144,13 @@ async function baseTest(testData, base, IOtestRounds, verbose=false) {
         2**256,
         Number.MAX_VALUE
     ];
+
+    if (limitTests) {
+        numbers.splice(11, 1);
+        numbers.splice(9, 1);
+        if (verbose) console.log("’Number.MIN_VALUE’ was removed from the number tests");
+    }
+
     for (const num of numbers) {
         testData[name].testCount++;
         testData.totalTests++;
@@ -203,7 +216,6 @@ async function baseTest(testData, base, IOtestRounds, verbose=false) {
                     if (passed) {
                         testData[name].passed++;
                     } else {
-
                         curErrors++;
                         testData.totalErrors++;
                         makeError(testData, name, `IO-${charset}-${IOtype} #${testData.totalErrors}`, input, decoded, "<=input");

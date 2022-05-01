@@ -161,7 +161,6 @@ class SmartInput {
         
         // Floating Point Number:
         else {
-            console.log("float");
             type = "float";
             view = this.floatingPoints(input, littleEndian);
         }
@@ -249,7 +248,6 @@ class SmartInput {
             if (settings.signed && input < 0) {
                 negative = true;
                 input = -input;
-                console.log("input", input);
             }
 
             if (settings.numberMode) {
