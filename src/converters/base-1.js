@@ -6,13 +6,14 @@ export class Base1 extends BaseTemplate {
 
         delete this.addCharset;
 
-        this.charsets.all = "*";
+        this.charsets.all = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         this.charsets.sequence = "Hello World!";
-        this.charsets.default = "1";
-        this.charsets.tmark = "|";
+        this.charsets.default = "1";' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+        this.charsets.tmark = "|#";
 
         this.converter = new BaseConverter(10, 0, 0);
         this.littleEndian = true;
+        this.signed = true;
         
         this.isMutable.signed = true;
         this.isMutable.upper = true;
@@ -33,7 +34,6 @@ export class Base1 extends BaseTemplate {
         let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
         
         let n = BigInt(base10);
-        let output = "";
 
         // Limit the input before it even starts.
         // The executing engine will most likely
@@ -42,14 +42,29 @@ export class Base1 extends BaseTemplate {
 
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
+        } else if (n > 16777216) {
+            this.utils.constructor.warning("The expected string length is really long. You might get in trouble with your memory.");
         }
         n = Number(n);
+        
 
         const charset = this.charsets[settings.version];
         const charAmount = charset.length;
+        let output = "";
 
         if (charAmount === 1) {
             output = charset.repeat(n)
+        } else if (settings.version === "all") {
+            for (let i=0; i<n; i++) {
+                const charIndex = Math.floor(Math.random() * charAmount); 
+                output += charset[charIndex];
+            }
+        } else if (settings.version === "tmark") {
+            const singulars = n % 5;
+            if (n > 4) {
+                output = charset[1].repeat((n - singulars) / 5);
+            }
+            output += charset[0].repeat(singulars);
         } else {
             for (let i=0; i<n; i++) {
                 output += charset[i%charAmount];
