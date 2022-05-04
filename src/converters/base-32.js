@@ -1,21 +1,32 @@
+/**
+ * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-16.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+
+/**
+ * En-/decoding to and from Base16/Hexadecimal.
+ * -------------------------------------------
+ * 
+ * This is a base16/converter. Various input can be 
+ * converted to a hex string or a hex string can be
+ * decoded into various formats. It is possible to 
+ * convert in both signed and unsigned mode.
+ */
+
+
 import {  BaseConverter, BaseTemplate } from "../core.js";
 
 export class Base32 extends BaseTemplate {
-    /*
-        En-/decoding to and from Base32.
-        -------------------------------
-
-        Uses RFC standard 4658 by default (as used e.g
-        for (t)otp keys), RFC 3548 is also supported.
-        
-        (Requires "BaseConverter", "Utils")
-    */
     
     constructor(...args) {
         super();
 
-        this.charsets.rfc3548 =  "abcdefghijklmnopqrstuvwxyz234567";
-        this.charsets.rfc4648 =  "0123456789abcdefghijklmnopqrstuv";
+        this.charsets.rfc3548 =   "abcdefghijklmnopqrstuvwxyz234567";
+        this.charsets.rfc4648 =   "0123456789abcdefghijklmnopqrstuv";
         this.charsets.crockford = "0123456789abcdefghjkmnpqrstvwxyz";
         this.charsets.zbase32 =   "ybndrfg8ejkmcpqxot1uwisza345h769";
     

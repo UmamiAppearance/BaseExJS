@@ -6,16 +6,6 @@
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
-
-/**
- * En-/decoding to and from base16 (hexadecimal).
- * For integers two's complement system is getting used.
- * 
- * Requires: 
- * -> BaseConverter
- * -> Utils (-> SmartInput)
- */
-
 import { Base1 }  from "./converters/base-1.js";
 import { Base16 } from "./converters/base-16.js";
 import { Base32 } from "./converters/base-32.js";
@@ -35,6 +25,7 @@ class BaseEx {
     */
    
     constructor(output="buffer") {
+        this.base1 = new Base1("default", output);
         this.base16 = new Base16("default", output);
         this.base32_rfc3548 = new Base32("rfc3548", output);
         this.base32_rfc4648 = new Base32("rfc4648", output);

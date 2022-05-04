@@ -382,7 +382,6 @@ class SmartOutput {
             } else {
                 outArray = new Float64Array(buffer);
             }
-
         }
 
         return outArray;
@@ -399,8 +398,16 @@ class SmartOutput {
         // the unsigned output which is not shortened.
 
         if (negative) {
-            const n = this.compile(Uint8ArrayOut, "uint_n", littleEndian);
-            Uint8ArrayOut = SmartInput.toBytes(-n, {littleEndian, numberMode: false, signed: false})[0];
+            let n;
+            if (type.match(/^float/)) {
+                n = -(this.compile(Uint8ArrayOut, "float_n", littleEndian));
+            } else {
+                n = -(this.compile(Uint8ArrayOut, "uint_n", littleEndian));
+            }
+            if (type === "float_n") {
+                return n;
+            }
+            Uint8ArrayOut = SmartInput.toBytes(n, {littleEndian, numberMode: false, signed: false})[0];
         }
 
         if (type === "buffer") {
@@ -515,7 +522,7 @@ let DEFAULT_OUTPUT_HANDLER = SmartOutput;
  */
 class Utils {
 
-    constructor(main) {
+    constructor(main, addCharsetTools=true) {
 
         // Store the calling class in this.root
         // for accessability.
@@ -523,7 +530,8 @@ class Utils {
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
-        if ("charsets" in main) this.#charsetUserToolsConstructor();
+
+        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -585,7 +593,10 @@ class Utils {
 
         // Save method (argument gets validated) to 
         // change the default version.
-        this.root.setDefaultVersion = (version) => [this.root.version] = this.validateArgs([version]);
+        this.root.setDefaultVersion = (version) => {
+            ( {version } = this.validateArgs([version]) );
+            this.root.version = version;
+        };
     }
 
     makeArgList(args) {

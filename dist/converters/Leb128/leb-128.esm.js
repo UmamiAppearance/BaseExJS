@@ -382,7 +382,6 @@ class SmartOutput {
             } else {
                 outArray = new Float64Array(buffer);
             }
-
         }
 
         return outArray;
@@ -399,8 +398,16 @@ class SmartOutput {
         // the unsigned output which is not shortened.
 
         if (negative) {
-            const n = this.compile(Uint8ArrayOut, "uint_n", littleEndian);
-            Uint8ArrayOut = SmartInput.toBytes(-n, {littleEndian, numberMode: false, signed: false})[0];
+            let n;
+            if (type.match(/^float/)) {
+                n = -(this.compile(Uint8ArrayOut, "float_n", littleEndian));
+            } else {
+                n = -(this.compile(Uint8ArrayOut, "uint_n", littleEndian));
+            }
+            if (type === "float_n") {
+                return n;
+            }
+            Uint8ArrayOut = SmartInput.toBytes(n, {littleEndian, numberMode: false, signed: false})[0];
         }
 
         if (type === "buffer") {
@@ -515,7 +522,7 @@ let DEFAULT_OUTPUT_HANDLER = SmartOutput;
  */
 class Utils {
 
-    constructor(main) {
+    constructor(main, addCharsetTools=true) {
 
         // Store the calling class in this.root
         // for accessability.
@@ -523,7 +530,8 @@ class Utils {
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
-        if ("charsets" in main) this.#charsetUserToolsConstructor();
+
+        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -585,7 +593,10 @@ class Utils {
 
         // Save method (argument gets validated) to 
         // change the default version.
-        this.root.setDefaultVersion = (version) => [this.root.version] = this.validateArgs([version]);
+        this.root.setDefaultVersion = (version) => {
+            ( {version } = this.validateArgs([version]) );
+            this.root.version = version;
+        };
     }
 
     makeArgList(args) {
@@ -1184,11 +1195,14 @@ class LEB128 extends BaseTemplate {
     constructor(...args) {
         super(false);
 
-        delete this.charsets;
-        delete this.version;
-
         this.converter = new BaseConverter(10, 0, 0);
-        this.utils = new Utils(this);
+        this.hexlify = new BaseConverter(16, 1, 2);
+
+        this.charsets.default = "<placeholder>",
+        this.charsets.hex = "<placeholder>";
+        this.version = "default";
+
+        this.utils = new Utils(this, false);
         
         this.littleEndian = true;
         this.hasSignedMode = true;
@@ -1203,24 +1217,24 @@ class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         let inputBytes, negative;
-        
         const signed = settings.signed;
         settings.signed = true;
         [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
-        let base10 = this.converter.encode(inputBytes, null, true)[0];
+        let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
 
         let n = BigInt(base10);
         let output = new Array();
         
         if (negative) {
-
             if (!signed) {
-                Utils.warning("Unsigned mode was switched to signed, due to a negative input.");
+                throw new TypeError("Negative values in unsigned mode are invalid.");
             }
-             
             n = -n;
+        }
+          
+        if (signed) {
 
             for (;;) {
                 const byte = Number(n & 127n);
@@ -1245,7 +1259,13 @@ class LEB128 extends BaseTemplate {
             }
         }
 
-        return Uint8Array.from(output);
+        const Uint8Output = Uint8Array.from(output);
+
+        if (settings.version === "hex") {
+            return this.hexlify.encode(Uint8Output, "0123456789abcdef", false)[0];
+        }
+
+        return Uint8Output;
     }
 
     decode(input, ...args) {
@@ -1253,9 +1273,15 @@ class LEB128 extends BaseTemplate {
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
 
-        if (input instanceof ArrayBuffer) {
+        if (settings.version === "hex") {
+            input = this.hexlify.decode(String(input).toLowerCase(), "0123456789abcdef", false);
+        } else if (input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
-        } 
+        }
+
+        if (input.length === 1 && !input[0]) {
+            return this.utils.outputHandler.compile(new Uint8Array(1), settings.outputType, true);
+        }
 
         input = Array.from(input);
 
@@ -1268,7 +1294,7 @@ class LEB128 extends BaseTemplate {
             n += (BigInt(byte & 127) << shiftVal);
         }
         
-        if (settings.signed && (byte & 64) != 0) {
+        if (settings.signed && ((byte & 64) !== 0)) {
             n |= -(1n << shiftVal + 7n);
         }
 

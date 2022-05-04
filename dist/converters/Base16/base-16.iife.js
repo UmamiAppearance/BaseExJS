@@ -385,7 +385,6 @@ var Base16 = (function (exports) {
                 } else {
                     outArray = new Float64Array(buffer);
                 }
-
             }
 
             return outArray;
@@ -402,8 +401,16 @@ var Base16 = (function (exports) {
             // the unsigned output which is not shortened.
 
             if (negative) {
-                const n = this.compile(Uint8ArrayOut, "uint_n", littleEndian);
-                Uint8ArrayOut = SmartInput.toBytes(-n, {littleEndian, numberMode: false, signed: false})[0];
+                let n;
+                if (type.match(/^float/)) {
+                    n = -(this.compile(Uint8ArrayOut, "float_n", littleEndian));
+                } else {
+                    n = -(this.compile(Uint8ArrayOut, "uint_n", littleEndian));
+                }
+                if (type === "float_n") {
+                    return n;
+                }
+                Uint8ArrayOut = SmartInput.toBytes(n, {littleEndian, numberMode: false, signed: false})[0];
             }
 
             if (type === "buffer") {
@@ -518,7 +525,7 @@ var Base16 = (function (exports) {
      */
     class Utils {
 
-        constructor(main) {
+        constructor(main, addCharsetTools=true) {
 
             // Store the calling class in this.root
             // for accessability.
@@ -526,7 +533,8 @@ var Base16 = (function (exports) {
 
             // If charsets are uses by the parent class,
             // add extra functions for the user.
-            if ("charsets" in main) this.#charsetUserToolsConstructor();
+
+            if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
         }
 
         setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -588,7 +596,10 @@ var Base16 = (function (exports) {
 
             // Save method (argument gets validated) to 
             // change the default version.
-            this.root.setDefaultVersion = (version) => [this.root.version] = this.validateArgs([version]);
+            this.root.setDefaultVersion = (version) => {
+                ( {version } = this.validateArgs([version]) );
+                this.root.version = version;
+            };
         }
 
         makeArgList(args) {
@@ -1182,8 +1193,29 @@ var Base16 = (function (exports) {
         }
     }
 
+    /**
+     * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-16.js}
+     *
+     * @version 0.4.0
+     * @author UmamiAppearance [mail@umamiappearance.eu]
+     * @license GPL-3.0
+     */
+
+    /**
+     * BaseEx Base 16 Converter.
+     * ------------------------
+     * This is a base16/converter. Various input can be 
+     * converted to a hex string or a hex string can be
+     * decoded into various formats. It is possible to 
+     * convert in both signed and unsigned mode.
+     */
+
     class Base16 extends BaseTemplate {
 
+        /**
+         * BaseEx Base16 Constructor.
+         * @param {...string} [args] - Converter settings.
+         */
         constructor(...args) {
             super();
 
@@ -1200,28 +1232,40 @@ var Base16 = (function (exports) {
             this.utils.validateArgs(args, true);
         }
 
+        /**
+         * BaseEx Base16 Encoder.
+         * @param {*} input - Input according to the used byte converter.
+         * @param  {...str} [args] - Converter settings.
+         * @returns {string} - Base16 encoded string.
+         */
         encode(input, ...args) {
             return super.encode(input, null, null, ...args);
         }
 
-        decode(rawInput, ...args) {
+        /**
+         * BaseEx Base16 Decoder.
+         * @param {string} input - Base16/Hex String.
+         * @param  {...any} [args] - Converter settings.
+         * @returns {*} - Output according to converter settings.
+         */
+        decode(input, ...args) {
             
             // pre decoding function
             const normalizeInput = (scope) => {
 
-                let { input } = scope;
+                let { input: normInput } = scope;
                 // Remove "0x" if present
-                input = input.replace(/^0x/, "");
+                normInput = normInput.replace(/^0x/, "");
 
                 // Ensure even number of characters
-                if (input.length % 2) {
-                    input = "0".concat(input);
+                if (normInput.length % 2) {
+                    normInput = "0".concat(normInput);
                 }
 
-                return input;
+                return normInput;
             };
             
-            return super.decode(rawInput, normalizeInput, null, ...args);
+            return super.decode(input, normalizeInput, null, ...args);
         }
     }
 

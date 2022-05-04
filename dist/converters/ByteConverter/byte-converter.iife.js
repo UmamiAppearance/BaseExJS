@@ -331,7 +331,6 @@ var ByteConverter = (function (exports) {
                 } else {
                     outArray = new Float64Array(buffer);
                 }
-
             }
 
             return outArray;
@@ -348,8 +347,16 @@ var ByteConverter = (function (exports) {
             // the unsigned output which is not shortened.
 
             if (negative) {
-                const n = this.compile(Uint8ArrayOut, "uint_n", littleEndian);
-                Uint8ArrayOut = SmartInput.toBytes(-n, {littleEndian, numberMode: false, signed: false})[0];
+                let n;
+                if (type.match(/^float/)) {
+                    n = -(this.compile(Uint8ArrayOut, "float_n", littleEndian));
+                } else {
+                    n = -(this.compile(Uint8ArrayOut, "uint_n", littleEndian));
+                }
+                if (type === "float_n") {
+                    return n;
+                }
+                Uint8ArrayOut = SmartInput.toBytes(n, {littleEndian, numberMode: false, signed: false})[0];
             }
 
             if (type === "buffer") {

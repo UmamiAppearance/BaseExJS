@@ -1,17 +1,52 @@
+/**
+ * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-1.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
 import { BaseConverter, BaseTemplate } from "../core.js";
 
+/**
+ * BaseEx Base 1 Converter.
+ * -----------------------
+ * This is a unary/base1 converter. It is converting input 
+ * to a decimal number, which is converted into an unary
+ * string. Due to the limitations on string (or array) length
+ * it is only suitable for the  conversions of numbers up to
+ * roughly 2^28.
+ */
 export class Base1 extends BaseTemplate {
+    
+    /**
+     * BaseEx Base1 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
         super();
 
+        // Remove global charset adding method as
+        // it is not suitable for this converter.
         delete this.addCharset;
 
+        // All chars in the sting are used and picked randomly (prob. suitable for obfuscation)
         this.charsets.all = " !\"#$%&\'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        
+        // The sequence is used from left to right again and again
         this.charsets.sequence = "Hello World!";
-        this.charsets.default = "1";' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+        
+        // Standard unary string with one character
+        this.charsets.default = "1";
+
+        // Telly Mark string, using hash for 5 and vertical bar for 1 
         this.charsets.tmark = "|#";
 
+        // Base 10 converter
         this.converter = new BaseConverter(10, 0, 0);
+        
+        // Converter settings
+        this.hasSignedMode = true;
         this.littleEndian = true;
         this.signed = true;
         
@@ -22,6 +57,13 @@ export class Base1 extends BaseTemplate {
         this.utils.validateArgs(args, true);
     }
     
+
+    /**
+     * BaseEx Base1 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Base1 encoded string.
+     */
     encode(input, ...args) {
 
         // argument validation and input settings
@@ -52,6 +94,7 @@ export class Base1 extends BaseTemplate {
         const charAmount = charset.length;
         let output = "";
 
+        // Convert to unary in respect to the version differences
         if (charAmount === 1) {
             output = charset.repeat(n)
         } else if (settings.version === "all") {
@@ -80,6 +123,12 @@ export class Base1 extends BaseTemplate {
         return output;
     }
 
+    /**
+     * BaseEx Base1 Decoder.
+     * @param {string} input - Base1/Unary String.
+     * @param  {...any} [args] - Converter settings. 
+     * @returns {*} - Output according to converter settings.
+     */
     decode(input, ...args) {
 
         // Argument validation and output settings

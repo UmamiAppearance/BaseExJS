@@ -382,7 +382,6 @@ class SmartOutput {
             } else {
                 outArray = new Float64Array(buffer);
             }
-
         }
 
         return outArray;
@@ -399,8 +398,16 @@ class SmartOutput {
         // the unsigned output which is not shortened.
 
         if (negative) {
-            const n = this.compile(Uint8ArrayOut, "uint_n", littleEndian);
-            Uint8ArrayOut = SmartInput.toBytes(-n, {littleEndian, numberMode: false, signed: false})[0];
+            let n;
+            if (type.match(/^float/)) {
+                n = -(this.compile(Uint8ArrayOut, "float_n", littleEndian));
+            } else {
+                n = -(this.compile(Uint8ArrayOut, "uint_n", littleEndian));
+            }
+            if (type === "float_n") {
+                return n;
+            }
+            Uint8ArrayOut = SmartInput.toBytes(n, {littleEndian, numberMode: false, signed: false})[0];
         }
 
         if (type === "buffer") {
@@ -515,7 +522,7 @@ let DEFAULT_OUTPUT_HANDLER = SmartOutput;
  */
 class Utils {
 
-    constructor(main) {
+    constructor(main, addCharsetTools=true) {
 
         // Store the calling class in this.root
         // for accessability.
@@ -523,7 +530,8 @@ class Utils {
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
-        if ("charsets" in main) this.#charsetUserToolsConstructor();
+
+        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -585,7 +593,10 @@ class Utils {
 
         // Save method (argument gets validated) to 
         // change the default version.
-        this.root.setDefaultVersion = (version) => [this.root.version] = this.validateArgs([version]);
+        this.root.setDefaultVersion = (version) => {
+            ( {version } = this.validateArgs([version]) );
+            this.root.version = version;
+        };
     }
 
     makeArgList(args) {
@@ -1179,17 +1190,55 @@ class BaseTemplate {
     }
 }
 
+/**
+ * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-1.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+/**
+ * BaseEx Base 1 Converter.
+ * -----------------------
+ * This is a unary/base1 converter. It is converting input 
+ * to a decimal number, which is converted into an unary
+ * string. Due to the limitations on string (or array) length
+ * it is only suitable for the  conversions of numbers up to
+ * roughly 2^28.
+ */
 class Base1 extends BaseTemplate {
+    
+    /**
+     * BaseEx Base1 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
         super();
 
-        this.charsets.all = "*";
-        this.charsets.list = "*";
-        this.charsets.default = "1";
-        this.charsets.tmark = "|";
+        // Remove global charset adding method as
+        // it is not suitable for this converter.
+        delete this.addCharset;
 
+        // All chars in the sting are used and picked randomly (prob. suitable for obfuscation)
+        this.charsets.all = " !\"#$%&\'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        
+        // The sequence is used from left to right again and again
+        this.charsets.sequence = "Hello World!";
+        
+        // Standard unary string with one character
+        this.charsets.default = "1";
+
+        // Telly Mark string, using hash for 5 and vertical bar for 1 
+        this.charsets.tmark = "|#";
+
+        // Base 10 converter
         this.converter = new BaseConverter(10, 0, 0);
+        
+        // Converter settings
+        this.hasSignedMode = true;
         this.littleEndian = true;
+        this.signed = true;
         
         this.isMutable.signed = true;
         this.isMutable.upper = true;
@@ -1198,6 +1247,13 @@ class Base1 extends BaseTemplate {
         this.utils.validateArgs(args, true);
     }
     
+
+    /**
+     * BaseEx Base1 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Base1 encoded string.
+     */
     encode(input, ...args) {
 
         // argument validation and input settings
@@ -1210,18 +1266,44 @@ class Base1 extends BaseTemplate {
         let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
         
         let n = BigInt(base10);
-        let output = "";
 
         // Limit the input before it even starts.
-        // the executing engine will most likely
+        // The executing engine will most likely
         // give up much earlier.
         // (2**29-24 during tests)
 
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
+        } else if (n > 16777216) {
+            this.utils.constructor.warning("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
         }
+        
+        n = Number(n);
+        
+        const charset = this.charsets[settings.version];
+        const charAmount = charset.length;
+        let output = "";
 
-        output = this.charsets[settings.version].repeat(Number(n));
+        // Convert to unary in respect to the version differences
+        if (charAmount === 1) {
+            output = charset.repeat(n);
+        } else if (settings.version === "all") {
+            for (let i=0; i<n; i++) {
+                const charIndex = Math.floor(Math.random() * charAmount); 
+                output += charset[charIndex];
+            }
+        } else if (settings.version === "tmark") {
+            const singulars = n % 5;
+            if (n > 4) {
+                output = charset[1].repeat((n - singulars) / 5);
+            }
+            output += charset[0].repeat(singulars);
+        } else {
+            for (let i=0; i<n; i++) {
+                output += charset[i%charAmount];
+            }
+        }
+        
         output = this.utils.toSignedStr(output, negative);
 
         if (settings.upper) {
@@ -1231,6 +1313,12 @@ class Base1 extends BaseTemplate {
         return output;
     }
 
+    /**
+     * BaseEx Base1 Decoder.
+     * @param {string} input - Base1/Unary String.
+     * @param  {...any} [args] - Converter settings. 
+     * @returns {*} - Output according to converter settings.
+     */
     decode(input, ...args) {
 
         // Argument validation and output settings
@@ -1244,8 +1332,11 @@ class Base1 extends BaseTemplate {
         [input, negative] = this.utils.extractSign(input);
         
         // remove all but the relevant character
-        const regex = new RegExp(`[^${this.charsets[settings.version]}]`,"g");
-        input = input.replace(regex, "");
+        if (settings.version !== "all") {
+            const cleanedSet = [...new Set(this.charsets[settings.version])].join("");
+            const regex = new RegExp(`[^${cleanedSet}]`,"g");
+            input = input.replace(regex, "");
+        }
         input = String(input.length);
 
         // Run the decoder
@@ -1255,7 +1346,5 @@ class Base1 extends BaseTemplate {
         return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 }
-
-// TODO: charset adding expects 10 values....
 
 export { Base1 };
