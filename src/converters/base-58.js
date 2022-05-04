@@ -1,20 +1,48 @@
+/**
+ * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-58.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
 import { BaseConverter, BaseTemplate } from "../core.js";
 
+/**
+ * BaseEx Base 58 Converter.
+ * ------------------------
+ * 
+ * This is a base58 converter. Various input can be 
+ * converted to a base58 string or a base58 string
+ * can be decoded into various formats.
+ * 
+ * Available charsets are:
+ *  - default
+ *  - bitcoin
+ *  - twitter
+ */
 export class Base58 extends BaseTemplate{
 
+    /**
+     * BaseEx Base58 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
         super(); 
 
+        // charsets
         this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
         this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
         this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
 
-        // predefined settings
+        // converter
         this.converter = new BaseConverter(58, 0, 0);
+
+        // predefined settings
         this.padding = true;
         this.version = "bitcoin";
         
-        // list of allowed/disallowed args to change
+        // mutable extra args
         this.isMutable.padding = true;
         this.isMutable.signed = true;
 
@@ -22,6 +50,13 @@ export class Base58 extends BaseTemplate{
         this.utils.validateArgs(args, true);
     }
 
+    
+    /**
+     * BaseEx Base58 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Base58 encoded string.
+     */
     encode(input, ...args) {
 
         const applyPadding = (scope) => {
@@ -63,6 +98,13 @@ export class Base58 extends BaseTemplate{
         return super.encode(input, null, applyPadding, ...args);
     }
 
+
+    /**
+     * BaseEx Base58 Decoder.
+     * @param {string} input - Base58 String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
     decode(rawInput, ...args) {
         
         // post decoding function

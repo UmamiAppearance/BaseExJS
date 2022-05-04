@@ -18,7 +18,7 @@ import {  BaseConverter, BaseTemplate } from "../core.js";
  * to convert in both signed and unsigned mode in little
  * and big endian byte order.
  * 
- * Avail charsets are:
+ * Available charsets are:
  *  - RFC 3548
  *  - RFC 4648
  *  - crockford
