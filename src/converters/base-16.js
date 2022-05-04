@@ -1,5 +1,5 @@
 /**
- * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-16.js}
+ * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
  * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
@@ -16,7 +16,6 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  * decoded into various formats. It is possible to 
  * convert in both signed and unsigned mode.
  */
-
 export class Base16 extends BaseTemplate {
 
     /**
@@ -26,18 +25,21 @@ export class Base16 extends BaseTemplate {
     constructor(...args) {
         super();
 
+        // converter
+        this.converter = new BaseConverter(16, 1, 2);
+
         // default settings
         this.charsets.default = "0123456789abcdef";
         this.hasSignedMode = true;
         
-        this.converter = new BaseConverter(16, 1, 2);
-        
+        // mutable extra args
         this.isMutable.signed = true;
         this.isMutable.upper = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);
     }
+
 
     /**
      * BaseEx Base16 Encoder.
@@ -49,6 +51,7 @@ export class Base16 extends BaseTemplate {
         return super.encode(input, null, null, ...args);
     }
 
+    
     /**
      * BaseEx Base16 Decoder.
      * @param {string} input - Base16/Hex String.

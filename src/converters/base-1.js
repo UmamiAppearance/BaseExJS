@@ -1,5 +1,5 @@
 /**
- * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-1.js}
+ * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-1.js}
  *
  * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
@@ -45,11 +45,12 @@ export class Base1 extends BaseTemplate {
         // Base 10 converter
         this.converter = new BaseConverter(10, 0, 0);
         
-        // Converter settings
+        // converter settings
         this.hasSignedMode = true;
         this.littleEndian = true;
         this.signed = true;
         
+        // mutable extra args
         this.isMutable.signed = true;
         this.isMutable.upper = true;
         
@@ -122,6 +123,7 @@ export class Base1 extends BaseTemplate {
         
         return output;
     }
+    
 
     /**
      * BaseEx Base1 Decoder.

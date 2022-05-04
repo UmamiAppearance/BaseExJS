@@ -1,42 +1,53 @@
 /**
- * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/base-16.js}
+ * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-32.js}
  *
  * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
 
-
-/**
- * En-/decoding to and from Base16/Hexadecimal.
- * -------------------------------------------
- * 
- * This is a base16/converter. Various input can be 
- * converted to a hex string or a hex string can be
- * decoded into various formats. It is possible to 
- * convert in both signed and unsigned mode.
- */
-
-
 import {  BaseConverter, BaseTemplate } from "../core.js";
 
+/**
+ * BaseEx Base 32 Converter.
+ * ------------------------
+ * 
+ * This is a base32 converter. Various input can be 
+ * converted to a base32 string or a base32 string
+ * can be decoded into various formats. It is possible
+ * to convert in both signed and unsigned mode in little
+ * and big endian byte order.
+ * 
+ * Avail charsets are:
+ *  - RFC 3548
+ *  - RFC 4648
+ *  - crockford
+ *  - zbase32
+ */
 export class Base32 extends BaseTemplate {
     
+    /**
+     * BaseEx Base32 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
         super();
 
+        // charsets
         this.charsets.rfc3548 =   "abcdefghijklmnopqrstuvwxyz234567";
         this.charsets.rfc4648 =   "0123456789abcdefghijklmnopqrstuv";
         this.charsets.crockford = "0123456789abcdefghjkmnpqrstvwxyz";
         this.charsets.zbase32 =   "ybndrfg8ejkmcpqxot1uwisza345h769";
-    
-        // predefined settings
+        
+        // converter
         this.converter = new BaseConverter(32, 5, 8);
+
+        // predefined settings
         this.hasSignedMode = true;
         this.padding = true;
         this.version = "rfc4648";
         
-        // list of allowed/disallowed args to change
+        // mutable extra args
         this.isMutable.littleEndian = true;
         this.isMutable.padding = true;
         this.isMutable.signed = true;
@@ -46,6 +57,13 @@ export class Base32 extends BaseTemplate {
         this.utils.validateArgs(args, true);
     }
     
+
+    /**
+     * BaseEx Base32 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Base32 encoded string.
+     */
     encode(input, ...args) {
 
         const applyPadding = (scope) => {
@@ -69,6 +87,13 @@ export class Base32 extends BaseTemplate {
         return super.encode(input, null, applyPadding, ...args);
     }
 
+
+    /**
+     * BaseEx Base32 Decoder.
+     * @param {string} input - Base32 String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
     decode(rawInput, ...args) {
         return super.decode(rawInput, null, null, ...args);
     }
