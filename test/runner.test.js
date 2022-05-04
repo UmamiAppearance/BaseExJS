@@ -1,4 +1,5 @@
 import * as BaseEx from "../src/base-ex.js";
+import { base1Tests } from "./base-1.test.js";
 import { baseTest } from "./base.test.js";
 import { simpleBaseTests } from "./simple-base.test.js";
 
@@ -21,7 +22,10 @@ for (const cls in BaseEx) {
     }
 }
 
-const EXTRA_TESTS = [simpleBaseTests];
+const EXTRA_TESTS = [
+    base1Tests,
+    simpleBaseTests
+];
 
 // Initialize object to store test data
 const TEST_DATA = {

@@ -6,7 +6,7 @@ export class Base1 extends BaseTemplate {
 
         delete this.addCharset;
 
-        this.charsets.all = " !\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        this.charsets.all = " !\"#$%&\'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         this.charsets.sequence = "Hello World!";
         this.charsets.default = "1";' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
         this.charsets.tmark = "|#";
@@ -43,11 +43,11 @@ export class Base1 extends BaseTemplate {
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
         } else if (n > 16777216) {
-            this.utils.constructor.warning("The expected string length is really long. You might get in trouble with your memory.");
+            this.utils.constructor.warning("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
         }
+        
         n = Number(n);
         
-
         const charset = this.charsets[settings.version];
         const charAmount = charset.length;
         let output = "";
@@ -94,7 +94,7 @@ export class Base1 extends BaseTemplate {
         
         // remove all but the relevant character
         if (settings.version !== "all") {
-            const cleanedSet = [...new Set(this.charsets[settings.version])].join("")
+            const cleanedSet = [...new Set(this.charsets[settings.version])].join("");
             const regex = new RegExp(`[^${cleanedSet}]`,"g");
             input = input.replace(regex, "");
         }

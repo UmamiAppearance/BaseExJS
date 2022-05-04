@@ -1,7 +1,7 @@
 import { Base1, SimpleBase } from "../src/base-ex.js";
-import { makeError } from "./helpers.js";
+import { makeError, randInt } from "./helpers.js";
 
-function base1Test(testData, verbose=false) {
+async function base1Tests(testData, verbose=false) {
     if (verbose) console.log("Testing Base 1 Converter...");
 
     const base1 = new Base1();
@@ -13,6 +13,7 @@ function base1Test(testData, verbose=false) {
     testData.Base1.passed = 0;
     testData.Base1.failed = 0;
 
+    // string
     if (verbose) console.log("> Testing String Input");
     if (verbose) console.log(">> Testing encoding");
     testData.Base1.testCount++;
@@ -46,12 +47,48 @@ function base1Test(testData, verbose=false) {
             testData.totalErrors++;
             makeError(testData, "Base1", "string", `${str1.length} x 1`, output, input);
         }
-    } 
+    }
+
+    // integers
+    for (const int of ["Uint", "Int"]) {
+        
+        const signMulti = (int === "Uint") ? 1 : -1;
+        
+        if (verbose) console.log(`> Testing ${int} Input`);
+        if (verbose) console.log(">> Testing encoding");
+        testData.Base1.testCount++;
+        testData.totalTests++;
+
+        input = randInt(256, 2**24) * signMulti;
+        const b1Int = base1.encode(input);
+
+        if ((b1Int.length-(signMulti<0))*signMulti === input) {
+            passed = true;
+            testData.Base1.passed++;
+        } else {
+            passed = false;
+            testData.Base1.failed++;
+            testData.totalErrors++;
+            makeError(testData, "Base1", int, input, `${b1Int.length} x 1`, `${input} x 1`);
+        }
+
+        if (passed) {
+            if (verbose) console.log(">> Testing decoding");
+            testData.Base1.testCount++;
+            testData.totalTests++;
+
+            const output = base1.decode(b1Int, `${int.toLowerCase}_n`);
+            if (output === input) {
+                testData.Base1.passed++;
+            } else {
+                testData.Base1.failed++;
+                testData.totalErrors++;
+                makeError(testData, "Base1", int, `${b1Int.length} x 1`, output, input);
+            }
+        }
+    }
+
+    return true;
 }
 
-const testData = {
-    totalTests: 0,
-    totalErrors: 0
-}
-
-base1Test(testData, true);
+export { base1Tests }
