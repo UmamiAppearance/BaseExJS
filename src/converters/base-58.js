@@ -1,5 +1,5 @@
 /**
- * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-58.js}
+ * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
  * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
@@ -105,7 +105,7 @@ export class Base58 extends BaseTemplate{
      * @param  {...any} [args] - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, ...args) {
+    decode(input, ...args) {
         
         // post decoding function
         const applyPadding = (scope) => {
@@ -134,6 +134,6 @@ export class Base58 extends BaseTemplate{
             return output;
         }
 
-        return super.decode(rawInput, null, applyPadding, ...args);
+        return super.decode(input, null, applyPadding, ...args);
     }
 }

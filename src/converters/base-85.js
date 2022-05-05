@@ -1,13 +1,26 @@
-/*
- * En-/decoding to and from Base85.
- * -------------------------------
+/**
+ * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * Four versions are supported: 
- *   
- *     * adobe
- *     * ascii85
- *     * rfc1924
- *     * z85
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+import { BaseConverter, BaseTemplate } from "../core.js";
+
+/**
+ * BaseEx Base 85 Converter.
+ * ------------------------
+ * 
+ * This is a base85 converter. Various input can be 
+ * converted to a base85 string or a base85 string
+ * can be decoded into various formats.
+ * 
+ * Available charsets are:
+ *  - adobe
+ *  - ascii85
+ *  - rfc1924
+ *  - z85
  * 
  * Adobe and ascii85 are the basically the same.
  * Adobe will produce the same output, apart from
@@ -20,27 +33,38 @@
  * the mandatory 128 bit calculation. Instead only 
  * the charset is getting used.
  */
-
-import { BaseConverter, BaseTemplate } from "../core.js";
- 
 export class Base85 extends BaseTemplate {
 
+    /**
+     * BaseEx Base85 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
         super();
 
-        this.charsets.ascii85 = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
-        this.charsets.adobe =   this.charsets.ascii85;
-        this.charsets.rfc1924 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
-        this.charsets.z85 =     "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
+        // charsets
+        this.charsets.adobe   =  "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
+        this.charsets.ascii85 =  this.charsets.adobe;
+        this.charsets.rfc1924 =  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
+        this.charsets.z85     =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
+
+        // converter
+        this.converter = new BaseConverter(85, 4, 5, 84);
 
         // predefined settings
-        this.converter = new BaseConverter(85, 4, 5, 84);
         this.version = "ascii85";
         
         // apply user settings
         this.utils.validateArgs(args, true);
     }
     
+
+    /**
+     * BaseEx Base85 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Base85 encoded string.
+     */
     encode(input, ...args) {
 
         // Replace five consecutive "!" with a "z"
@@ -52,8 +76,7 @@ export class Base85 extends BaseTemplate {
             }
             return replacer;
         }
-                
-        
+                    
         // Remove padded values and add a frame for the
         // adobe variant
         const framesAndPadding = (scope) => {
@@ -75,11 +98,16 @@ export class Base85 extends BaseTemplate {
         }
 
         return super.encode(input, replacerFN, framesAndPadding, ...args);
-
     }
 
-    decode(rawInput, ...args) {
 
+    /**
+     * BaseEx Base85 Decoder.
+     * @param {string} input - Base85 String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+    decode(input, ...args) {
 
         const prepareInput = (scope) => {
 
@@ -97,6 +125,6 @@ export class Base85 extends BaseTemplate {
             return input
         }
 
-        return super.decode(rawInput, prepareInput, null, ...args);
+        return super.decode(input, prepareInput, null, ...args);
     }
 }

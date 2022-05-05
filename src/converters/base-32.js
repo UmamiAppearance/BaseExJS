@@ -1,5 +1,5 @@
 /**
- * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-32.js}
+ * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
  *
  * @version 0.4.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
@@ -94,7 +94,7 @@ export class Base32 extends BaseTemplate {
      * @param  {...any} [args] - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, ...args) {
-        return super.decode(rawInput, null, null, ...args);
+    decode(input, ...args) {
+        return super.decode(input, null, null, ...args);
     }
 }

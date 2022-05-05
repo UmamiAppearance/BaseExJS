@@ -1,3 +1,11 @@
+/**
+ * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
 import { SmartInput, SmartOutput } from "../io-handlers.js";
 
 class ByteConverter {

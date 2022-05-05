@@ -1,27 +1,52 @@
+/**
+ * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
 import { BaseConverter, BaseTemplate } from "../core.js";
 import { Utils } from "../utils.js";
 
 export class LEB128 extends BaseTemplate {
     
+    /**
+     * BaseEx LEB128 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
+        // initialize base template without utils
         super(false);
 
-        this.converter = new BaseConverter(10, 0, 0);
-        this.hexlify = new BaseConverter(16, 1, 2);
-
+        // charsets
         this.charsets.default = "<placeholder>",
         this.charsets.hex = "<placeholder>"
         this.version = "default";
 
+        // converters
+        this.converter = new BaseConverter(10, 0, 0);
+        this.hexlify = new BaseConverter(16, 1, 2);
+
+        // utils (as lacking before)
         this.utils = new Utils(this, false);
         
+        // predefined settings
         this.littleEndian = true;
         this.hasSignedMode = true;
         this.isMutable.signed = true;
 
+        // apply user settings
         this.utils.validateArgs(args, true);
     }
 
+
+    /**
+     * BaseEx LEB128 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {{ buffer: ArrayBufferLike; }} - LEB128 encoded Unit8Array (or hex string of it).
+     */
     encode(input, ...args) {
         
         // argument validation and input settings
@@ -79,6 +104,13 @@ export class LEB128 extends BaseTemplate {
         return Uint8Output;
     }
 
+
+    /**
+     * BaseEx LEB128 Decoder.
+     * @param {{ buffer: ArrayBufferLike; }|string} input - LEB128-Bytes or String of Hex-Version.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
     decode(input, ...args) {
         
         // Argument validation and output settings

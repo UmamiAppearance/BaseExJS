@@ -1,28 +1,52 @@
-/*
- * En-/decoding to and from Base91.
- * -------------------------------
- * 
- * This is an implementation of Joachim Henkes method to
- * encode binary data as ASCII characters -> basE91
- * http://base91.sourceforge.net/
- * 
- * As this method requires to split the bytes, the default
- * conversion class "BaseConverter" is not used in this case.
+/**
+ * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
+ *
+ * @version 0.4.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
 import {  BaseTemplate } from "../core.js";
 
+/**
+ * BaseEx Base 91 Converter.
+ * ------------------------
+ * 
+ * This is a base91 converter. Various input can be 
+ * converted to a base85 string or a base91 string
+ * can be decoded into various formats.
+ * 
+ * It is an  implementation of Joachim Henkes method
+ * to encode binary data as ASCII characters -> basE91
+ * http://base91.sourceforge.net/
+ * 
+ * As this method requires to split the bytes, the
+ * default conversion class "BaseConverter" is not
+ * getting used in this case.
+ */
 export class Base91 extends BaseTemplate {
     
+    /**
+     * BaseEx basE91 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
     constructor(...args) {
         super();
 
+        // charsets
         this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
 
         // apply user settings
         this.utils.validateArgs(args, true);
     }
 
+
+    /**
+     * BaseEx basE91 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - basE91 encoded string.
+     */
     encode(input, ...args) {
        
         // argument validation and input settings
@@ -106,17 +130,14 @@ export class Base91 extends BaseTemplate {
         return output;
     }
 
-    decode(input, ...args) {
-        /* 
-            Decode from base91 string to utf8-string or bytes.
-            -------------------------------------------------
 
-            @input: base91-string
-            @args:
-                "str"       :  tells the encoder, that output should be a string (default)
-                "bytes"     :  tells the encoder, that output should be an array
-                "default"   :  sets the used charset to this variant
-        */
+    /**
+     * BaseEx basE91 Decoder.
+     * @param {string} input - basE91 String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+    decode(input, ...args) {
 
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
@@ -176,6 +197,13 @@ export class Base91 extends BaseTemplate {
         return this.utils.outputHandler.compile(output, settings.outputType);
     }
 
+
+    /**
+     * Divmod Function.
+     * @param {*} x - number 1
+     * @param {*} y - number 2
+     * @returns {number} Modulo y of x
+     */
     divmod (x, y) {
         return [Math.floor(x/y), x%y];
     }
