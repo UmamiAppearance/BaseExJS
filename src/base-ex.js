@@ -45,7 +45,12 @@ class BaseEx {
         this.base85_z85 = new Base85("z85", output);
         this.base91 = new Base91("default",output);
         this.leb128 = new LEB128("default", output);
-        this.byteConverter = new ByteConverter()
+        this.byteConverter = new ByteConverter(output);
+
+        this.simpleBase = {};
+        for (let i=2; i<37; i++) {
+            this.simpleBase[`base${i}`] = new SimpleBase(i, output);
+        }
     }
 }
 
