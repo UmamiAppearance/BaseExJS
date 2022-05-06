@@ -17,12 +17,16 @@ import { ByteConverter } from "./converters/byte-converter.js";
 import { LEB128 } from "./converters/leb-128.js";
 import { SimpleBase } from "./converters/simple-base.js";
 
-
+/**
+ * BaseEx Converter Collection.
+ * ---------------------------
+ * This class holds almost any available converter
+ * of the whole BaseEx converter collection. The 
+ * instances are ready to use. Various input can be 
+ * converted to a base string or the base string can be
+ * decoded into various formats.
+ */
 class BaseEx {
-    /*
-        Collection of common converters. Ready to use
-        instances.
-    */
    
     constructor(output="buffer") {
         this.base1 = new Base1("default", output);

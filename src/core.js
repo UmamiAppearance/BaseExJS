@@ -8,6 +8,13 @@ import { Utils } from "./utils.js";
  */
 class BaseConverter {
 
+    /**
+     * BaseEx BaseConverter Constructor.
+     * @param {number} radix - Radix for the converter.
+     * @param {number} [bsEnc] - Block Size (input bytes grouped by bs) for encoding (if zero the integer has no limitation).
+     * @param {number} [bsDec] - Block Size (input bytes grouped by bs) for decoding (if zero the integer has no limitation).
+     * @param {number} [decPadVal=0] - Value used for padding during decoding.
+     */
     constructor(radix, bsEnc=null, bsDec=null, decPadVal=0) {
         
         this.radix = radix;
@@ -56,10 +63,16 @@ class BaseConverter {
         return [bsEnc, bsDec];
     }
 
+
+    /**
+     * BaseEx Universal Base Encoding.
+     * @param {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} inputBytes - Input as Uint8Array.
+     * @param {string} charset - The charset used for conversion.
+     * @param {boolean} littleEndian - Byte order, little endian bool.
+     * @param {*} replacer - Replacer function can replace groups of characters during encoding.
+     * @returns {number[]} - Output string and padding amount. 
+     */
     encode(inputBytes, charset, littleEndian=false, replacer=null) {
-        /*
-            Encodes to the given radix from a byte array
-        */
 
         // Initialize output string and set yet unknown
         // zero padding to zero.
@@ -165,6 +178,14 @@ class BaseConverter {
         return [output, zeroPadding];
     }
 
+
+    /**
+     *  BaseEx Universal Base Decoding.
+     * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
+     * @param {string} charset - The charset used for conversion.
+     * @param {*} littleEndian - Byte order, little endian bool.
+     * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
+     */
     decode(inputBaseStr, charset, littleEndian=false) {
         /*
             Decodes to a string of the given radix to a byte array
@@ -277,18 +298,46 @@ class BaseConverter {
         return Uint8Array.from(b256Array);
     }
 
+
+    /**
+     * Calculates the amount of bytes, which are padding bytes. 
+     * @param {number} charCount - Pass the amount of characters, which were added during encoding. 
+     * @returns {number} - Amount of padding characters.
+     */
     padBytes(charCount) {
         return Math.floor((charCount * this.bsDec) / this.bsEnc);
     }
 
+    /**
+     * Calculates the amount of bytes which can get removed
+     * from the decoded output bytes. 
+     * @param {number} byteCount - Added bytes for padding 
+     * @returns {number} - Amount of output bytes to be removed.
+     */
     padChars(byteCount) {
         return Math.ceil((byteCount * this.bsEnc) / this.bsDec);
     }
 
+
+    /**
+     * Calculates the power for the current base
+     * according to the given position as BigInt.
+     * 
+     * @param {number} n - Position 
+     * @returns {BigInt} - BigInt power value
+     */
     pow(n) {
         return BigInt(this.radix)**BigInt(n);
     }
 
+
+    /**
+     * Divmod function, which returns the results as
+     * an array of two BigInts.
+     * @param {*} x - Dividend
+     * @param {*} y - Divisor
+     * @returns {number[]} - [Quotient, Remainder]
+     */
     divmod(x, y) {
         [x, y] = [BigInt(x), BigInt(y)];
         return [(x / y), (x % y)];
@@ -302,10 +351,14 @@ class BaseConverter {
  * property is set (to false by default).
  * Also allows global feature additions.
  * 
- * Requires:
- * -> Utils
+ * Requires BaseEx Utils
  */
 class BaseTemplate {
+
+    /**
+     * BaseEx BaseTemplate Constructor.
+     * @param {boolean} appendUtils - If set to false, the utils are not getting used. 
+     */
     constructor(appendUtils=true) {
 
         // predefined settings
@@ -329,6 +382,14 @@ class BaseTemplate {
         };
     }
 
+    /**
+     * BaseEx Generic Encoder.
+     * @param {*} input - Any input the used byte converter allows.
+     * @param {*} [replacerFN] - Replacer function, which is passed to the encoder. 
+     * @param {*} [postEncodeFN] - Function, which is executed after encoding.
+     * @param  {...any} args - Converter settings.
+     * @returns {string} - Base encoded string.
+     */
     encode(input, replacerFN, postEncodeFN, ...args) {
 
         // apply settings
@@ -358,7 +419,7 @@ class BaseTemplate {
             output = output.toUpperCase();
         }
 
-        // modify the output based on a given function (or not)
+        // modify the output based on a given function (optionally)
         if (postEncodeFN) {
             output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
@@ -366,6 +427,15 @@ class BaseTemplate {
         return output;
     }
 
+
+    /**
+     * BaseEx Generic Decoder.
+     * @param {string} rawInput - Base String.
+     * @param {*} [preDecodeFN] - Function, which gets executed before decoding. 
+     * @param {*} [postDecodeFN] - Function, which gets executed after decoding
+     * @param  {...any} args - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
     decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
     
         // apply settings
