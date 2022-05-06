@@ -16,6 +16,7 @@ import { Base91 } from "./converters/base-91.js";
 import { ByteConverter } from "./converters/byte-converter.js";
 import { LEB128 } from "./converters/leb-128.js";
 import { SimpleBase } from "./converters/simple-base.js";
+import { DEFAULT_OUTPUT_HANDLER } from "./utils.js";
 
 /**
  * BaseEx Converter Collection.
@@ -27,29 +28,41 @@ import { SimpleBase } from "./converters/simple-base.js";
  * decoded into various formats.
  */
 class BaseEx {
-   
-    constructor(output="buffer") {
-        this.base1 = new Base1("default", output);
-        this.base16 = new Base16("default", output);
-        this.base32_crockford = new Base32("rfc4648", output);
-        this.base32_rfc3548 = new Base32("rfc3548", output);
-        this.base32_rfc4648 = new Base32("rfc4648", output);
-        this.base32_zbase32 = new Base32("zbase32", output);
-        this.base58 = new Base58("default", output);
-        this.base58_bitcoin = new Base58("bitcoin", output);
-        this.base58_flickr = new Base58("flickr", output);
-        this.base64 = new Base64("default", output);
-        this.base64_urlsafe = new Base64("urlsafe", output);
-        this.base85adobe = new Base85("adobe", output);
-        this.base85ascii = new Base85("ascii85", output);
-        this.base85_z85 = new Base85("z85", output);
-        this.base91 = new Base91("default",output);
-        this.leb128 = new LEB128("default", output);
-        this.byteConverter = new ByteConverter(output);
+    
+    /**
+     * BaseEx Base Collection Constructor.
+     * @param {string} [outputType] - Output type. 
+     */
+    constructor(outputType="buffer") {
+
+        if (!DEFAULT_OUTPUT_HANDLER.typeList.includes(outputType)) {
+            let message = `Invalid argument '${outputType}' for output type. Allowed types are:\n`;
+            message = message.concat(DEFAULT_OUTPUT_HANDLER.typeList.join(", "));
+
+            throw new TypeError(message);
+        }
+
+        this.base1 = new Base1("default", outputType);
+        this.base16 = new Base16("default", outputType);
+        this.base32_crockford = new Base32("rfc4648", outputType);
+        this.base32_rfc3548 = new Base32("rfc3548", outputType);
+        this.base32_rfc4648 = new Base32("rfc4648", outputType);
+        this.base32_zbase32 = new Base32("zbase32", outputType);
+        this.base58 = new Base58("default", outputType);
+        this.base58_bitcoin = new Base58("bitcoin", outputType);
+        this.base58_flickr = new Base58("flickr", outputType);
+        this.base64 = new Base64("default", outputType);
+        this.base64_urlsafe = new Base64("urlsafe", outputType);
+        this.base85adobe = new Base85("adobe", outputType);
+        this.base85ascii = new Base85("ascii85", outputType);
+        this.base85_z85 = new Base85("z85", outputType);
+        this.base91 = new Base91("default",outputType);
+        this.leb128 = new LEB128("default", outputType);
+        this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};
         for (let i=2; i<37; i++) {
-            this.simpleBase[`base${i}`] = new SimpleBase(i, output);
+            this.simpleBase[`base${i}`] = new SimpleBase(i, outputType);
         }
     }
 }

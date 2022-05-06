@@ -1,7 +1,7 @@
 import { BytesInput, BytesOutput, SmartInput, SmartOutput } from "./io-handlers.js";
 
-let DEFAULT_INPUT_HANDLER = SmartInput;
-let DEFAULT_OUTPUT_HANDLER = SmartOutput;
+const DEFAULT_INPUT_HANDLER = SmartInput;
+const DEFAULT_OUTPUT_HANDLER = SmartOutput;
 
 
 /**
@@ -270,3 +270,5 @@ export class Utils {
         }
     }
 }
+
+export { DEFAULT_INPUT_HANDLER, DEFAULT_OUTPUT_HANDLER };
