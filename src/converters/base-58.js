@@ -19,7 +19,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  * Available charsets are:
  *  - default
  *  - bitcoin
- *  - twitter
+ *  - flickr
  */
 export class Base58 extends BaseTemplate{
 

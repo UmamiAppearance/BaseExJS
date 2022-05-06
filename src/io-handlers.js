@@ -1,4 +1,4 @@
-/*
+/**
  * Simple Input Handler.
  * --------------------
  * Accepts only bytes eg. TypedArray, ArrayBuffer,
@@ -14,7 +14,7 @@ class BytesInput {
     }
 }
 
-/*
+/**
  * Simple Output Handler.
  * ---------------------
  * Returns bytes in the form of:
@@ -61,7 +61,7 @@ class BytesOutput {
 }
 
 
-/*
+/**
  * Advanced Input Handler.
  * ----------------------
  * Accepts almost every Input and converts it
@@ -286,7 +286,7 @@ class SmartInput {
     }
 }
 
-/*
+/** 
  * Advanced Output Handler.
  * ----------------------- 
  * This Output handler makes it possible to

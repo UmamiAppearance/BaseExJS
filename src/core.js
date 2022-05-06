@@ -1,6 +1,8 @@
 import { Utils } from "./utils.js";
 
 /**
+ * BaseEx Base Converter.
+ * ---------------------
  * Core class for base-conversion and substitution
  * based on a given charset.
  */

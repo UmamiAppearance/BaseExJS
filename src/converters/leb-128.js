@@ -9,6 +9,19 @@
 import { BaseConverter, BaseTemplate } from "../core.js";
 import { Utils } from "../utils.js";
 
+/**
+ * BaseEx Little Endian Base 128 Converter.
+ * ---------------------------------------
+ * 
+ * This is a leb128 converter. Various input can be 
+ * converted to a leb128 string or a leb128 string
+ * can be decoded into various formats.
+ * 
+ * There is no real charset available as the input is
+ * getting converted to bytes. For having the chance 
+ * to store these byes, there is a hexadecimal output
+ * available.
+ */
 export class LEB128 extends BaseTemplate {
     
     /**
