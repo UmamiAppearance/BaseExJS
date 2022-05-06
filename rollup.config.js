@@ -43,10 +43,11 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
             converter.plugins = [
                 replace({
                     values: {
-                        "DEFAULT_INPUT_HANDLER": "BytesInput",
-                        "DEFAULT_OUTPUT_HANDLER": "BytesOutput",
+                        "SmartInput": " BytesInput",
+                        "SmartOutput": " BytesOutput",
                     },
                     preventAssignment: true,
+                    delimiters: [' ', ';'],
                 })
             ]
         }
