@@ -25,7 +25,35 @@
                 str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))),
                 toStrBytes: input => input.join(" "),
                 toUint: input => new Uint8Array(input.split(" ")),
-            }       
+            }
+
+            const handleInput = (strInput) => {
+
+                let input;
+                
+                if (Data.curTypes.encode === "bytes") {
+                    input = byteConverter.toUint(strInput);
+                }   
+                else if (Data.curTypes.encode === "int_n") {
+                    input = BigInt(strInput);
+                    if (input > -Number.MAX_SAFE_INTEGER && input < Number.MAX_SAFE_INTEGER) {
+                        input = Number(input);
+                    }
+                } 
+                else if (Data.curTypes.encode === "float_n") {
+                    input = parseFloat(strInput);
+                } 
+                else if (Data.curTypes.encode === "str") {
+                    input = strInput;
+                }
+
+                return input;
+            }
+
+            const showInvalid = () => {
+                console.error("make it red");
+            }
+
 
             // Global data object (source of truth) for Vue
             const Data = {
@@ -82,7 +110,7 @@
                         const subFNName = baseEx[this.curTypes.decode].constructor.name;
                         
                         const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
-                        const fixedType = (isDecoding) ? `, "${this.curTypes.encode}"` : "";
+                        const outputType = (isDecoding) ? `, "${this.curTypes.encode}"` : "";
  
                         // import types
                         const importComment = (this.importType.match(".*esm")) ? `${this.importType}-module` : this.importType;
@@ -125,24 +153,24 @@
 
                             // Main class BaseEx
                             const baseEx = new ${scopeVar}BaseEx();
-                            const output${numbering.shift()} = baseEx.${this.curTypes.decode}.${this.mode}(input${fixedType});\n`;
+                            const output${numbering.shift()} = baseEx.${this.curTypes.decode}.${this.mode}(input${outputType});\n`;
                         
                         if (isDecoding) { codeContent += `
                             // Alternative: 
                             // Main class BaseEx, setting "${this.curTypes.encode}" as default output type
-                            const baseEx_${this.curTypes.encode} = new ${scopeVar}BaseEx(${fixedType.substr(2)});
+                            const baseEx_${this.curTypes.encode} = new ${scopeVar}BaseEx(${outputType.substr(2)});
                             const output${numbering.shift()} = baseEx_${this.curTypes.encode}.${this.curTypes.decode}.${this.mode}(input);\n`;
                         }
                         
                         codeContent +=`
                             // Direct use of the required base converter
                             const ${this.curTypes.decode} = new ${scopeVar}${subFNName}(${version});
-                            const output${numbering.shift()} = ${this.curTypes.decode}.${this.mode}(input${fixedType});\n`;
+                            const output${numbering.shift()} = ${this.curTypes.decode}.${this.mode}(input${outputType});\n`;
                         
                         if (isDecoding) { codeContent += `
                             // Alternative:
                             // Direct use of the base converter, setting "${this.curTypes.encode}" as default output type
-                            const ${this.curTypes.decode}_${this.curTypes.encode} = new ${scopeVar}${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
+                            const ${this.curTypes.decode}_${this.curTypes.encode} = new ${scopeVar}${subFNName}("${baseEx[this.curTypes.decode].version}"${outputType});
                             const output${numbering.shift()} = ${this.curTypes.decode}_${this.curTypes.encode}.${this.mode}(input);\n`;
                         }
 
@@ -152,7 +180,7 @@
 
                         // <<< codeblock end
 
-                        // return prettified version
+                        // return prettified version (leading whitespace removed first)
                         return PR.prettyPrintOne(codeContent.replace(/^\ +/gm, ''), "js");
                     },
                 },
@@ -205,7 +233,16 @@
 
                                 // Convert this.input or this.output to bytes/str
                                 // according to the select field from in- or output
-                                this[this._type] = byteConverter[val](this[this._type]);
+                                const otherField = (this._type === "input") ? "output" : "input";
+                                let fieldVal;
+                                try {
+                                    fieldVal = baseEx[this.curTypes.decode].decode(this[otherField], this.curTypes.encode);
+                                } catch(e) {
+                                    fieldVal = this[this._type];
+                                    showInvalid();
+                                }
+
+                                this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(fieldVal) : String(fieldVal);
 
                             } else {
                                 // Change the current base type on the 
@@ -225,7 +262,12 @@
                                     // gets encoded back and refreshes on input. 
 
                                     const input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.output) : this.output;
-                                    this.input = baseEx[val].encode(input, this.curTypes.encode);
+                                    
+                                   try { 
+                                        this.input = baseEx[val].encode(input, this.curTypes.encode);
+                                   } catch(e) {
+                                       showInvalid();
+                                   }
                                 }
                             }
                         },
@@ -237,7 +279,8 @@
 
                         get: function() {
                             // Returns this.input or this.output
-                            // according to the _type 
+                            // according to the _type
+                            
                             return this[this._type];
                         },
 
@@ -245,7 +288,7 @@
                             // Gets called if the user changes the input
                             // (also after a select field changes)
 
-                            // The actual input, that feeds the BaseEx
+                            // The actual input, that feedArrayBuffer.isViews the BaseEx
                             // class can vary. Therefore a local var "input"
                             // gets initialized.
                             let input;
@@ -270,21 +313,12 @@
                                 // Also set "input" to this value for starters
                                 input = val;
 
-                                if (this.curTypes.encode === "bytes") {
-                                    // If there are bytes involved either ...
-                                    if (this.mode === "encode") {
-                                        // ... convert the byte string to actual 
-                                        // bytes (typed uInt8array) ...
+                                if (this.mode === "encode") {
+                                    input = handleInput(val);
+                                } else if (this.curTypes.encode === "bytes") {
+                                    toStrBytes = true;
+                                } 
 
-                                        input = byteConverter.toUint(val);
-                                    } else {
-                                        
-                                        // ... or convert the output to a
-                                        // byte string as a last step 
-                                        // (depends on mode [en-/decode]).
-                                        toStrBytes = true;
-                                    }
-                                }
                             } else {
                                 // If the type of the textarea is output
                                 // use "this.input" directly or convert
@@ -295,10 +329,17 @@
                             
                             // Generate output by running the
                             // specified conversion.
-                            const output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
+                            let output; 
+                            try {
+                                output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
+                            } catch(e) {
+                                showInvalid();
+                            }
 
                             // As explained above.
-                            this.output = (toStrBytes) ? byteConverter.toStrBytes(output) : output;
+                            if (output) {
+                                this.output = (toStrBytes) ? byteConverter.toStrBytes(output) : output;
+                            }
                         },
                     },
                 },
@@ -485,7 +526,7 @@
                     <h3>input</h3>
                     <in-out-form
                         _type="input"
-                        placeholder="Input text/bytes goes here..."
+                        placeholder="Input goes here..."
                         v-bind:readonly="false"
                     ></in-out-form>
                 </article>
