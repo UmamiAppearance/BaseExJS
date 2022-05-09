@@ -11,10 +11,9 @@
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
         <script type="module">
-            import {BaseEx} from "../src/base-ex.js"
-            //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.min.js";
+            import { BaseEx } from "../src/base-ex.js"
+
             //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.33/dist/vue.esm-browser.prod.js";
-            //import Vue from "https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.esm.browser.js";
             import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.33/dist/vue.esm-browser.js";
 
             // Initialize main BaseEx class
@@ -26,7 +25,7 @@
                 str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))),
                 toStrBytes: input => input.join(" "),
                 toUint: input => new Uint8Array(input.split(" ")),
-            }
+            }       
 
             // Global data object (source of truth) for Vue
             const Data = {
@@ -38,7 +37,7 @@
                     decode: "base64",
                 },
                 dataTypes: {
-                    encode: ["str", "bytes"],
+                    encode: ["str", "bytes", "int_n", "float_n"],
                     decode: Object.keys(baseEx),
                 },
                 importType: "esm",
@@ -62,6 +61,7 @@
                 computed: {
                     code: function() {
                         const isBytes = this.curTypes.encode === "bytes";
+                        const isDecoding = (this.mode === "decode");
                         
                         // generate a byte string, that is separated by commas
                         const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
@@ -77,13 +77,12 @@
                         }
                         
                         // generate code for bytes (needs some work) or string (as is)
-                        const input = (this.mode === "encode" && isBytes) ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
+                        const input = (!isDecoding && isBytes) ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
                         
                         const subFNName = baseEx[this.curTypes.decode].constructor.name;
                         
                         const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
-                        const fixedType = (isBytes) ? `, "${this.curTypes.encode}", "${this.curTypes.encode}"` : "";
-                        const use = (isBytes) ? "setting as default:" : "making use of default";
+                        const fixedType = (isDecoding) ? `, "${this.curTypes.encode}"` : "";
  
                         // import types
                         const importComment = (this.importType.match(".*esm")) ? `${this.importType}-module` : this.importType;
@@ -112,46 +111,55 @@
                             note = "// Note:\n// - remember to adjust the path in your script tag";
                         }
 
+                        const numbering = ["A", "B", "C", "D"];
+
                         
                         // codeblock output >>>
 
-                        const codeContent = `
+                        let codeContent = `
                             // importing as ${importComment}
                             ${importStatement}
 
-                            // setting input
+                            // input assignment
                             const input = ${input.replace("<", "&lt;").replace(">", "&gt;")};
 
                             // Main class BaseEx
-                            const baseExA = new ${scopeVar}BaseEx();
-                            const outputA = baseExA.${this.curTypes.decode}.${this.mode}(input, "${this.curTypes.encode}");
-
-                            // Main class BaseEx, ${use} ${this.curTypes.encode}-type
-                            const baseExB = new ${scopeVar}BaseEx(${fixedType.substr(2)});
-                            const outputB = baseExB.${this.curTypes.decode}.${this.mode}(input);
-
+                            const baseEx = new ${scopeVar}BaseEx();
+                            const output${numbering.shift()} = baseEx.${this.curTypes.decode}.${this.mode}(input${fixedType});\n`;
+                        
+                        if (isDecoding) { codeContent += `
+                            // Alternative: 
+                            // Main class BaseEx, setting "${this.curTypes.encode}" as default output type
+                            const baseEx_${this.curTypes.encode} = new ${scopeVar}BaseEx(${fixedType.substr(2)});
+                            const output${numbering.shift()} = baseEx_${this.curTypes.encode}.${this.curTypes.decode}.${this.mode}(input);\n`;
+                        }
+                        
+                        codeContent +=`
                             // Direct use of the required base converter
-                            const ${this.curTypes.decode}A = new ${scopeVar}${subFNName}(${version});
-                            const outputC = ${this.curTypes.decode}A.${this.mode}(input, "${this.curTypes.encode}");
+                            const ${this.curTypes.decode} = new ${scopeVar}${subFNName}(${version});
+                            const output${numbering.shift()} = ${this.curTypes.decode}.${this.mode}(input${fixedType});\n`;
+                        
+                        if (isDecoding) { codeContent += `
+                            // Alternative:
+                            // Direct use of the base converter, setting "${this.curTypes.encode}" as default output type
+                            const ${this.curTypes.decode}_${this.curTypes.encode} = new ${scopeVar}${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
+                            const output${numbering.shift()} = ${this.curTypes.decode}_${this.curTypes.encode}.${this.mode}(input);\n`;
+                        }
 
-                            // Direct use of the base converter, ${use} ${this.curTypes.encode}-type
-                            const ${this.curTypes.decode}B = new ${scopeVar}${subFNName}("${baseEx[this.curTypes.decode].version}"${fixedType});
-                            const outputD = ${this.curTypes.decode}B.${this.mode}(input);
-
+                        codeContent +=`
                             // ${copyPasteInfo}
-                            ${note}
-                        `.replace(/^\ +/gm, '');
+                            ${note}`;
 
                         // <<< codeblock end
 
                         // return prettified version
-                        return PR.prettyPrintOne(codeContent, "js");
+                        return PR.prettyPrintOne(codeContent.replace(/^\ +/gm, ''), "js");
                     },
                 },
             });
 
 
-            // component for input and output textarea
+            // component for input and output
             app.component('in-out-form', {
 
                 data() {
