@@ -83,7 +83,7 @@ export class Utils {
         // Save method (argument gets validated) to 
         // change the default version.
         this.root.setDefaultVersion = (version) => {
-            ( {version } = this.validateArgs([version]) );
+            ({version } = this.validateArgs([version]));
             this.root.version = version;
         }
     }
@@ -170,7 +170,7 @@ export class Utils {
         }
 
         // set available versions and extra arguments
-        const versions = this.root.hasOwnProperty("charsets") ? Object.keys(this.root.charsets) : [];
+        const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
         const extraArgList = {
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],

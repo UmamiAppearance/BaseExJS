@@ -35,13 +35,10 @@
                     input = byteConverter.toUint(strInput);
                 }   
                 else if (Data.curTypes.encode === "int_n") {
-                    input = BigInt(strInput);
+                    input = BigInt(strInput.replace(/[^\d]/g, ""));
                     if (input > -Number.MAX_SAFE_INTEGER && input < Number.MAX_SAFE_INTEGER) {
                         input = Number(input);
                     }
-                } 
-                else if (Data.curTypes.encode === "float_n") {
-                    input = parseFloat(strInput);
                 } 
                 else if (Data.curTypes.encode === "str") {
                     input = strInput;
@@ -65,7 +62,7 @@
                     decode: "base64",
                 },
                 dataTypes: {
-                    encode: ["str", "bytes", "int_n", "float_n"],
+                    encode: ["str", "bytes", "int_n"],
                     decode: Object.keys(baseEx),
                 },
                 importType: "esm",

@@ -31,7 +31,7 @@ export class Base1 extends BaseTemplate {
         delete this.addCharset;
 
         // All chars in the sting are used and picked randomly (prob. suitable for obfuscation)
-        this.charsets.all = " !\"#$%&\'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         
         // The sequence is used from left to right again and again
         this.charsets.sequence = "Hello World!";
