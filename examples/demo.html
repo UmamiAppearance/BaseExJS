@@ -30,12 +30,23 @@
             const handleInput = (strInput) => {
 
                 let input;
+                let modifiedStr = null;
                 
                 if (Data.curTypes.encode === "bytes") {
-                    input = byteConverter.toUint(strInput);
+                    const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d ]/g, "").replace(/\s\s+/g, " ");
+                    if (cleanedStr !== "strInput") {
+                        modifiedStr = cleanedStr;
+                    }
+                    input = byteConverter.toUint(cleanedStr);
                 }   
                 else if (Data.curTypes.encode === "int_n") {
-                    input = BigInt(strInput.replace(/[^\d]/g, ""));
+                    const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d]/g, "");
+                    if (cleanedStr === "-") {
+                        return 0;
+                    } else if (cleanedStr !== "strInput") {
+                        modifiedStr = cleanedStr;
+                    }
+                    input = BigInt(strInput);
                     if (input > -Number.MAX_SAFE_INTEGER && input < Number.MAX_SAFE_INTEGER) {
                         input = Number(input);
                     }
@@ -44,7 +55,7 @@
                     input = strInput;
                 }
 
-                return input;
+                return [input, modifiedStr];
             }
 
             const showInvalid = () => {
@@ -310,8 +321,16 @@
                                 // Also set "input" to this value for starters
                                 input = val;
 
+                                // If mode is encode, run some tests on the input,
+                                // convert it to the desired type and clean the it
+                                // from unwanted characters. For decode only set
+                                // the bytes switch if dealing with bytes.
                                 if (this.mode === "encode") {
-                                    input = handleInput(val);
+                                    let modifiedStr;
+                                    [input, modifiedStr] = handleInput(val);
+                                    if (modifiedStr) {
+                                        this.input = modifiedStr;
+                                    }
                                 } else if (this.curTypes.encode === "bytes") {
                                     toStrBytes = true;
                                 } 
