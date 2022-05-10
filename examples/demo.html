@@ -21,28 +21,34 @@
 
             // Provide some functions to convert bytes
             const byteConverter = {
-                bytes: input => new TextEncoder().encode(input).join(" "),
-                str: input => new TextDecoder().decode(new Uint8Array(input.split(" "))),
                 toStrBytes: input => input.join(" "),
                 toUint: input => new Uint8Array(input.split(" ")),
             }
 
+            // Takes the provided input and converts it to
+            // the proper type. Unwanted characters are
+            // also getting removed.
             const handleInput = (strInput) => {
 
                 let input;
                 let modifiedStr = null;
                 
                 if (Data.curTypes.encode === "bytes") {
-                    const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d ]/g, "").replace(/\s\s+/g, " ");
+                    
+                    // Replace everything but digits.
+                    const cleanedStr = strInput = strInput.replace(/[^\d ]/g, "").replace(/\s\s+/g, " ");
                     if (cleanedStr !== "strInput") {
                         modifiedStr = cleanedStr;
                     }
-                    input = byteConverter.toUint(cleanedStr);
+                    input = byteConverter.toUint(cleanedStr.trim());
                 }   
                 else if (Data.curTypes.encode === "int_n") {
+
+                    // Replace everything but digits, but allow
+                    // negative sign at the beginning.
                     const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d]/g, "");
                     if (cleanedStr === "-") {
-                        return 0;
+                        return [0, modifiedStr];
                     } else if (cleanedStr !== "strInput") {
                         modifiedStr = cleanedStr;
                     }
@@ -113,7 +119,17 @@
                         }
                         
                         // generate code for bytes (needs some work) or string (as is)
-                        const input = (!isDecoding && isBytes) ? `new Uint8Array([${max56Inpt}])` : `"${max56Inpt}"`;
+                        let input;
+                        if (!isDecoding && isBytes) {
+                            input = `new Uint8Array([${max56Inpt}])`
+                        } else if (!isDecoding && this.curTypes.encode === "int_n") {
+                            input = max56Inpt;
+                            if (input < -Number.MAX_SAFE_INTEGER || input > Number.MAX_SAFE_INTEGER) {
+                                input += "n";
+                            }
+                        } else {
+                            input = `"${max56Inpt}"`;
+                        }
                         
                         const subFNName = baseEx[this.curTypes.decode].constructor.name;
                         
