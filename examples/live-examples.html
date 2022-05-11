@@ -10,8 +10,6 @@
 
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
 
-        <!-- <script src="https://unpkg.com/codeflask/build/codeflask.min.js"></script> -->
-
         <script type="module">
             import { CodeJar } from 'https://medv.io/codejar/codejar.js'
             
@@ -22,22 +20,59 @@
                 window[className] = BaseEx[className];
             }
         
+            const getExample = (exampleID) => {
+                const nodeInnerHTML = document.getElementById(exampleID).innerHTML;
+                const code = nodeInnerHTML.split("\n").slice(2, -2).join("\n");
+                return code;
+            };
+
+            const highlight = (editor) => editor.innerHTML = PR.prettyPrintOne(editor.textContent, "js");
+
+            
+            const runCode = (code) => {
+                const HTMLConsole = document.querySelector("#console");
+                eval(code);
+
+                console.log = consoleLog
+            };
+
+            const makeCodeExample = (name) => {
+
+                // get sample code
+                const exampleScript = getExample(`${name}-code`);
+                
+                // select document section
+                const exampleSection = document.querySelector(`#${name}`);
+                
+
+                // create new html nodes
+                const codeNode = document.createElement("code");
+                
+                const resetBtn = document.createElement("button");
+                      resetBtn.appendChild(document.createTextNode("reset"));
+                      resetBtn.addEventListener("click", () => { runCode(jar.toString()); }, false);
+
+                const executeBtn = document.createElement("button");
+                      executeBtn.appendChild(document.createTextNode("run"));
+                      executeBtn.addEventListener("click", () => { eval(jar.toString()); }, false);
+
+                
+                // initialize jar instance
+                const jar = CodeJar(codeNode, highlight, {
+                    tab: " ".repeat(4),
+                });
+                jar.updateCode(exampleScript);
+                
+                
+                // append nodes to document section
+                exampleSection.appendChild(codeNode);
+                exampleSection.appendChild(resetBtn);
+                exampleSection.appendChild(executeBtn);
+            };
+
             document.addEventListener("DOMContentLoaded", () => {
                 
-                const getExample = (exampleID) => {
-                    const nodeInnerHTML = document.getElementById(exampleID).innerHTML;
-                    const code = nodeInnerHTML.split("\n").slice(2, -2).join("\n");
-                    return code;
-                };
-
-                const highlight = (editor) => {
-                    const code = editor.textContent;
-                    editor.innerHTML = PR.prettyPrintOne(code);
-                }
-
-                const jar = CodeJar(document.querySelector("#example-1-live"), highlight);
-
-                jar.updateCode(getExample("example-1-code"));
+                makeCodeExample("example-1");
 
             }, false);
         
@@ -46,13 +81,11 @@
 <!-- CSS -->
 
         <style>
-            section {
-                align-items: flex-start;
-            }
             code {
                 background-color: aliceblue;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
                 tab-size: 4;
+                min-width: 60%;
             }
             footer {
                 text-align: right;
@@ -65,6 +98,7 @@
     </head>
 
 
+<!-- BEGIN HTML BODY -->
 
     <body>
 
@@ -83,10 +117,11 @@
 
             <hr>
 
-            <section>
+            <section id="example-1">
 
-                <code class="example-code" id="example-1-live"></code>
             </section>
+
+            <section id="console"></section>
        
         </main>
 
@@ -97,12 +132,11 @@
             </a>
         </footer>
 
-<!--  end of html -->
+<!-- END HTML BODY -->
 
-<!-- example templates -->
+<!----------------- EXAMPLE SCRIPT TEMPLATES ---------------->
 
-
-<!-- example 1 -->
+<!------------------------ EXAMPLE 1 ------------------------>
 
 <script id="example-1-code">if (false) {
 // ---------- BEGIN ---------- //
@@ -113,5 +147,143 @@ console.log(testHex);
 // ----------- END ----------- //
 }</script>
 
+<script>
+    (function initGhoulog() {
+  'use strict';
+
+  if (console.log.toDiv) {
+    return;
+  }
+
+  function toString(x) {
+    return typeof x === 'string' ? x : JSON.stringify(x);
+  }
+
+  var log = console.log.bind(console);
+  var error = console.error.bind(console);
+  var warn = console.warn.bind(console);
+  var table = console.table ? console.table.bind(console) : null;
+  var id = 'logdiv';
+
+  function createOuterElement() {
+    var outer = document.getElementById(id);
+    if (!outer) {
+      outer = document.createElement('fieldset');
+      outer.id = id;
+      document.body.appendChild(outer);
+    }
+    outer.classList.add(id);
+
+    var style = outer.style;
+    style.width = '100px';
+    style.height = '100px';
+    style.fontFamily = 'monospace';
+    style.whiteSpace = 'pre';
+    style.padding = '10px 10px';
+    style.position = 'absolute';
+    style.left = '0px';
+    style.top = '0px';
+    style.color = '#1AFF80';
+    style.border = '1px dotted #1AFF80';
+    style.overflow = 'hidden';
+    style.fontSize = '8px';
+    return outer;
+  }
+
+  var logTo = (function createLogDiv() {
+    var outer = createOuterElement();
+    var div = document.createElement('div');
+    div.id = 'console-log-text';
+    outer.appendChild(div);
+    return div;
+  }());
+
+  function printToDiv() {
+    var msg = Array.prototype.slice.call(arguments, 0)
+      .map(toString)
+      .join(' ');
+    var text = logTo.textContent;
+    logTo.textContent = msg + '\n' + text;
+  }
+
+  function logWithCopy() {
+    log.apply(null, arguments);
+    printToDiv.apply(null, arguments);
+  }
+
+  console.log = logWithCopy;
+  console.log.toDiv = true;
+
+  console.error = function errorWithCopy() {
+    error.apply(null, arguments);
+    var args = Array.prototype.slice.call(arguments, 0);
+    args.unshift('ERROR:');
+    printToDiv.apply(null, args);
+  };
+
+  console.warn = function logWarning() {
+    warn.apply(null, arguments);
+    var args = Array.prototype.slice.call(arguments, 0);
+    args.unshift('WARNING:');
+    printToDiv.apply(null, args);
+  };
+
+  function printTable(objArr, keys) {
+
+    var numCols = keys.length;
+    var len = objArr.length;
+    var $table = document.createElement('table');
+    $table.style.width = '100%';
+    $table.setAttribute('border', '1');
+    var $head = document.createElement('thead');
+    var $tdata = document.createElement('td');
+    $tdata.innerHTML = 'Index';
+    $head.appendChild($tdata);
+
+    for (var k = 0; k < numCols; k++) {
+      $tdata = document.createElement('td');
+      $tdata.innerHTML = keys[k];
+      $head.appendChild($tdata);
+    }
+    $table.appendChild($head);
+
+    for (var i = 0; i < len; i++) {
+      var $line = document.createElement('tr');
+      $tdata = document.createElement('td');
+      $tdata.innerHTML = i;
+      $line.appendChild($tdata);
+
+      for (var j = 0; j < numCols; j++) {
+        $tdata = document.createElement('td');
+        $tdata.innerHTML = objArr[i][keys[j]];
+        $line.appendChild($tdata);
+      }
+      $table.appendChild($line);
+    }
+    var div = document.getElementById('console-log-text');
+    div.appendChild($table);
+  }
+
+  console.table = function logTable() {
+    if (typeof table === 'function') {
+      table.apply(null, arguments);
+    }
+
+    var objArr = arguments[0];
+    var keys;
+
+    if (typeof objArr[0] !== 'undefined') {
+      keys = Object.keys(objArr[0]);
+    }
+    printTable(objArr, keys);
+  };
+
+  window.addEventListener('error', function (err) {
+    printToDiv( 'EXCEPTION:', err.message + '\n  ' + err.filename, err.lineno + ':' + err.colno);
+  });
+
+}());
+    
+</script>
 
 </body></html>
