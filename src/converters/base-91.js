@@ -24,7 +24,7 @@ import {  BaseTemplate } from "../core.js";
  * default conversion class "BaseConverter" is not
  * getting used in this case.
  */
-export class Base91 extends BaseTemplate {
+export default class Base91 extends BaseTemplate {
     
     /**
      * BaseEx basE91 Constructor.

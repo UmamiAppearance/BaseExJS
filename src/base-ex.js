@@ -6,17 +6,17 @@
  * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
-import { Base1 }  from "./converters/base-1.js";
-import { Base16 } from "./converters/base-16.js";
-import { Base32 } from "./converters/base-32.js";
-import { Base58 } from "./converters/base-58.js";
-import { Base64 } from "./converters/base-64.js";
-import { Base85 } from "./converters/base-85.js";
-import { Base91 } from "./converters/base-91.js";
-import { ByteConverter } from "./converters/byte-converter.js";
+import Base1  from "./converters/base-1.js";
+import Base16 from "./converters/base-16.js";
+import Base32 from "./converters/base-32.js";
+import Base58 from "./converters/base-58.js";
+import Base64 from "./converters/base-64.js";
+import Base85 from "./converters/base-85.js";
+import Base91 from "./converters/base-91.js";
+import ByteConverter from "./converters/byte-converter.js";
 import { DEFAULT_OUTPUT_HANDLER } from "./utils.js";
-import { LEB128 } from "./converters/leb-128.js";
-import { SimpleBase } from "./converters/simple-base.js";
+import LEB128 from "./converters/leb-128.js";
+import SimpleBase from "./converters/simple-base.js";
 
 
 /**

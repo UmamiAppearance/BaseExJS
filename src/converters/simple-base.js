@@ -1,6 +1,6 @@
 import { BaseConverter, BaseTemplate } from "../core.js";
 
-export class SimpleBase extends BaseTemplate {
+export default class SimpleBase extends BaseTemplate {
     constructor(radix, ...args) {
         super();
 

@@ -21,7 +21,7 @@ import { SmartInput, SmartOutput } from "../io-handlers.js";
  * converters, this is just a little extra tool, which
  * was fast and easy to create.
  */
-class ByteConverter {
+export default class ByteConverter {
 
     /**
      * BaseEx ByteConverter Constructor.
@@ -109,5 +109,3 @@ class ByteConverter {
         return SmartOutput.compile(input, settings.outputType, settings.littleEndian);
     }
 }
-
-export { ByteConverter };

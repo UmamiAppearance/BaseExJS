@@ -22,7 +22,7 @@ import { Utils } from "../utils.js";
  * to store these byes, there is a hexadecimal output
  * available.
  */
-export class LEB128 extends BaseTemplate {
+export default class LEB128 extends BaseTemplate {
     
     /**
      * BaseEx LEB128 Constructor.

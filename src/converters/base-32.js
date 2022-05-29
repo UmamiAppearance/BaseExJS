@@ -24,7 +24,7 @@ import {  BaseConverter, BaseTemplate } from "../core.js";
  *  - crockford
  *  - zbase32
  */
-export class Base32 extends BaseTemplate {
+export default class Base32 extends BaseTemplate {
     
     /**
      * BaseEx Base32 Constructor.

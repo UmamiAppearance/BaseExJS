@@ -21,7 +21,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  *  - bitcoin
  *  - flickr
  */
-export class Base58 extends BaseTemplate{
+export default class Base58 extends BaseTemplate{
 
     /**
      * BaseEx Base58 Constructor.

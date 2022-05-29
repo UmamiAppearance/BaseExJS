@@ -20,7 +20,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  *  - default
  *  - urlsafe
  */
-export class Base64 extends BaseTemplate {
+export default class Base64 extends BaseTemplate {
 
     /**
      * BaseEx Base64 Constructor.

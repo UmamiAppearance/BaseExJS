@@ -16,7 +16,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  * decoded into various formats. It is possible to 
  * convert in both signed and unsigned mode.
  */
-export class Base16 extends BaseTemplate {
+export default class Base16 extends BaseTemplate {
 
     /**
      * BaseEx Base16 Constructor.

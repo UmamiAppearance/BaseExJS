@@ -17,7 +17,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  * it is only suitable for the  conversions of numbers up to
  * roughly 2^28.
  */
-export class Base1 extends BaseTemplate {
+export default class Base1 extends BaseTemplate {
     
     /**
      * BaseEx Base1 Constructor.

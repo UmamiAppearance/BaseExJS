@@ -33,7 +33,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  * the mandatory 128 bit calculation. Instead only 
  * the charset is getting used.
  */
-export class Base85 extends BaseTemplate {
+export default class Base85 extends BaseTemplate {
 
     /**
      * BaseEx Base85 Constructor.
