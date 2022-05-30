@@ -7,8 +7,11 @@
         <link rel="shortcut icon" href="#">
         
         <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
+        <link href="prism.css" rel="stylesheet">
 
-        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+        <!--<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>-->
+        <script src="prism.js"></script>
+        <!--<script src="https://unpkg.com/@highlightjs/cdn-assets@11.5.1/highlight.min.js"></script>-->
 
         <script type="module">
             import { CodeJar } from "https://medv.io/codejar/codejar.js";
@@ -26,7 +29,7 @@
                 return code;
             };
 
-            const highlight = (editor) => editor.innerHTML = PR.prettyPrintOne(editor.textContent, "js");
+            //const highlight = (editor) => editor.innerHTML = PR.prettyPrintOne(editor.textContent, "js");
 
             
             const runCode = (code) => {
@@ -47,6 +50,7 @@
 
                 // create new html nodes
                 const codeNode = document.createElement("code");
+                      codeNode.className = "language-js";
                 
                 const resetBtn = document.createElement("button");
                       resetBtn.appendChild(document.createTextNode("reset"));
@@ -58,7 +62,7 @@
 
                 
                 // initialize jar instance
-                const jar = CodeJar(codeNode, highlight, {
+                const jar = CodeJar(codeNode, (editor) => { Prism.highlightElement(editor); } , {
                     tab: " ".repeat(4),
                 });
                 jar.updateCode(exampleScript);
