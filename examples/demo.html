@@ -7,14 +7,15 @@
         <link rel="shortcut icon" href="#">
         
         <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
+        <link href="./assets/prism.css" rel="stylesheet">
 
-        <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+        <script src="./assets/prism.js"></script>
 
         <script type="module">
             import { BaseEx } from "../src/base-ex.js";
 
-            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.33/dist/vue.esm-browser.prod.js";
-            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.33/dist/vue.esm-browser.js";
+            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.33/dist/vue.esm-browser.prod.js";
+            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.33/dist/vue.esm-browser.js";
 
             // Initialize main BaseEx class
             const baseEx = new BaseEx();
@@ -65,7 +66,7 @@
             }
 
             const showInvalid = () => {
-                console.error("make it red");
+                console.error("unable to change value");
             }
 
 
@@ -205,7 +206,8 @@
                         // <<< codeblock end
 
                         // return prettified version (leading whitespace removed first)
-                        return PR.prettyPrintOne(codeContent.replace(/^\ +/gm, ''), "js");
+                        //return PR.prettyPrintOne(codeContent.replace(/^\ +/gm, ''), "js");
+                        return Prism.highlight(codeContent.replace(/^\ +/gm, '').trim(), Prism.languages.js, "js");
                     },
                 },
             });
