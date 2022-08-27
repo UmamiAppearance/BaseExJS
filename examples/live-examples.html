@@ -7,89 +7,46 @@
         <link rel="shortcut icon" href="#">
         
         <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
-        <link href="prism.css" rel="stylesheet">
-
-        <!--<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>-->
-        <script src="prism.js"></script>
-        <!--<script src="https://unpkg.com/@highlightjs/cdn-assets@11.5.1/highlight.min.js"></script>-->
-
+        
         <script type="module">
-            import { CodeJar } from "https://medv.io/codejar/codejar.js";
-            
-            // Make all BaseEx classes globally available
             import * as BaseEx from "../src/base-ex.js";
+            import liveExamples from "https://umamiappearance.github.io/JSLiveExamples/dist/js-live-examples.esm.min.js";
 
+            // Make all BaseEx classes globally available
+            const constructorList = [];    
             for (const className in BaseEx) {;
                 window[className] = BaseEx[className];
+                constructorList.push(className);
             }
-        
-            const getExample = (exampleID) => {
-                const nodeInnerHTML = document.getElementById(exampleID).innerHTML;
-                const code = nodeInnerHTML.split("\n").slice(2, -2).join("\n");
-                return code;
-            };
-
-            //const highlight = (editor) => editor.innerHTML = PR.prettyPrintOne(editor.textContent, "js");
-
-            
-            const runCode = (code) => {
-                const HTMLConsole = document.querySelector("#console");
-                eval(code);
-
-                console.log = consoleLog
-            };
-
-            const makeCodeExample = (name) => {
-
-                // get sample code
-                const exampleScript = getExample(`${name}-code`);
-                
-                // select document section
-                const exampleSection = document.querySelector(`#${name}`);
-                
-
-                // create new html nodes
-                const codeNode = document.createElement("code");
-                      codeNode.className = "language-js";
-                
-                const resetBtn = document.createElement("button");
-                      resetBtn.appendChild(document.createTextNode("reset"));
-                      resetBtn.addEventListener("click", () => { runCode(jar.toString()); }, false);
-
-                const executeBtn = document.createElement("button");
-                      executeBtn.appendChild(document.createTextNode("run"));
-                      executeBtn.addEventListener("click", () => { eval(jar.toString()); }, false);
-
-                
-                // initialize jar instance
-                const jar = CodeJar(codeNode, (editor) => { Prism.highlightElement(editor); } , {
-                    tab: " ".repeat(4),
-                });
-                jar.updateCode(exampleScript);
-                
-                
-                // append nodes to document section
-                exampleSection.appendChild(codeNode);
-                exampleSection.appendChild(resetBtn);
-                exampleSection.appendChild(executeBtn);
-            };
 
             document.addEventListener("DOMContentLoaded", () => {
                 
-                makeCodeExample("example-1");
+                const constructorListNode = document.querySelector("#constructors");
+                constructorListNode.textContent = constructorList.join(", ");
 
             }, false);
-        
+            
         </script>
 
 <!-- CSS -->
 
         <style>
-            code {
-                background-color: aliceblue;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-                tab-size: 4;
-                min-width: 60%;
+            h3 {
+                font-size: 1.1em;
+                margin: 0.5em 0 0 0;
+            }
+            article {
+                width: 80%;
+            }
+            @media screen and (max-width: 768px) {
+                article {
+                    width: calc(100% - 1em);
+                }
+            }
+            @media screen and (min-width: 768px) {
+                div.live-example {
+                    width: 100% !important;
+                }
             }
             footer {
                 text-align: right;
@@ -101,9 +58,6 @@
 
     </head>
 
-
-<!-- BEGIN HTML BODY -->
-
     <body>
 
         <main>
@@ -113,16 +67,40 @@
                 <article>
                     <h1>BaseEx Live Examples</h1>
                     <p>
-                        Here you can find some examples to demonstrate the usage of <b>BaseEx</b>. You can run the code and also change it.
+                        Here you can find some examples to demonstrate some features of <b>BaseEx</b>. You can run the code and also change it.
                     </p>
+                    
+                    <i>
+                        In every example you have global access to the following constructors:
+                    </i>
+                    <br>
+                    
+                    <strong id="constructors"></strong>
                 </article>
 
             </section>
 
             <hr>
 
-            <section id="example-1">
+            <section id="examples">
+                <article>
+                    <h3>&#9755; Encoders handle almost every input</h3>
+                    <template class="live-example">
+                        <h1>Base16 - String Input</h1>
+                        <script data-run="true">
+                            const b16 = new Base16();
+                            
+                            let inputStr = "Hello World";
+                            let inputNum = 42;
+                            let inputBytes = new Uint8Array([0, 50, 100, 150, 200, 250]);
+                            
+                            console.log(b16.encode(inputStr));
+                            console.log(b16.encode(inputNum));
+                            console.log(b16.encode(inputBytes));
 
+                        </script>
+                    </template>
+                </article>
             </section>
 
             <section id="console"></section>
@@ -136,158 +114,5 @@
             </a>
         </footer>
 
-<!-- END HTML BODY -->
-
-<!----------------- EXAMPLE SCRIPT TEMPLATES ---------------->
-
-<!------------------------ EXAMPLE 1 ------------------------>
-
-<script id="example-1-code">if (false) {
-// ---------- BEGIN ---------- //
-const base16 = new Base16();
-const testHex = base16.encode("test");
-
-console.log(testHex);
-// ----------- END ----------- //
-}</script>
-
-<script>
-    (function initGhoulog() {
-  'use strict';
-
-  if (console.log.toDiv) {
-    return;
-  }
-
-  function toString(x) {
-    return typeof x === 'string' ? x : JSON.stringify(x);
-  }
-
-  var log = console.log.bind(console);
-  var error = console.error.bind(console);
-  var warn = console.warn.bind(console);
-  var table = console.table ? console.table.bind(console) : null;
-  var id = 'logdiv';
-
-  function createOuterElement() {
-    var outer = document.getElementById(id);
-    if (!outer) {
-      outer = document.createElement('fieldset');
-      outer.id = id;
-      document.body.appendChild(outer);
-    }
-    outer.classList.add(id);
-
-    var style = outer.style;
-    style.width = '100px';
-    style.height = '100px';
-    style.fontFamily = 'monospace';
-    style.whiteSpace = 'pre';
-    style.padding = '10px 10px';
-    style.position = 'absolute';
-    style.left = '0px';
-    style.top = '0px';
-    style.color = '#1AFF80';
-    style.border = '1px dotted #1AFF80';
-    style.overflow = 'hidden';
-    style.fontSize = '8px';
-    return outer;
-  }
-
-  var logTo = (function createLogDiv() {
-    var outer = createOuterElement();
-    var div = document.createElement('div');
-    div.id = 'console-log-text';
-    outer.appendChild(div);
-    return div;
-  }());
-
-  function printToDiv() {
-    var msg = Array.prototype.slice.call(arguments, 0)
-      .map(toString)
-      .join(' ');
-    var text = logTo.textContent;
-    logTo.textContent = msg + '\n' + text;
-  }
-
-  function logWithCopy() {
-    log.apply(null, arguments);
-    printToDiv.apply(null, arguments);
-  }
-
-  console.log = logWithCopy;
-  console.log.toDiv = true;
-
-  console.error = function errorWithCopy() {
-    error.apply(null, arguments);
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.unshift('ERROR:');
-    printToDiv.apply(null, args);
-  };
-
-  console.warn = function logWarning() {
-    warn.apply(null, arguments);
-    var args = Array.prototype.slice.call(arguments, 0);
-    args.unshift('WARNING:');
-    printToDiv.apply(null, args);
-  };
-
-  function printTable(objArr, keys) {
-
-    var numCols = keys.length;
-    var len = objArr.length;
-    var $table = document.createElement('table');
-    $table.style.width = '100%';
-    $table.setAttribute('border', '1');
-    var $head = document.createElement('thead');
-    var $tdata = document.createElement('td');
-    $tdata.innerHTML = 'Index';
-    $head.appendChild($tdata);
-
-    for (var k = 0; k < numCols; k++) {
-      $tdata = document.createElement('td');
-      $tdata.innerHTML = keys[k];
-      $head.appendChild($tdata);
-    }
-    $table.appendChild($head);
-
-    for (var i = 0; i < len; i++) {
-      var $line = document.createElement('tr');
-      $tdata = document.createElement('td');
-      $tdata.innerHTML = i;
-      $line.appendChild($tdata);
-
-      for (var j = 0; j < numCols; j++) {
-        $tdata = document.createElement('td');
-        $tdata.innerHTML = objArr[i][keys[j]];
-        $line.appendChild($tdata);
-      }
-      $table.appendChild($line);
-    }
-    var div = document.getElementById('console-log-text');
-    div.appendChild($table);
-  }
-
-  console.table = function logTable() {
-    if (typeof table === 'function') {
-      table.apply(null, arguments);
-    }
-
-    var objArr = arguments[0];
-    var keys;
-
-    if (typeof objArr[0] !== 'undefined') {
-      keys = Object.keys(objArr[0]);
-    }
-    printTable(objArr, keys);
-  };
-
-  window.addEventListener('error', function (err) {
-    printToDiv( 'EXCEPTION:', err.message + '\n  ' + err.filename, err.lineno + ':' + err.colno);
-  });
-
-}());
-    
-</script>
-
-</body></html>
+    </body>
+</html>
