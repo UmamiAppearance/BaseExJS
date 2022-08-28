@@ -19,10 +19,16 @@
                 constructorList.push(className);
             }
 
+            const _b16 = new Base16();
+
+            // Show all available BaseEx classes
             document.addEventListener("DOMContentLoaded", () => {
                 
                 const constructorListNode = document.querySelector("#constructors");
                 constructorListNode.textContent = constructorList.join(", ");
+
+                const typeListNode = document.querySelector("#outputTypes");
+                typeListNode.textContent = _b16.utils.outputHandler.typeList.join(", ");
 
             }, false);
             
@@ -89,7 +95,8 @@
                 <article>
                     <h3>&#9755; Encoders handle almost every input</h3>
                     <template class="live-example">
-                        <h1>Base16 - String Input</h1>
+                        <h1>Input Variations (Base16)</h1>
+                        
                         <script data-run="true">
                             const b16 = new Base16();
                             
@@ -97,10 +104,55 @@
                             let inputNum = 42;
                             let inputBytes = new Uint8Array([0, 50, 100, 150, 200, 250]);
                             
-                            console.log(b16.encode(inputStr));
-                            console.log(b16.encode(inputNum));
-                            console.log(b16.encode(inputBytes));
+                            console.log("String:", b16.encode(inputStr));
+                            console.log("Number:", b16.encode(inputNum));
+                            console.log("Bytes: ", b16.encode(inputBytes));
+                        </script>
+                    </template>
+                </article>
 
+                <article>
+                    <h3>&#9755; Decoding returns an ArrayBuffer, but you can select from various types:</h3>
+                    <i id="outputTypes"></i>
+
+                    <template class="live-example">
+                        <h1>Output Types (Base32)</h1>
+                        <script data-run="true">
+                            const b32 = new Base32("rfc3548");
+                            let input = "jbswy3dpeblw64tmmqqq====";
+                            
+                            console.log("Default:     ", b32.decode(input));
+                            console.log("Bytes:       ", b32.decode(input, "bytes"));
+                            console.log("Float32Array:", b32.decode(input, "float32"));
+                            console.log("String:      ", b32.decode(input, "str"));
+                        </script>
+                    </template>
+                </article>
+
+                <article>
+                    <h3>&#9755; Dealing with numbers (integers)</h3>
+                    <i>
+                        There is much to say about numbers, actually too much to go into the details (you may want to read more <a href="https://en.wikipedia.org/wiki/Integer_(computer_science)" target="_blank">here</a>).
+                        <br>
+                        BaseEx encoders always try to convert integers to the smallest fitting integer type (short, long, long long, double, n-bit-int).
+                        <br>
+                        Having said that, this is not what a JavaScript 'Number' is. JavaScript Numbers are always 64-bit floating points.
+                        <br>
+                        <b>BaseEx</b> can operate either way.   
+                    </i>
+
+                    <template class="live-example">
+                        <h1>Integers (Base64)</h1>
+                        <script data-run="true">
+                            const b64 =    new Base64();
+                            const b64num = new Base64("number");
+
+                            const short =    2**12;
+                            const long =     2**29;
+                            const longLong = 2**44;
+                            const double =   2n**67n;
+
+                            console.log(b64.encode(short), b64num.encode(short));
                         </script>
                     </template>
                 </article>
