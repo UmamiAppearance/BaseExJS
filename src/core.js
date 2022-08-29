@@ -180,7 +180,7 @@ class BaseConverter {
 
 
     /**
-     *  BaseEx Universal Base Decoding.
+     * BaseEx Universal Base Decoding.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
      * @param {string} charset - The charset used for conversion.
      * @param {*} littleEndian - Byte order, little endian bool.
