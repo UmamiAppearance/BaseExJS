@@ -40,9 +40,11 @@
 <!-- CSS -->
 
         <style>
-            .math {
+            span.math {
+                font-family: monospace;
                 font-style: normal;
                 font-weight: 500;
+                font-size: 130%;
             }
             h3 {
                 font-size: 1.1em;
@@ -92,15 +94,16 @@
                 <article>
                     <h1>BaseEx Live Examples</h1>
                     <p>
-                        Here you can find some examples to demonstrate some features of <b>BaseEx</b>. You can run the code and also change it.
+                        Here you can find examples to demonstrate many features of <b>BaseEx</b>. You can run the code and also change it.
+                        <br>
+                        <i>(Also check out the <a href="./demo.html">Online Base Converter</a>)</i>
                     </p>
                     
-                    <i>
+                    <p>
                         In every example you have global access to the following constructors:
-                    </i>
-                    <br>
-                    
-                    <strong id="constructors"></strong>
+                        <br>
+                        <strong id="constructors"></strong>
+                    </p>
                 </article>
 
             </section>
@@ -184,14 +187,14 @@
                         </tbody>
                     </table>
 
-                    <i>
-                        Arguments can be passed to the en- or decoder, or to the constructor.
+                    <i style="margin: 1em 0; display: block;">
+                        Arguments can be passed to either en- and decoder or the constructor. The order or number of arguments does not matter. En- and decoder need the input as argument 0, anything else is not not predetermined.
                     </i>
 
                     <template class="live-example">
                         <h1>Arguments (Base64)</h1>
                         <script data-run="true">
-                            const b64 = new Base64();
+                            const b64 = new Base64("nopad");
                             const b64urlsafe = new Base64("urlsafe");
 
                             // b64 default charset, no padding
@@ -210,21 +213,19 @@
                     <h3>&#9755; Dealing with numbers (integers)</h3>
                     <i>
                         There is much to say about numbers, actually too much to go into the details (you may want to read more <a href="https://en.wikipedia.org/wiki/Integer_(computer_science)" target="_blank">here</a>).
+                        <b>BaseEx</b> encoders always try to convert integers to the smallest fitting integer type (short, long, long long, double, n-bit-int) by default.
                         <br>
-                        BaseEx encoders always try to convert integers to the smallest fitting integer type (short, long, long long, double, n-bit-int) by default.
-                        <br><br>
                         Having said that, this is not what a JavaScript 'Number' is. JavaScript Numbers are always 64-bit floating points under the hood. With a last safe integer of <span class="math">2<sup>53</sup>-1</span>.
-                        <br>
-                        <b>BaseEx</b> can treat integers either either way until the value of <span class="math">2<sup>53</sup>-1</span> is reached. After that, BigInts come into play and the byte representation will be the same for both modes.
+                        <b>BaseEx</b> can treat integers either way until the value of <span class="math">2<sup>53</sup>-1</span> is reached. After that, BigInts come into play and the byte representation will be the same for both modes.
                         <br><br>
-                        To visualize the byte conversion, no base conversion is getting used in this examples, but the <b>ByteConverter</b>. (Before any base conversion can happen, this is how a given input will be transformed.) 
+                        To visualize the byte conversion, no base conversion is getting used for this examples, but the <b>ByteConverter</b>. 
                     </i>
 
                     <template class="live-example no-scroll">
                         <h1>Integers (ByteConverter)</h1>
                         <script data-run="true">
                             const bc = new ByteConverter();
-                            const bcnum = new ByteConverter("number");
+                            const bcNum = new ByteConverter("number");
 
                             const short =    2**12;
                             const long =     2**29;
@@ -234,32 +235,75 @@
                             console.log(
                                 "short:     ", short,
                                 "\nas int:    ", bc.encode(short),
-                                "\nas num:    ", bcnum.encode(short)
+                                "\nas num:    ", bcNum.encode(short)
                             );
 
                             console.log(
                                 "long:      ", long,
                                 "\nas int:    ", bc.encode(long),
-                                "\nas num:    ", bcnum.encode(long)
+                                "\nas num:    ", bcNum.encode(long)
                             );
 
                             console.log(
                                 "long long: ", longLong,
                                 "\nas int:    ", bc.encode(longLong),
-                                "\nas num:    ", bcnum.encode(longLong)
+                                "\nas num:    ", bcNum.encode(longLong)
                             );
 
                             console.log(
                                 "double:    ", double,
                                 "\nas int:    ", bc.encode(double),
-                                "\nas num:    ", bcnum.encode(double)
+                                "\nas num:    ", bcNum.encode(double)
                             );
+
+                            // decoding:
+                            // to receive an integer as a number, use the "int_n" 
+                            // as argument for integers and "float_n" for the
+                            // number mode
+                            console.log(
+                                "decoded (int_n):   ", bc.decode(bc.encode(short), "int_n"),
+                                "\ndecoded (float_n): ", bcNum.decode(bcNum.encode(short), "float_n"), "\n...",
+                            )
                         </script>
                     </template>
                 </article>
+
+                <article>
+                    <h3>&#9755; SimpleBase needs a radix from 2-36</h3>
+                    <i>
+                        SimpleBase is a little special. It provides the simple mathematical base conversion
+                        as known from <span class="math">(n).toString(radix)</span> and <span class="math">parseInt(n, radix)</span>.
+                        <br>
+                        The constructor needs a radix between 2-36 as the first argument. In other regards it behaves as any other converter.
+                        (Which means, you can feed it with anything)
+                    </i>
+                    <template class="live-example">
+                        <h1>SimpleBase</h1>
+                        
+                        <script data-run="true">
+                            const sb2 = new SimpleBase(2);
+                            const sb16 = new SimpleBase(16);
+                            const sb36 = new SimpleBase(36);
+
+                            console.log(sb2.encode(new Int16Array([42, 187])));
+                            console.log(sb16.encode(3.14159265359, "upper"));
+                            console.log(sb36.encode("Hello World!"));
+                        </script>
+                    </template>
+                </article>
+                
             </section>
 
-            <section id="console"></section>
+            <hr>
+            <section>
+                <small>Examples powered by:</small>
+                <a href="https://github.com/UmamiAppearance/JSLiveExamples" target="_blank">
+                    
+                    <h2 style="margin-top: 1px;">
+                        JSLiveExamples
+                    </h2>
+                </a>
+            </section>
        
         </main>
 
