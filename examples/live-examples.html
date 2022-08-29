@@ -37,6 +37,10 @@
 <!-- CSS -->
 
         <style>
+            .math {
+                font-style: normal;
+                font-weight: 500;
+            }
             h3 {
                 font-size: 1.1em;
                 margin: 0.5em 0 0 0;
@@ -134,17 +138,17 @@
                     <i>
                         There is much to say about numbers, actually too much to go into the details (you may want to read more <a href="https://en.wikipedia.org/wiki/Integer_(computer_science)" target="_blank">here</a>).
                         <br>
-                        BaseEx encoders always try to convert integers to the smallest fitting integer type (short, long, long long, double, n-bit-int).
+                        BaseEx encoders always try to convert integers to the smallest fitting integer type (short, long, long long, double, n-bit-int) by default.
+                        <br><br>
+                        Having said that, this is not what a JavaScript 'Number' is. JavaScript Numbers are always 64-bit floating points under the hood. With a last safe integer of <span class="math">2<sup>53</sup>-1</span>.
                         <br>
-                        Having said that, this is not what a JavaScript 'Number' is. JavaScript Numbers are always 64-bit floating points.
-                        <br>
-                        <b>BaseEx</b> can operate either way.   
+                        <b>BaseEx</b> can treat integers either either way until the value of <span class="math">2<sup>53</sup>-1</span> is reached. After that, BigInts come into play and the byte representation will be the same for both modes.
                     </i>
 
                     <template class="live-example">
                         <h1>Integers (Base64)</h1>
                         <script data-run="true">
-                            const b64 =    new Base64();
+                            const b64 = new Base64();
                             const b64num = new Base64("number");
 
                             const short =    2**12;
@@ -152,7 +156,29 @@
                             const longLong = 2**44;
                             const double =   2n**67n;
 
-                            console.log(b64.encode(short), b64num.encode(short));
+                            console.log(
+                                "short:     ", short,
+                                "\nas int:    ", b64.encode(short),
+                                "\nas num:    ", b64num.encode(short)
+                            );
+
+                            console.log(
+                                "long:      ", long,
+                                "\nas int:    ", b64.encode(long),
+                                "\nas num:    ", b64num.encode(long)
+                            );
+
+                            console.log(
+                                "long long: ", longLong,
+                                "\nas int:    ", b64.encode(longLong),
+                                "\nas num:    ", b64num.encode(longLong)
+                            );
+
+                            console.log(
+                                "double:    ", double,
+                                "\nas int:    ", b64.encode(double),
+                                "\nas num:    ", b64num.encode(double)
+                            );
                         </script>
                     </template>
                 </article>
