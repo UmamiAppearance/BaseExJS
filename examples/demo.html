@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>BaseEx Demo Page</title>
+        <title>BaseEx - Online Base Converter</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="shortcut icon" href="#">
         
@@ -19,6 +19,12 @@
 
             // Initialize main BaseEx class
             const baseEx = new BaseEx();
+            for (const sb in baseEx.simpleBase) {
+                const name = "simpleB" + sb.slice(1);
+                baseEx[name] = baseEx.simpleBase[sb];
+            }
+            delete baseEx.base1;
+            delete baseEx.simpleBase;
 
             // Provide some functions to convert bytes
             const byteConverter = {
@@ -66,7 +72,7 @@
             }
 
             const showInvalid = () => {
-                console.error("unable to change value");
+                console.error("unable to process value");
             }
 
 
@@ -105,6 +111,7 @@
                     code: function() {
                         const isBytes = this.curTypes.encode === "bytes";
                         const isDecoding = (this.mode === "decode");
+                        const simpleBase = (this.curTypes.decode.slice(0,10) === "simpleBase");
                         
                         // generate a byte string, that is separated by commas
                         const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
@@ -134,7 +141,9 @@
                         
                         const subFNName = baseEx[this.curTypes.decode].constructor.name;
                         
-                        const version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : ""; 
+                        let version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : "";
+                        if (simpleBase) version = this.curTypes.decode.slice(10);
+
                         const outputType = (isDecoding) ? `, "${this.curTypes.encode}"` : "";
  
                         // import types
@@ -160,7 +169,7 @@
                         
                         else {
                             scopeVar = "BaseEx.";
-                            importStatement = `// use the following line as your script tag:\n// \<script src="path/BaseEx.iise.min.js"\>\<\/script\>`;
+                            importStatement = "// use the following line as your script tag:\n// \<script src=\"path/BaseEx.iise.min.js\"\>\<\/script\>";
                             note = "// Note:\n// - remember to adjust the path in your script tag";
                         }
 
@@ -169,6 +178,10 @@
                         
                         // codeblock output >>>
 
+                        const subType = simpleBase
+                            ? "simpleBase.Base" + this.curTypes.decode.slice(10)
+                            : this.curTypes.decode;
+                        
                         let codeContent = `
                             // importing as ${importComment}
                             ${importStatement}
@@ -178,7 +191,7 @@
 
                             // Main class BaseEx
                             const baseEx = new ${scopeVar}BaseEx();
-                            const output${numbering.shift()} = baseEx.${this.curTypes.decode}.${this.mode}(input${outputType});\n`;
+                            const output${numbering.shift()} = baseEx.${subType}.${this.mode}(input${outputType});\n`;
                         
                         if (isDecoding) { codeContent += `
                             // Alternative: 
@@ -187,7 +200,7 @@
                             const output${numbering.shift()} = baseEx_${this.curTypes.encode}.${this.curTypes.decode}.${this.mode}(input);\n`;
                         }
                         
-                        codeContent +=`
+                        codeContent += `
                             // Direct use of the required base converter
                             const ${this.curTypes.decode} = new ${scopeVar}${subFNName}(${version});
                             const output${numbering.shift()} = ${this.curTypes.decode}.${this.mode}(input${outputType});\n`;
@@ -195,11 +208,11 @@
                         if (isDecoding) { codeContent += `
                             // Alternative:
                             // Direct use of the base converter, setting "${this.curTypes.encode}" as default output type
-                            const ${this.curTypes.decode}_${this.curTypes.encode} = new ${scopeVar}${subFNName}("${baseEx[this.curTypes.decode].version}"${outputType});
+                            const ${this.curTypes.decode}_${this.curTypes.encode} = new ${scopeVar}${subFNName}(${version}${outputType});
                             const output${numbering.shift()} = ${this.curTypes.decode}_${this.curTypes.encode}.${this.mode}(input);\n`;
                         }
 
-                        codeContent +=`
+                        codeContent += `
                             // ${copyPasteInfo}
                             ${note}`;
 
@@ -541,7 +554,7 @@
     <!-- Head of body -->
 
                 <article>
-                    <h1>BaseEx Demo Page (Online Base Converter)</h1>
+                    <h1>BaseEx - Online Base Converter</h1>
                     <p>
                         To demonstrate the capabilities of <b>BaseEx</b> it is used on this demopage to implement an online base converter.<br>
                         <a href="#code-section">At the end</a> of the page you can find a codeblock with possible implementations to generate the provided output.
