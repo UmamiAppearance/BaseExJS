@@ -102,6 +102,17 @@
                 },
 
                 methods: {
+                    toClipboard: function(e) {
+                        const code = e.target.previousSibling.textContent;
+                        window.navigator.clipboard.writeText(code);
+
+                        const copied = document.querySelector("#copied");
+                        copied.classList.add("show");
+                        
+                        setTimeout(() => {
+                            copied.classList.remove("show");
+                        }, 1500);
+                    },
                     switchInOut: function() {
                         [this.input, this.output] = [this.output, this.input];
                     },
@@ -169,7 +180,7 @@
                         
                         else {
                             scopeVar = "BaseEx.";
-                            importStatement = "// use the following line as your script tag:\n// \<script src=\"path/BaseEx.iise.min.js\"\>\<\/script\>";
+                            importStatement = "// use the following line as your script tag:\n// \<script src=\"path/BaseEx.iife.min.js\"\>\<\/script\>";
                             note = "// Note:\n// - remember to adjust the path in your script tag";
                         }
 
@@ -511,6 +522,40 @@
                     display: none;
                 }
             }
+            .copy {
+                float: right;
+                margin-top: -26px;
+            }
+            section#copied {
+                position: fixed;
+                margin: auto;
+                display: none;
+                width: 100%;
+                text-align: center;
+                top: 40%;
+                opacity: 0;
+            }
+            section#copied.show {
+                display: block;
+                animation: show 1500ms cubic-bezier(.8,.03,.58,1);
+            }
+            @keyframes show {
+                50% {
+                    opacity: 1;
+                }
+            }
+            #copied article {
+                background-color: lightslategray;
+                display: inline-block;
+                width: auto;
+                padding: 20px;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                border: 1px solid lightgrey;
+                box-shadow: 0 0 2px #ccc;
+            }
+
             footer {
                 text-align: right;
                 margin-right: 6px;
@@ -616,9 +661,12 @@
                             <option v-for="option in importTypes">{{ option }}</option>
                         </select>
                     </h3>
-                    <pre id="codeblock"><code v-html="code"></code></pre>
+                    <pre id="codeblock"><code v-html="code"></code><div v-on:click="toClipboard" title="copy to clipboard" class="copy"></div>
+                    </pre>
                 </article>
             </section>
+
+            <section id="copied"><article>copied to clipboard</article></section>
        
         </main>
 
