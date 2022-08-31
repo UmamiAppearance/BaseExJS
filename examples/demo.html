@@ -229,7 +229,7 @@
 
                         // <<< codeblock end
 
-                        // return prettified version (leading whitespace removed first)
+                        // return prettified version (leading whitespace removed and trimmed)
                         return Prism.highlight(codeContent.replace(/^\ +/gm, '').trim(), Prism.languages.js, "js");
                     },
                 },
