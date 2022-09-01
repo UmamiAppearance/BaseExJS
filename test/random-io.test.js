@@ -26,6 +26,7 @@ const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
         }
     };
 
+    // FIXME: ALSO THE OTHER BYTES WITH 0 AT START OR END
     if (!ignoreNullEnd) {
         inputs.bytes.randBytesNullEnd = new Uint8Array([...randArray(), ...randArray(null), ...randArray(), ...randArray(null)]);
     } else if (randBytesX.at(-1) === 0) {
