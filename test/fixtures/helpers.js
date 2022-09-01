@@ -19,10 +19,10 @@ const randByte = () => randInt(0, 256);
 // Random array with a length (between 8 and 24 by default)
 const randArray = (nullBytes, start=8, end=24) => {
     const array = new Array();
-    const dataGenerator = (nullBytes) ? () => 0 : () => randByte();
+    const generator = (nullBytes === null) ? () => 0 : () => randByte();
     let i = randInt(start, end);
     while (i--) {
-        array.push(dataGenerator());
+        array.push(generator());
     }
     return array
 }

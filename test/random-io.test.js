@@ -8,10 +8,8 @@ const randBytesTest = test.macro((t, input, baseObj) => {
 });
 
 
-const randomInputs = (ignoreNullEnd) => {
-    console.log("littleEndian", ignoreNullEnd);
-    const randBytesNullStart = new Uint8Array([...randArray(true), ...randArray(false), ...randArray(true), ...randArray(false)]);
-    const randBytesX = new Uint8Array(randArray(false, 0, randInt(0, 512)));
+const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
+    const randBytesX = new Uint8Array(randArray(false, 0, randInt(1, 512)));
 
     const randStr16 = randStr(16);
     const randStr32 = randStr(32);
@@ -19,7 +17,6 @@ const randomInputs = (ignoreNullEnd) => {
 
     const inputs = {
         bytes: {
-            randBytesNullStart,
             randBytesX
         },
         str: {
@@ -30,22 +27,29 @@ const randomInputs = (ignoreNullEnd) => {
     };
 
     if (!ignoreNullEnd) {
-        inputs.bytes.randBytesNullEnd = new Uint8Array([...randArray(false), ...randArray(true), ...randArray(false), ...randArray(true)]);
+        inputs.bytes.randBytesNullEnd = new Uint8Array([...randArray(), ...randArray(null), ...randArray(), ...randArray(null)]);
+    } else if (randBytesX.at(-1) === 0) {
+        inputs.bytes.randBytesX[randBytesX.length-1] = 1;
+    }
+    if (!ignoreNullStart) {
+        inputs.bytes.randBytesNullStart= new Uint8Array([...randArray(null), ...randArray(), ...randArray(null), ...randArray()]);
+    } else if (randBytesX.at(0) === 0) {
+        inputs.bytes.randBytesX[0] = 1;
     }
     return inputs;
 };
+
 
 for (const base in BaseEx) {
 
     if (base !== "Base1" && base !== "BaseEx" && base !== "SimpleBase") {
 
         const bFn = new BaseEx[base]();
-        console.log(base);
         const inputs = randomInputs(bFn.littleEndian || base === "ByteConverter");
 
         for (const input in inputs.bytes) {
             test(
-                `Encode and decode back for ${base} (type bytes) with input ${input}`,
+                `Encode and decode back for ${base} (type bytes) with input <${input}>`,
                 randBytesTest,
                 inputs.bytes[input], 
                 bFn
@@ -54,7 +58,7 @@ for (const base in BaseEx) {
 
         for (const input in inputs.str) {
             test(
-                `Encode and decode back for ${base} (type string) with input ${input}`,
+                `Encode and decode back for ${base} (type string) with input <${input}>`,
                 baseTest,
                 inputs.str[input],
                 null, 
@@ -62,5 +66,32 @@ for (const base in BaseEx) {
                 "str"
             );
         }
+    }
+}
+
+
+for (let radix=2; radix<=36; radix++) {
+
+    const bFn = new BaseEx.SimpleBase(radix);
+    const inputs = randomInputs(bFn.littleEndian, (radix === 2 || radix === 16));
+
+    for (const input in inputs.bytes) {
+        test(
+            `Encode and decode back for SimpleBase${radix} (type bytes) with input <${input}>`,
+            randBytesTest,
+            inputs.bytes[input], 
+            bFn
+        );
+    }
+
+    for (const input in inputs.str) {
+        test(
+            `Encode and decode back for SimpleBase${radix} (type string) with input <${input}>`,
+            baseTest,
+            inputs.str[input],
+            null, 
+            bFn,
+            "str"
+        );
     }
 }
