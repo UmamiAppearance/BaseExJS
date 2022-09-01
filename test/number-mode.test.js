@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-
 import * as BaseEx from "base-ex";
 import { baseTest } from "./fixtures/helpers.js";
 import test from 'ava';
@@ -63,7 +61,7 @@ for (const base in BaseEx) {
 }
 
 
-for (let radix=2; radix<3; radix++) {
+for (let radix=2; radix<=36; radix++) {
     const bFn = new BaseEx.SimpleBase(radix, "number");
     
     for (const n of numbersNoMIN) {   
