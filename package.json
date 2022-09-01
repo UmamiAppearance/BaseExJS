@@ -18,7 +18,7 @@
     "build:cjs": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
-    "test": "node test/runner.test.js"
+    "test": "ava test"
   },
   "repository": {
     "type": "git",

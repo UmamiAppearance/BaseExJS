@@ -200,6 +200,7 @@ class BaseConverter {
             return new Uint8Array(0);
         }
 
+    
         let bs = this.bsDec;
         const byteArray = new Array();
 
@@ -210,7 +211,7 @@ class BaseConverter {
             }
         });
 
-
+        
         let padChars;
 
         if (bs === 0) {
@@ -278,16 +279,19 @@ class BaseConverter {
         // Remove padded zeros (or in case of LE all leading zeros)
 
         if (littleEndian) {
-            // remove all zeros from the start of the array
-            while (!b256Array[0]) {
-                b256Array.shift();  
-            }
+            if (b256Array.length > 1) {
             
-            if (!b256Array.length) {
-                b256Array.push(0);
-            }
+                // remove all zeros from the start of the array
+                while (!b256Array[0]) {
+                    b256Array.shift();  
+                }
+                
+                if (!b256Array.length) {
+                    b256Array.push(0);
+                }
 
-            b256Array.reverse();
+                b256Array.reverse();
+            }
         } else if (this.bsDec) {
             const padding = this.padChars(padChars);
 
