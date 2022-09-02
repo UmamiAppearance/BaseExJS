@@ -186,8 +186,8 @@ The constructor takes some arguments/options (which may differ between different
 </table>
 
 
-### Working with it (Browser/Node)
-Try out the [Demopage](https://umamiappearance.github.io/BaseExJS/examples/demo.html). You'll find an online base converter and code examples for multiple environments.
+### Demonstration
+More explanation is shown at the [LiveExamples](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html). Also try out the [Online Base Coverter](https://umamiappearance.github.io/BaseExJS/examples/demo.html), with code examples for multiple environments.
 
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
