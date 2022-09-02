@@ -138,17 +138,17 @@ The constructor takes some arguments/options (which may differ between different
 ### Options
 <table>
     <thead>
-        <tr><th><h3>property</h3></th><th colspan="2"><h3>arguments</h3></th></tr>
+        <tr><tr><b><h3>property</h3></b></tr><th colspan="2"><h3>arguments</h3></b></tr></tr>
     </thead>
     <tbody>
-        <tr><th>endianness</th><td>be</td><td>le</td></tr>
-        <tr><th>padding</th><td>nopad</td><td>pad</td></tr>
-        <tr><th>sign</th><td>unsigned</td><td>signed</td></tr>
-        <tr><th>case</th><td>lower</td><td>upper</td></tr>
-        <tr><th>charset</th><td colspan="2"><i>&lt;various&gt;</i></td></tr>
-        <tr><th>number-mode</th><td colspan="2">number</td></tr>
+        <tr><tr><b>endianness</b></tr><td>be</td><td>le</td></tr>
+        <tr><tr><b>padding</b></tr><td>nopad</td><td>pad</td></tr>
+        <tr><tr><b>sign</b></tr><td>unsigned</td><td>signed</td></tr>
+        <tr><tr><b>case</b></tr><td>lower</td><td>upper</td></tr>
+        <tr><tr><b>charset</b></tr><td colspan="2"><i>&lt;various&gt;</i></td></tr>
+        <tr><tr><b>number-mode</b></tr><td colspan="2">number</td></tr>
         <tr>
-            <th>IO handler</th>
+            <tr><b>IO handler</b></tr>
             <td colspan="2">
                 <ul>
                     <li>bytesIn&emsp;&emsp;&emsp;<i>&gt;&gt; accept only bytes as input</i></li>
@@ -158,7 +158,7 @@ The constructor takes some arguments/options (which may differ between different
             </td>
         </tr>
         <tr>
-            <th>output types</th>
+            <tr><b>output types</b></tr>
             <td colspan="2">
                 <ul>
                     <li>bigint64</li>
