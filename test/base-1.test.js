@@ -2,12 +2,12 @@ import { Base1, SimpleBase } from "base-ex";
 import { randInt } from "./fixtures/helpers.js";
 import test from "ava";
 
+
 const b1Test = test.macro(async (t, input, expectedLen, base, ...args) => {
     const output = base.encode(input, ...args);
     t.is(output.length, expectedLen);
     t.is(base.decode(output, ...args), input);
 });
-
 
 const bFn = new Base1();
 const base10 = new SimpleBase(10);
