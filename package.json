@@ -18,7 +18,7 @@
     "build:cjs": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
-    "test": "ava test"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
     "bytes",
     "base conversion",
     "Base2",
+    "Base8",
     "Base10",
     "Base16",
     "Base32",
