@@ -28,7 +28,7 @@ for (let i=0; i<2; i++) {
     const arg = `${int.toLowerCase()}_n`;
 
     input = randInt(256, 2**24);
-    expectedLen = input + i
+    expectedLen = input + i;
     input *= signMulti;
     
     const title = `En- and decode Base1 for type Integer with input '${input}'`;
