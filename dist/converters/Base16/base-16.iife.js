@@ -227,12 +227,12 @@ var Base16 = (function () {
             
             // Buffer:
             if (input instanceof ArrayBuffer) {
-                inputUint8 = new Uint8Array(input);
+                inputUint8 = new Uint8Array(input.slice());
             }
 
             // TypedArray or DataView:
             else if (ArrayBuffer.isView(input)) {
-                inputUint8 = new Uint8Array(input.buffer);
+                inputUint8 = new Uint8Array(input.buffer.slice());
             }
             
             // String:
@@ -633,7 +633,7 @@ var Base16 = (function () {
 
         invalidArgument(arg, versions, outputTypes, initial) {
             const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
-            const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers" : "";
+            const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
             const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
             const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
             const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
@@ -965,7 +965,7 @@ var Base16 = (function () {
 
 
         /**
-         *  BaseEx Universal Base Decoding.
+         * BaseEx Universal Base Decoding.
          * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
          * @param {string} charset - The charset used for conversion.
          * @param {*} littleEndian - Byte order, little endian bool.
@@ -985,6 +985,7 @@ var Base16 = (function () {
                 return new Uint8Array(0);
             }
 
+        
             let bs = this.bsDec;
             const byteArray = new Array();
 
@@ -995,7 +996,7 @@ var Base16 = (function () {
                 }
             });
 
-
+            
             let padChars;
 
             if (bs === 0) {
@@ -1063,16 +1064,19 @@ var Base16 = (function () {
             // Remove padded zeros (or in case of LE all leading zeros)
 
             if (littleEndian) {
-                // remove all zeros from the start of the array
-                while (!b256Array[0]) {
-                    b256Array.shift();  
-                }
+                if (b256Array.length > 1) {
                 
-                if (!b256Array.length) {
-                    b256Array.push(0);
-                }
+                    // remove all zeros from the start of the array
+                    while (!b256Array[0]) {
+                        b256Array.shift();  
+                    }
+                    
+                    if (!b256Array.length) {
+                        b256Array.push(0);
+                    }
 
-                b256Array.reverse();
+                    b256Array.reverse();
+                }
             } else if (this.bsDec) {
                 const padding = this.padChars(padChars);
 

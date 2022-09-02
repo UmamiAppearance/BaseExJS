@@ -224,12 +224,12 @@ class SmartInput {
         
         // Buffer:
         if (input instanceof ArrayBuffer) {
-            inputUint8 = new Uint8Array(input);
+            inputUint8 = new Uint8Array(input.slice());
         }
 
         // TypedArray or DataView:
         else if (ArrayBuffer.isView(input)) {
-            inputUint8 = new Uint8Array(input.buffer);
+            inputUint8 = new Uint8Array(input.buffer.slice());
         }
         
         // String:
@@ -630,7 +630,7 @@ class Utils {
 
     invalidArgument(arg, versions, outputTypes, initial) {
         const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
-        const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned', to enable the use of the twos's complement for negative integers" : "";
+        const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
         const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
         const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
         const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";

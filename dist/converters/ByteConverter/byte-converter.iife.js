@@ -173,12 +173,12 @@ var ByteConverter = (function () {
             
             // Buffer:
             if (input instanceof ArrayBuffer) {
-                inputUint8 = new Uint8Array(input);
+                inputUint8 = new Uint8Array(input.slice());
             }
 
             // TypedArray or DataView:
             else if (ArrayBuffer.isView(input)) {
-                inputUint8 = new Uint8Array(input.buffer);
+                inputUint8 = new Uint8Array(input.buffer.slice());
             }
             
             // String:
