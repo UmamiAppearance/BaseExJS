@@ -28,6 +28,8 @@ for (let i=0; i<2; i++) {
     const arg = `${int.toLowerCase()}_n`;
 
     input = randInt(256, 2**24);
+    
+    // raise by one if negative sign is present 
     expectedLen = input + i;
     input *= signMulti;
     
