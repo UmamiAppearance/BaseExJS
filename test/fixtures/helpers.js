@@ -1,6 +1,6 @@
 import test from 'ava';
 
-const baseTest = test.macro((t, input, expected, base, ...args) => {
+const baseTest = test.macro(async (t, input, expected, base, ...args) => {
     const output = base.encode(input, ...args);
     if (expected !== null) {
         t.is(output, expected);

@@ -2,9 +2,14 @@ import * as BaseEx from "base-ex";
 import { baseTest, randArray, randInt, randStr } from "./fixtures/helpers.js";
 import test from 'ava';
 
-const ROUNDS = 10;
+let ITERATIONS = 4;
+process.argv.forEach(arg => {
+    if ((/^iter=/).test(arg)) {
+        ITERATIONS = arg.split("=").at(1)|0
+    }
+});
 
-const randBytesTest = test.macro((t, input, baseObj) => {
+const randBytesTest = test.macro(async (t, input, baseObj) => {
     const output = baseObj.encode(input);
     const backDecoded = baseObj.decode(output, "bytes").toString();
     t.is(backDecoded, input.toString());
@@ -17,7 +22,7 @@ const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
     const noNullEnd = !ignoreNullStart;
     
     const randBytesX = new Uint8Array(randArray(false, {
-        start: 0,
+        start: 1,
         end: randInt(1, 512),
         noNullStart,
         noNullEnd
@@ -59,9 +64,9 @@ const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
 };
 
 
-for (let i=0; i<ROUNDS; i++) {
-
-    for (const base in BaseEx) {
+[...Array(ITERATIONS).keys()].forEach(async i => {
+    
+    Object.keys(BaseEx).forEach(async base => {
 
         if (base !== "Base1" && base !== "BaseEx" && base !== "SimpleBase") {
 
@@ -70,7 +75,7 @@ for (let i=0; i<ROUNDS; i++) {
             
             for (const input in inputs.bytes) {
                 test(
-                    `Round ${i+1} - Encode and decode back for ${base} (type bytes) with input <${input}>`,
+                    `Iteration ${i} - Encode and decode back for ${base} (type bytes) with input <${input}>`,
                     randBytesTest,
                     inputs.bytes[input], 
                     bFn
@@ -79,7 +84,7 @@ for (let i=0; i<ROUNDS; i++) {
 
             for (const input in inputs.str) {
                 test(
-                    `Round ${i+1} - Encode and decode back for ${base} (type string) with input <${input}>`,
+                    `Iteration ${i} - Encode and decode back for ${base} (type string) with input <${input}>`,
                     baseTest,
                     inputs.str[input],
                     null, 
@@ -88,7 +93,7 @@ for (let i=0; i<ROUNDS; i++) {
                 );
             }
         }
-    }
+    });
 
 
     for (let radix=2; radix<=36; radix++) {
@@ -98,7 +103,7 @@ for (let i=0; i<ROUNDS; i++) {
 
         for (const input in inputs.bytes) {
             test(
-                `Round ${i+1} - Encode and decode back for SimpleBase${radix} (type bytes) with input <${input}>`,
+                `Iteration ${i} - Encode and decode back for SimpleBase${radix} (type bytes) with input <${input}>`,
                 randBytesTest,
                 inputs.bytes[input], 
                 bFn
@@ -107,7 +112,7 @@ for (let i=0; i<ROUNDS; i++) {
 
         for (const input in inputs.str) {
             test(
-                `Round ${i+1} - Encode and decode back for SimpleBase${radix} (type string) with input <${input}>`,
+                `Iteration ${i} - Encode and decode back for SimpleBase${radix} (type string) with input <${input}>`,
                 baseTest,
                 inputs.str[input],
                 null, 
@@ -116,6 +121,5 @@ for (let i=0; i<ROUNDS; i++) {
             );
         }
     }
-}
+});
 
-// TODO: Make it asynchronous
