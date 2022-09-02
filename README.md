@@ -139,6 +139,7 @@ The constructor takes some arguments/options (which may differ between different
 <table>
     <thead>
         <tr><th>property</th><th colspan="2">arguments</th></tr>
+    </thead>
     <tbody>
         <tr><th>endianness</th><td>be</td><td>le</td></tr>
         <tr><th>padding</th><td>nopad</td><td>pad</td></tr>
@@ -146,27 +147,39 @@ The constructor takes some arguments/options (which may differ between different
         <tr><th>case</th><td>lower</td><td>upper</td></tr>
         <tr><th>charset</th><td colspan="2"><i>&lt;various&gt;</i></td></tr>
         <tr><th>number-mode</th><td colspan="2">number</td></tr>
-        
         <tr>
             <th>IO handler</th>
-            <td>
+            <td colspan="2">
                 <ul>
-                    <li>bytesIn</li>
-                    <li>bytesOut</li>
-                    <li>bytesInOut</li>
+                    <li>bytesIn&emsp;&emsp;&emsp;<i>&gt;&gt; accept only bytes as input</i></li>
+                    <li>bytesOut&emsp;&emsp;<i>&gt;&gt; limits output to byte-like values</i></li>
+                    <li>bytesInOut&emsp;<i>&gt;&gt; in- and output limited to bytes</i></li>
                 </ul>
             </td>
-            <td>
-                <i>&gt;&gt; accept only bytes as input</i><br>
-                <i>&gt;&gt; limits output to byte-like values</i><br>
-                <i>&gt;&gt; in- and output limited to bytes</i><br>
-            </td>
         </tr>
-
         <tr>
             <th>output types</th>
             <td colspan="2">
-                <ul id="outputTypesList"><li>bigint64</li><li>bigint_n</li><li>biguint64</li><li>buffer</li><li>bytes</li><li>float32</li><li>float64</li><li>float_n</li><li>int8</li><li>int16</li><li>int32</li><li>int_n</li><li>str</li><li>uint8</li><li>uint16</li><li>uint32</li><li>uint_n</li><li>view</li></ul>
+                <ul>
+                    <li>bigint64</li>
+                    <li>bigint_n</li>
+                    <li>biguint64</li>
+                    <li>buffer</li>
+                    <li>bytes</li>
+                    <li>float32</li>
+                    <li>float64</li>
+                    <li>float_n</li>
+                    <li>int8</li>
+                    <li>int16</li>
+                    <li>int32</li>
+                    <li>int_n</li>
+                    <li>str</li>
+                    <li>uint8</li>
+                    <li>uint16</li>
+                    <li>uint32</li>
+                    <li>uint_n</li>
+                    <li>view</li>
+            </ul>
             </td>
         </tr>
     </tbody>
