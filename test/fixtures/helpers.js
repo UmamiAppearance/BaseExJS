@@ -40,10 +40,7 @@ const randStr = (len) => {
     const array = new Uint8Array(len);
     array.forEach((b, i) => array[i] = randInt(32, 127));
     return new TextDecoder("ascii").decode(array);
-}
-
-// Generated pre decoded strings for each base
-const helloWorldArray = "Hello World!!!".split("");
+};
 
 
-export { baseTest, helloWorldArray, randInt, randByte, randArray, randStr };
+export { baseTest, randInt, randByte, randArray, randStr };
