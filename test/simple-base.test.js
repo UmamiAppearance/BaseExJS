@@ -34,7 +34,7 @@ for (let radix=2; radix<=36; radix++) {
                 
                 const expected = input.toString(radix);                    
                 const numVal = (input < 0) ? "int_n" : "uint_n";
-                const title = `En- and decode ${base} for type Number/BigInt with input '${input}'`;
+                const title = `En- and decode Simple${base} for type Number/BigInt with input '${input}'`;
                 
                 test(title, baseTest, input, expected, bFn, numVal);
             }            
@@ -46,7 +46,7 @@ for (let radix=2; radix<=36; radix++) {
     "Hello World!!!".split("").forEach(c => {
         helloInput += c;
         const expected = strToBase(helloInput, bFn);
-        const title = `En- and decode ${base} for type String with input '${helloInput}'`;
+        const title = `En- and decode Simple${base} for type String with input '${helloInput}'`;
         test(title, baseTest, helloInput, expected, bFn, "str");
     });
 }
