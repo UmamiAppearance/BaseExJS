@@ -2,14 +2,26 @@ import * as BaseEx from "base-ex";
 import { baseTest, randArray, randInt, randStr } from "./fixtures/helpers.js";
 import test from 'ava';
 
+const ROUNDS = 10;
+
 const randBytesTest = test.macro((t, input, baseObj) => {
     const output = baseObj.encode(input);
-    t.is(baseObj.decode(output, "bytes").toString(), input.toString());
+    const backDecoded = baseObj.decode(output, "bytes").toString();
+    t.is(backDecoded, input.toString());
 });
 
 
 const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
-    const randBytesX = new Uint8Array(randArray(false, 0, randInt(1, 512)));
+
+    const noNullStart = !ignoreNullEnd;
+    const noNullEnd = !ignoreNullStart;
+    
+    const randBytesX = new Uint8Array(randArray(false, {
+        start: 0,
+        end: randInt(1, 512),
+        noNullStart,
+        noNullEnd
+    }));
 
     const randStr16 = randStr(16);
     const randStr32 = randStr(32);
@@ -26,31 +38,67 @@ const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
         }
     };
 
-    // FIXME: ALSO THE OTHER BYTES WITH 0 AT START OR END
     if (!ignoreNullEnd) {
-        inputs.bytes.randBytesNullEnd = new Uint8Array([...randArray(), ...randArray(null), ...randArray(), ...randArray(null)]);
-    } else if (randBytesX.at(-1) === 0) {
-        inputs.bytes.randBytesX[randBytesX.length-1] = 1;
+        inputs.bytes.randBytesNullEnd = new Uint8Array([
+            ...randArray(false, {noNullStart}),
+            ...randArray(null),
+            ...randArray(),
+            ...randArray(null)
+        ]);
     }
+    
     if (!ignoreNullStart) {
-        inputs.bytes.randBytesNullStart= new Uint8Array([...randArray(null), ...randArray(), ...randArray(null), ...randArray()]);
-    } else if (randBytesX.at(0) === 0) {
-        inputs.bytes.randBytesX[0] = 1;
+        inputs.bytes.randBytesNullStart= new Uint8Array([
+            ...randArray(null),
+            ...randArray(),
+            ...randArray(null),
+            ...randArray(false, {noNullEnd})
+        ]);
     }
     return inputs;
 };
 
 
-for (const base in BaseEx) {
+for (let i=0; i<ROUNDS; i++) {
 
-    if (base !== "Base1" && base !== "BaseEx" && base !== "SimpleBase") {
+    for (const base in BaseEx) {
 
-        const bFn = new BaseEx[base]();
-        const inputs = randomInputs(bFn.littleEndian || base === "ByteConverter");
+        if (base !== "Base1" && base !== "BaseEx" && base !== "SimpleBase") {
+
+            const bFn = new BaseEx[base]();
+            const inputs = randomInputs(bFn.littleEndian || base === "ByteConverter");
+            
+            for (const input in inputs.bytes) {
+                test(
+                    `Round ${i+1} - Encode and decode back for ${base} (type bytes) with input <${input}>`,
+                    randBytesTest,
+                    inputs.bytes[input], 
+                    bFn
+                );
+            }
+
+            for (const input in inputs.str) {
+                test(
+                    `Round ${i+1} - Encode and decode back for ${base} (type string) with input <${input}>`,
+                    baseTest,
+                    inputs.str[input],
+                    null, 
+                    bFn,
+                    "str"
+                );
+            }
+        }
+    }
+
+
+    for (let radix=2; radix<=36; radix++) {
+
+        const bFn = new BaseEx.SimpleBase(radix);
+        const inputs = randomInputs(bFn.littleEndian, (radix === 2 || radix === 16));
 
         for (const input in inputs.bytes) {
             test(
-                `Encode and decode back for ${base} (type bytes) with input <${input}>`,
+                `Round ${i+1} - Encode and decode back for SimpleBase${radix} (type bytes) with input <${input}>`,
                 randBytesTest,
                 inputs.bytes[input], 
                 bFn
@@ -59,7 +107,7 @@ for (const base in BaseEx) {
 
         for (const input in inputs.str) {
             test(
-                `Encode and decode back for ${base} (type string) with input <${input}>`,
+                `Round ${i+1} - Encode and decode back for SimpleBase${radix} (type string) with input <${input}>`,
                 baseTest,
                 inputs.str[input],
                 null, 
@@ -70,29 +118,4 @@ for (const base in BaseEx) {
     }
 }
 
-
-for (let radix=2; radix<=36; radix++) {
-
-    const bFn = new BaseEx.SimpleBase(radix);
-    const inputs = randomInputs(bFn.littleEndian, (radix === 2 || radix === 16));
-
-    for (const input in inputs.bytes) {
-        test(
-            `Encode and decode back for SimpleBase${radix} (type bytes) with input <${input}>`,
-            randBytesTest,
-            inputs.bytes[input], 
-            bFn
-        );
-    }
-
-    for (const input in inputs.str) {
-        test(
-            `Encode and decode back for SimpleBase${radix} (type string) with input <${input}>`,
-            baseTest,
-            inputs.str[input],
-            null, 
-            bFn,
-            "str"
-        );
-    }
-}
+// TODO: Make it asynchronous

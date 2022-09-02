@@ -1,6 +1,5 @@
 import test from 'ava';
 
-// Basic test for en- and decoding
 const baseTest = test.macro((t, input, expected, base, ...args) => {
     const output = base.encode(input, ...args);
     if (expected !== null) {
@@ -14,15 +13,24 @@ const baseTest = test.macro((t, input, expected, base, ...args) => {
 const randInt = (min, max) => Math.floor(Math.random() * (max - min) + min);
 
 // Random byte value
-const randByte = () => randInt(0, 256);
+const randByte = (start=0) => randInt(start, 256);
 
 // Random array with a length (between 8 and 24 by default)
-const randArray = (nullBytes, start=8, end=24) => {
+const randArray = (nullBytes, options={}) => {
+    
+    if (!("start" in options)) options.start = 8;
+    if (!("end" in options)) options.end = 24;
+    
     const array = new Array();
     const generator = (nullBytes === null) ? () => 0 : () => randByte();
-    let i = randInt(start, end);
+    let i = randInt(options.start, options.end);
     while (i--) {
         array.push(generator());
+    }
+    if (options.noNullStart && array.at(0) === 0) {
+        array[0] = randByte(1);
+    } else if (options.noNullEnd && array.at(-1) === 0) {
+        array[array.length-1] = randByte(1);
     }
     return array
 }
