@@ -138,7 +138,7 @@ The constructor takes some arguments/options (which may differ between different
 ### Options
 <table>
     <thead>
-        <tr><th><h1>property</h1></th><th colspan="2"><h1>arguments</h1></th></tr>
+        <tr><th><h3>property</h3></th><th colspan="2"><h3>arguments</h3></th></tr>
     </thead>
     <tbody>
         <tr><th>endianness</th><td>be</td><td>le</td></tr>
