@@ -152,8 +152,8 @@ The constructor takes some arguments/options (which may differ between different
             <td colspan="2">
                 <ul>
                     <li>bytesIn&emsp;&emsp;&emsp;<i>&gt;&gt; accept only bytes as input</i></li>
-                    <li>bytesOut&emsp;&emsp;<i>&gt;&gt; limits output to byte-like values</i></li>
-                    <li>bytesInOut&emsp;<i>&gt;&gt; in- and output limited to bytes</i></li>
+                    <li>bytesOut&emsp;&emsp;&thinsp;<i>&gt;&gt; limits output to byte-like values</i></li>
+                    <li>bytesInOut&emsp;&nbsp;<i>&gt;&gt; in- and output limited to bytes</i></li>
                 </ul>
             </td>
         </tr>
