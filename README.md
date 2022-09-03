@@ -14,12 +14,12 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 * ``Base1/Unary``
 * ``Base16``
 * ``Base32 (RFC 3548 and RFC 4648)``
-* ``Base58``
+* ``Base58 (default, bitcoin, flickr)``
 * ``Base64 (standard and urlsafe)``
-* ``Base85 (adobe/ascii85 and z85)``
+* ``Base85 (adobe, ascii85, z85)``
 * ``Base91``
 * ``LEB128``
-* ``SimpleBase (2-36)``
+* ``SimpleBase (Base2-Base36)``
 * ``ByteConverter``
 
 
@@ -187,7 +187,7 @@ The constructor takes some arguments/options (which may differ between different
 
 
 ### Demonstration
-More explanation is shown at the [LiveExamples](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html). Also try out the [Online Base Coverter](https://umamiappearance.github.io/BaseExJS/examples/demo.html), with code examples for multiple environments.
+More explanation is shown at the [LiveExamples](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html). Also try out the [Online Base Coverter](https://umamiappearance.github.io/BaseExJS/examples/demo.html), for additional code examples.
 
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
