@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>BaseEx - Online Base Converter</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" href="#">
+        
+        <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
+        <link href="./assets/prism.css" rel="stylesheet">
+
+        <script src="./assets/prism.js"></script>
+
+        <script type="module">
+            import { BaseEx } from "../src/base-ex.js";
+
+            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.37/dist/vue.esm-browser.prod.js";
+            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.37/dist/vue.esm-browser.js";
+
+            // Initialize main BaseEx class
+            const baseEx = new BaseEx();
+            for (const sb in baseEx.simpleBase) {
+                const name = "simpleB" + sb.slice(1);
+                baseEx[name] = baseEx.simpleBase[sb];
+            }
+            delete baseEx.base1;
+            delete baseEx.simpleBase;
+
+            // Provide some functions to convert bytes
+            const byteConverter = {
+                toStrBytes: input => input.join(" "),
+                toUint: input => new Uint8Array(input.split(" ")),
+            }
+
+            // Takes the provided input and converts it to
+            // the proper type. Unwanted characters are
+            // also getting removed.
+            const handleInput = (strInput) => {
+
+                let input;
+                let modifiedStr = null;
+                
+                if (Data.curTypes.encode === "bytes") {
+                    
+                    // Replace everything but digits.
+                    const cleanedStr = strInput = strInput.replace(/[^\d ]/g, "").replace(/\s\s+/g, " ");
+                    if (cleanedStr !== "strInput") {
+                        modifiedStr = cleanedStr;
+                    }
+                    input = byteConverter.toUint(cleanedStr.trim());
+                }   
+                else if (Data.curTypes.encode === "int_n") {
+
+                    // Replace everything but digits, but allow
+                    // negative sign at the beginning.
+                    const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d]/g, "");
+                    if (cleanedStr === "-") {
+                        return [0, modifiedStr];
+                    } else if (cleanedStr !== "strInput") {
+                        modifiedStr = cleanedStr;
+                    }
+                    input = BigInt(strInput);
+                    if (input > -Number.MAX_SAFE_INTEGER && input < Number.MAX_SAFE_INTEGER) {
+                        input = Number(input);
+                    }
+                } 
+                else if (Data.curTypes.encode === "str") {
+                    input = strInput;
+                }
+
+                return [input, modifiedStr];
+            }
+
+            const showInvalid = () => {
+                console.error("unable to process value");
+            }
+
+
+            // Global data object (source of truth) for Vue
+            const Data = {
+                input: "Hello World!",
+                output: null,
+                mode: "encode",
+                curTypes: { 
+                    encode: "str",
+                    decode: "base64",
+                },
+                dataTypes: {
+                    encode: ["str", "bytes", "int_n"],
+                    decode: Object.keys(baseEx),
+                },
+                importType: "esm",
+                importTypes: ["esm", "node-esm", "node-cjs", "iife"],
+            };
+
+            // Set the initial output
+            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
+                
+            const app = createApp({
+                data() {
+                    return Data;
+                },
+
+                methods: {
+                    toClipboard: function(e) {
+                        const code = e.target.previousSibling.textContent;
+                        window.navigator.clipboard.writeText(code);
+
+                        const copied = document.querySelector("#copied");
+                        copied.classList.add("show");
+                        
+                        setTimeout(() => {
+                            copied.classList.remove("show");
+                        }, 1500);
+                    },
+                    switchInOut: function() {
+                        [this.input, this.output] = [this.output, this.input];
+                    },
+                },
+
+                computed: {
+                    code: function() {
+                        const isBytes = this.curTypes.encode === "bytes";
+                        const isDecoding = (this.mode === "decode");
+                        const simpleBase = (this.curTypes.decode.slice(0,10) === "simpleBase");
+                        
+                        // generate a byte string, that is separated by commas
+                        const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
+
+                        // escape double quotes and escape char 
+                        let max56Inpt = preIn.replace(/[\"\\]/g, '\\$&');
+                        let copyPasteInfo = "You can copy this code as it is to your environment";
+                        
+                        // trim output after 56 characters
+                        if (max56Inpt.length > 56) {
+                            max56Inpt = max56Inpt.replace(/(.{56})..+/, "$1…");
+                            copyPasteInfo = "Your input was shortened for this demonstration purpose.\n// You can either use shorter input if you want to copy and\n// test it or you need to adjust it in your environment.";
+                        }
+                        
+                        // generate code for bytes (needs some work) or string (as is)
+                        let input;
+                        if (!isDecoding && isBytes) {
+                            input = `new Uint8Array([${max56Inpt}])`
+                        } else if (!isDecoding && this.curTypes.encode === "int_n") {
+                            input = max56Inpt;
+                            if (input < -Number.MAX_SAFE_INTEGER || input > Number.MAX_SAFE_INTEGER) {
+                                input += "n";
+                            }
+                        } else {
+                            input = `"${max56Inpt}"`;
+                        }
+                        
+                        const subFNName = baseEx[this.curTypes.decode].constructor.name;
+                        
+                        let version = (Object.keys(baseEx[this.curTypes.decode].charsets).length > 1) ? `"${baseEx[this.curTypes.decode].version}"` : "";
+                        if (simpleBase) version = this.curTypes.decode.slice(10);
+
+                        const outputType = (isDecoding) ? `, "${this.curTypes.encode}"` : "";
+ 
+                        // import types
+                        const importComment = (this.importType.match(".*esm")) ? `${this.importType}-module` : this.importType;
+                        let importStatement;
+                        let scopeVar = "";
+                        let note = "// Note:\n// - It is not necessary to import both modules\n//   (use only what you need)";
+                        
+                        if (this.importType === "esm") {
+                            importStatement = `import { ${subFNName}, BaseEx } from "./path/BaseEx.esm.min.js";`;
+                            note += "\n// - remember to adjust the import path";
+                        }
+                        
+                        else if (this.importType === "node-esm") {
+                            importStatement = `import { ${subFNName}, BaseEx } from "base-ex";`;
+                        }
+                        
+                        else if (this.importType === "node-cjs") {
+                            importStatement = `const BaseEx = require("base-ex");`;
+                            scopeVar = "BaseEx.";
+                            note = "";
+                        }
+                        
+                        else {
+                            scopeVar = "BaseEx.";
+                            importStatement = "// use the following line as your script tag:\n// \<script src=\"path/BaseEx.iife.min.js\"\>\<\/script\>";
+                            note = "// Note:\n// - remember to adjust the path in your script tag";
+                        }
+
+                        const numbering = ["A", "B", "C", "D"];
+
+                        
+                        // codeblock output >>>
+
+                        const subType = simpleBase
+                            ? "simpleBase.Base" + this.curTypes.decode.slice(10)
+                            : this.curTypes.decode;
+                        
+                        let codeContent = `
+                            // importing as ${importComment}
+                            ${importStatement}
+
+                            // input assignment
+                            const input = ${input.replace("<", "&lt;").replace(">", "&gt;")};
+
+                            // Main class BaseEx
+                            const baseEx = new ${scopeVar}BaseEx();
+                            const output${numbering.shift()} = baseEx.${subType}.${this.mode}(input${outputType});\n`;
+                        
+                        if (isDecoding) { codeContent += `
+                            // Alternative: 
+                            // Main class BaseEx, setting "${this.curTypes.encode}" as default output type
+                            const baseEx_${this.curTypes.encode} = new ${scopeVar}BaseEx(${outputType.substr(2)});
+                            const output${numbering.shift()} = baseEx_${this.curTypes.encode}.${this.curTypes.decode}.${this.mode}(input);\n`;
+                        }
+                        
+                        codeContent += `
+                            // Direct use of the required base converter
+                            const ${this.curTypes.decode} = new ${scopeVar}${subFNName}(${version});
+                            const output${numbering.shift()} = ${this.curTypes.decode}.${this.mode}(input${outputType});\n`;
+                        
+                        if (isDecoding) { codeContent += `
+                            // Alternative:
+                            // Direct use of the base converter, setting "${this.curTypes.encode}" as default output type
+                            const ${this.curTypes.decode}_${this.curTypes.encode} = new ${scopeVar}${subFNName}(${version}${outputType});
+                            const output${numbering.shift()} = ${this.curTypes.decode}_${this.curTypes.encode}.${this.mode}(input);\n`;
+                        }
+
+                        codeContent += `
+                            // ${copyPasteInfo}
+                            ${note}`;
+
+                        // <<< codeblock end
+
+                        // return prettified version (leading whitespace removed and trimmed)
+                        return Prism.highlight(codeContent.replace(/^\ +/gm, '').trim(), Prism.languages.js, "js");
+                    },
+                },
+            });
+
+
+            // component for input and output
+            app.component('in-out-form', {
+
+                data() {
+                    return Data;
+                },
+
+                computed: {
+
+                    conversionMethod: function() {
+                        // Returns the method encode or decode,
+                        // but according to input or output
+                        // e.g. for mode: encode ->
+                        // In method: encode, Out method: decode
+                        // 
+                        if (this._type === "input") {
+                            return this.mode;
+                        } else {
+                            return (this.mode === "encode") ? "decode" : "encode";
+                        }
+                    },
+
+                    encDecType: {
+                        // Refers to select field on in-/output
+
+                        get: function() {
+                            // Returns the current encoding type
+                            // to select from the options, according
+                            // to the specific conversionMethod.
+
+                            return this.curTypes[this.conversionMethod];
+                        },
+
+                        set: function(val) {
+                            // If the user changes the selection, the
+                            // first decision is wether it is a base
+                            // change or str/bytes switches. The latter
+                            // is the first route below.
+
+                            if (this.dataTypes.encode.includes(val)) {
+                                // Change the current value (str/bytes)
+                                // on the Data object 
+                                this.curTypes.encode = val;
+
+                                // Convert this.input or this.output to bytes/str
+                                // according to the select field from in- or output
+                                const otherField = (this._type === "input") ? "output" : "input";
+                                let fieldVal;
+                                try {
+                                    fieldVal = baseEx[this.curTypes.decode].decode(this[otherField], this.curTypes.encode);
+                                } catch(e) {
+                                    fieldVal = this[this._type];
+                                    showInvalid();
+                                }
+
+                                this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(fieldVal) : String(fieldVal);
+
+                            } else {
+                                // Change the current base type on the 
+                                // Data object
+                                this.curTypes.decode = val;
+
+                                if (this._type === "output") {
+                                    // If the base was changed on the output
+                                    // simply refresh it.
+                                    this.message = this.output;
+
+                                } else {
+                                    // If the base change appearers on input
+                                    // the current mode is "decode". In this
+                                    // case the input field needs to change its 
+                                    // base. To achieve this, the output value
+                                    // gets encoded back and refreshes on input. 
+
+                                    const input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.output) : this.output;
+                                    
+                                   try { 
+                                        this.input = baseEx[val].encode(input, this.curTypes.encode);
+                                   } catch(e) {
+                                       showInvalid();
+                                   }
+                                }
+                            }
+                        },
+                    },
+
+                    message: {
+                        // message provides the actual value
+                        // for the textarea.
+
+                        get: function() {
+                            // Returns this.input or this.output
+                            // according to the _type
+                            
+                            return this[this._type];
+                        },
+
+                        set: function(val) {
+                            // Gets called if the user changes the input
+                            // (also after a select field changes)
+
+                            // The actual input, that feedArrayBuffer.isViews the BaseEx
+                            // class can vary. Therefore a local var "input"
+                            // gets initialized.
+                            let input;
+
+                            // If the output type is set to bytes it gets
+                            // converted to a string where each byte value
+                            // is separated by a space. To activate this case
+                            // "toStrBytes" needs to be set to true.
+                            let toStrBytes = false;
+
+                            // First determine if the textarea was changed
+                            // on in- or output. (As output is set to 
+                            // readonly it can not get changed directly,
+                            // but it can switch by changing the base or
+                            // str/bytes)
+
+                            if (this._type === "input") {
+                                // Store the current value of the textarea
+                                // on the Data object.
+                                this.input = val;
+
+                                // Also set "input" to this value for starters
+                                input = val;
+
+                                // If mode is encode, run some tests on the input,
+                                // convert it to the desired type and clean the it
+                                // from unwanted characters. For decode only set
+                                // the bytes switch if dealing with bytes.
+                                if (this.mode === "encode") {
+                                    let modifiedStr;
+                                    [input, modifiedStr] = handleInput(val);
+                                    if (modifiedStr) {
+                                        this.input = modifiedStr;
+                                    }
+                                } else if (this.curTypes.encode === "bytes") {
+                                    toStrBytes = true;
+                                } 
+
+                            } else {
+                                // If the type of the textarea is output
+                                // use "this.input" directly or convert
+                                // to bytes if necessary.
+
+                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
+                            }
+                            
+                            // Generate output by running the
+                            // specified conversion.
+                            let output; 
+                            try {
+                                output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
+                            } catch(e) {
+                                showInvalid();
+                            }
+
+                            // As explained above.
+                            if (output) {
+                                this.output = (toStrBytes) ? byteConverter.toStrBytes(output) : output;
+                            }
+                        },
+                    },
+                },
+
+                props: {
+                    _type: {
+                        // input and output
+                        type: String,
+                        required: true,
+                    },
+
+                    placeholder: {
+                        type: String,
+                        required: true,
+                    },
+
+                    readonly: {
+                        // true for input, false for output
+                        type: Boolean,
+                        required: true,
+                    },
+                },
+
+                template: document.querySelector("#in-out-form").innerHTML,
+            
+            });
+            
+            app.mount("main");
+        </script>
+
+<!-- CSS -->
+
+        <style>
+            main {
+                min-height: calc(100vh - 40px);
+            }
+            form {
+                width: min-content;
+            }
+            form, code {
+                background-color: aliceblue;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            }
+            section {
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            @media screen and (min-width: 1100px) {
+                section {
+                    flex-direction: row;
+                    align-items: flex-start;
+                }
+            }
+            h3, pre {
+                margin: 0.1rem 0;
+            }
+            select, textarea {
+                font-size: 1rem;
+            }
+            textarea {
+                margin: 6px 0 8px 0;
+                resize: none;
+            }
+            select {
+                cursor: pointer;
+            }
+            #control form > div {
+                display: flex;
+                width: max-content;
+                margin: 10px;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: space-evenly;
+                box-shadow: 0px 0px 2px 0 #333;
+                background-color: #fff;
+            }
+            input[type=radio] {
+                display: none;
+            }
+            input[type=radio] + label {
+                cursor: pointer;
+                background-color:rgba(230, 230, 255, 0.1);
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+                padding: 10px;
+                font-weight: 500;
+            }
+            input[type=radio]:hover + label {
+                background-color:rgba(200, 200, 255, 0.1);
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+            }
+            input[type=radio]:checked + label {
+                background-color: cadetblue;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+                color: #fff;
+            }
+            #code-section {
+                margin-bottom: 24px
+            }
+            #code-section h3 {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+                border: 2px dashed #000;
+                padding: 5px;
+            }
+            #code-section h3 span {
+                margin-right: 1rem;
+            }
+            #code-section select {
+                width: auto;
+                margin: 0 0 0 1rem;
+            }
+            @media screen and (max-width: 1000px) {
+                #code-section h3 {
+                    font-size: 1rem;
+                }
+            }
+            @media screen and (max-width: 580px) {
+                #code-section h3 label {
+                    display: none;
+                }
+            }
+            .copy {
+                float: right;
+                margin-top: -26px;
+            }
+            section#copied {
+                position: fixed;
+                margin: auto;
+                display: none;
+                width: 100%;
+                text-align: center;
+                top: 40%;
+                opacity: 0;
+            }
+            section#copied.show {
+                display: block;
+                animation: show 1500ms cubic-bezier(.8,.03,.58,1);
+            }
+            @keyframes show {
+                50% {
+                    opacity: 1;
+                }
+            }
+            #copied article {
+                background-color: lightslategray;
+                display: inline-block;
+                width: auto;
+                padding: 20px;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                border: 1px solid lightgrey;
+                box-shadow: 0 0 2px #ccc;
+            }
+
+            footer {
+                text-align: right;
+                margin-right: 6px;
+                height: 40px;
+            }
+        </style>
+
+
+    </head>
+
+
+<!-- HTML-body -->
+
+    <body>
+
+<!-- Template for in- and output -->
+
+        <template id="in-out-form">
+            <form>
+                <p>
+                    <select v-model="encDecType">
+                        <option v-for="option in dataTypes[conversionMethod]">{{ option }}</option>
+                    </select>
+                    <textarea
+                        v-model="message"
+                        :readonly="readonly"
+                        :placeholder="placeholder"
+                        cols="32"
+                        rows="8"
+                        spellcheck="false"
+                    ></textarea>
+                </p>
+            </form>
+        </template>
+
+<!-- Actual Page -->
+        <main>
+            
+            <section>
+
+    <!-- Head of body -->
+
+                <article>
+                    <h1>BaseEx - Online Base Converter</h1>
+                    <p>
+                        To demonstrate the capabilities of <b>BaseEx</b> it is used on this demopage to implement an online base converter.<br>
+                        <a href="#code-section">At the end</a> of the page you can find a codeblock with possible implementations to generate the provided output.
+                    </p>
+                    <i>
+                        For more code examples check out the <a href="./live-examples.html">Live Examples</a>.
+                    </i>
+                </article>
+
+            </section>
+
+            <hr>
+
+    <!-- Input/Output section -->
+
+            <section>
+                <article id="input">
+                    <h3>input</h3>
+                    <in-out-form
+                        _type="input"
+                        placeholder="Input goes here..."
+                        v-bind:readonly="false"
+                    ></in-out-form>
+                </article>
+                
+                <article id="control">
+                    <h3>mode</h3>
+                    <form v-on:change="switchInOut">
+                        <div class="radio-wrapper">
+                            <input type="radio" id="encode" value="encode" v-model="mode">
+                            <label for="encode">encode</label>
+                            <br>
+                            <input type="radio" id="decode" value="decode" v-model="mode">
+                            <label for="decode">decode</label>
+                        </div>
+                    </form>
+                </article>
+                
+                <article id="output">
+                    <h3>output</h3>
+                    <in-out-form
+                        _type="output"
+                        placeholder="...output will show up automatically."
+                        v-bind:readonly="true"
+                    ></in-out-form>
+                </article>
+            </section>
+
+            <hr>
+
+    <!-- Codeblock -->
+
+            <section id="code-section">
+                <article>
+                    <h3>
+                        <span>possible implementations</span>
+                        <label for="import">as import type</label>
+                        <select id="import" v-model="importType">
+                            <option v-for="option in importTypes">{{ option }}</option>
+                        </select>
+                    </h3>
+                    <pre id="codeblock"><code v-html="code"></code><div v-on:click="toClipboard" title="copy to clipboard" class="copy"></div>
+                    </pre>
+                </article>
+            </section>
+
+            <section id="copied"><article>copied to clipboard</article></section>
+       
+        </main>
+
+        <footer>
+            <a href="https://github.com/UmamiAppearance/BaseExJS" style="text-decoration: none;" title="to repository">
+                <span style="text-decoration: underline;">github.com/UmamiAppearance/BaseExJS</span>
+                <svg height="22" width="22" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: bottom;"><title>GitHub</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+        </footer>
+    
+    </body>
+
+</html>

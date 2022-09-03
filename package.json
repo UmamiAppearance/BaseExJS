@@ -1,29 +1,52 @@
 {
   "name": "base-ex",
+<<<<<<< HEAD
+  "version": "0.4.0",
+  "description": "A collection of classes for data representation written in JavaScript.",
+  "main": "./cjs/base-ex.cjs",
+  "module": "./src/base-ex.js",
+  "exports": {
+    "import": "./src/base-ex.js",
+    "require": "./cjs/base-ex.cjs"
+  },
+=======
   "version": "0.3.4",
   "description": "A collection of classes for data representation from Base16 (hex) to basE91 written in JavaScript.",
   "main": "dist/BaseEx.cjs",
   "module": "src/BaseEx.js",
+>>>>>>> main
   "type": "module",
   "directories": {
     "test": "test"
   },
   "scripts": {
     "build": "rollup -c",
-    "makeCJS": "rollup src/BaseEx.js --file dist/BaseEx.cjs --format cjs",
-    "lint": "eslint ./",
-    "test": "node test/node.mjs"
+    "build:bytes": "rollup -c --environment BYTES_ONLY",
+    "build:cjs": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
+    "lint": "eslint ./src/*",
+    "lint:fix": "eslint ./src/* --fix",
+    "test": "ava"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/UmamiAppearance/BaseExJS.git"
   },
   "keywords": [
+    "unary",
+    "binary",
+    "bytes",
+    "base conversion",
+    "Base2",
+    "Base8",
+    "Base10",
     "Base16",
     "Base32",
+    "Base36",
+    "Base58",
     "Base64",
     "Base85",
-    "Base91"
+    "Base91",
+    "LEB128"
   ],
   "author": "UmamiAppearance",
   "license": "GPL-3.0",
@@ -33,8 +56,15 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme",
   "devDependencies": {
+<<<<<<< HEAD
+    "@rollup/plugin-replace": "^4.0.0",
+    "ava": "^4.3.3",
+    "eslint": "^8.23.0",
+    "rollup": "^2.79.0",
+=======
     "eslint": "^8.22.0",
     "rollup": "^2.78.1",
+>>>>>>> main
     "rollup-plugin-terser": "^7.0.2"
   }
 }

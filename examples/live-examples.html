@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>BaseEx - Live Examples</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" href="#">
+        
+        <link href="https://umamiappearance.github.io/MSG/MSG.css" rel="stylesheet">
+        
+        <script type="module">
+            import * as BaseEx from "../src/base-ex.js";
+            import liveExamples from "https://umamiappearance.github.io/JSLiveExamples/dist/js-live-examples.esm.min.js";
+
+            // Make all BaseEx classes globally available
+            const constructorList = [];    
+            for (const className in BaseEx) {;
+                window[className] = BaseEx[className];
+                constructorList.push(className);
+            }
+
+            const _b16 = new Base16();
+
+            // Show all available BaseEx classes
+            document.addEventListener("DOMContentLoaded", () => {
+                
+                const constructorListNode = document.querySelector("#constructors");
+                constructorListNode.textContent = constructorList.join(", ");
+
+                const typeListNode = document.querySelector("#outputTypes");
+                typeListNode.textContent = _b16.utils.outputHandler.typeList.join(", ");
+
+                const typeListUL = document.querySelector("#outputTypesList");
+                typeListUL.innerHTML = _b16.utils.outputHandler.typeList.map(li => "<li>" + li + "</li>").join("");
+
+            }, false);
+            
+        </script>
+
+<!-- CSS -->
+
+        <style>
+            span.math {
+                font-family: monospace;
+                font-style: normal;
+                font-weight: 500;
+                font-size: 130%;
+            }
+            h3 {
+                font-size: 1.1em;
+                margin: 0.5em 0 0 0;
+            }
+            ul {
+                margin: 0;
+            }
+            article > table thead {
+                border-bottom: 3px dotted #000;
+            }
+            article > table thead th {
+                padding-bottom: 4px;
+            }
+            article {
+                width: 80%;
+            }
+            footer {
+                text-align: right;
+                margin-right: 6px;
+                height: 40px;
+            }
+            #le-copied article {
+                width: auto;
+            }
+            @media screen and (max-width: 768px) {
+                article {
+                    width: calc(100% - 1em);
+                }
+            }
+            @media screen and (min-width: 768px) {
+                div.live-example {
+                    width: 100% !important;
+                }
+            }
+        </style>
+
+
+    </head>
+
+    <body>
+
+        <main>
+            
+            <section>
+
+                <article>
+                    <h1>BaseEx - Live Examples</h1>
+                    <p>
+                        Here you can find examples to demonstrate many features of <b>BaseEx</b>. You can run the code and also change it.
+                        <br>
+                        <i>(Also check out the <a href="./demo.html">Online Base Converter</a>)</i>
+                    </p>
+                    
+                    <p>
+                        In every example you have global access to the following constructors:
+                        <br>
+                        <strong id="constructors"></strong>
+                    </p>
+                </article>
+
+            </section>
+
+            <hr>
+
+            <section id="examples">
+                <article>
+                    <h3>&#9755; Encoders handle almost every input</h3>
+                    <template class="live-example">
+                        <h1>Input Variations (Base16)</h1>
+                        
+                        <script data-run="true">
+                            const b16 = new Base16();
+                            
+                            let inputStr = "Hello World";
+                            let inputNum = 42;
+                            let inputBytes = new Uint8Array([0, 50, 100, 150, 200, 250]);
+                            
+                            console.log("String:", b16.encode(inputStr));
+                            console.log("Number:", b16.encode(inputNum));
+                            console.log("Bytes: ", b16.encode(inputBytes));
+                        </script>
+                    </template>
+                </article>
+
+                <article>
+                    <h3>&#9755; Decoding returns an ArrayBuffer, but you can select from various types:</h3>
+                    <i id="outputTypes"></i>
+
+                    <template class="live-example">
+                        <h1>Output Types (Base32)</h1>
+                        <script data-run="true">
+                            const b32 = new Base32("rfc3548");
+                            let input = "jbswy3dpeblw64tmmqqq====";
+                            
+                            console.log("Default:     ", b32.decode(input));
+                            console.log("Bytes:       ", b32.decode(input, "bytes"));
+                            console.log("Float32Array:", b32.decode(input, "float32"));
+                            console.log("String:      ", b32.decode(input, "str"));
+                        </script>
+                    </template>
+                </article>
+
+                <article>
+                    <h3>&#9755; Passing Arguments</h3>
+                    <table>
+                        <thead>
+                            <tr><th>property</th><th colspan="2" style="text-align: right;">arguments</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><th>endianness</th><td>be</td><td>le</td></tr>
+                            <tr><th>padding</th><td>nopad</td><td>pad</td></tr>
+                            <tr><th>sign</th><td>unsigned</td><td>signed</td></tr>
+                            <tr><th>case</th><td>lower</td><td>upper</td></tr>
+                            <tr><th>charset</th><td colspan="2"><i>&lt;various&gt;</i></td></tr>
+                            <tr><th>number-mode</th><td colspan="2">number</td></tr>
+                            
+                            <tr style="border-top: 1px solid #aaa;">
+                                <th>IO handler</th>
+                                <td style="text-align: left;">
+                                    <ul>
+                                        <li>bytesIn</li>
+                                        <li>bytesOut</li>
+                                        <li>bytesInOut</li>
+                                    </ul>
+                                </td>
+                                <td style="text-align: left; background-color: rgba(200, 200, 220, 0.1);">
+                                    <i>&gt;&gt; accept only bytes as input</i><br>
+                                    <i>&gt;&gt; limits output to byte-like values</i><br>
+                                    <i>&gt;&gt; in- and output limited to bytes</i><br>
+                                </td>
+                            </tr>
+
+                            <tr style="border-top: 1px solid #aaa;">
+                                <th>output types</th>
+                                <td colspan="2" style="text-align: left;">
+                                    <ul id="outputTypesList"></ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <i style="margin: 1em 0; display: block;">
+                        Arguments can be passed to either en- and decoder or the constructor. The order or number of arguments does not matter. En- and decoder need the input as argument 0, anything else is not not predetermined.
+                    </i>
+
+                    <template class="live-example">
+                        <h1>Arguments (Base64)</h1>
+                        <script data-run="true">
+                            const b64 = new Base64("nopad");
+                            const b64urlsafe = new Base64("urlsafe");
+
+                            // b64 default charset, no padding
+                            console.log(b64.encode(new Uint8Array([252])));
+                            
+                            // b64 default charset, with padding
+                            console.log(b64.encode(new Uint8Array([252]), "pad"));
+
+                            // b64 urlsafe charset, with padding
+                            console.log(b64urlsafe.encode(new Uint8Array([252])));
+                        </script>
+                    </template>
+                </article>
+
+                <article>
+                    <h3>&#9755; Dealing with numbers (integers)</h3>
+                    <i>
+                        There is much to say about numbers, actually too much to go into the details (you may want to read more <a href="https://en.wikipedia.org/wiki/Integer_(computer_science)" target="_blank">here</a>).
+                        <b>BaseEx</b> encoders always try to convert integers to the smallest fitting integer type (short, long, long long, double, n-bit-int) by default.
+                        <br>
+                        Having said that, this is not what a JavaScript 'Number' is. JavaScript Numbers are always 64-bit floating points under the hood. With a last safe integer of <span class="math">2<sup>53</sup>-1</span>.
+                        <b>BaseEx</b> can treat integers either way until the value of <span class="math">2<sup>53</sup>-1</span> is reached. After that, BigInts come into play and the byte representation will be the same for both modes.
+                        <br><br>
+                        To visualize the byte conversion, no base conversion is getting used for this examples, but the <b>ByteConverter</b>. 
+                    </i>
+
+                    <template class="live-example no-scroll">
+                        <h1>Integers (ByteConverter)</h1>
+                        <script data-run="true">
+                            const bc = new ByteConverter();
+                            const bcNum = new ByteConverter("number");
+
+                            const short =    2**12;
+                            const long =     2**29;
+                            const longLong = 2**44;
+                            const double =   2n**67n;
+
+                            console.log(
+                                "short:     ", short,
+                                "\nas int:    ", bc.encode(short),
+                                "\nas num:    ", bcNum.encode(short)
+                            );
+
+                            console.log(
+                                "long:      ", long,
+                                "\nas int:    ", bc.encode(long),
+                                "\nas num:    ", bcNum.encode(long)
+                            );
+
+                            console.log(
+                                "long long: ", longLong,
+                                "\nas int:    ", bc.encode(longLong),
+                                "\nas num:    ", bcNum.encode(longLong)
+                            );
+
+                            console.log(
+                                "double:    ", double,
+                                "\nas int:    ", bc.encode(double),
+                                "\nas num:    ", bcNum.encode(double)
+                            );
+
+                            // decoding:
+                            // to receive an integer as a number, use the "int_n" 
+                            // as argument for integers and "float_n" for the
+                            // number mode
+                            console.log(
+                                "decoded (int_n):   ", bc.decode(bc.encode(short), "int_n"),
+                                "\ndecoded (float_n): ", bcNum.decode(bcNum.encode(short), "float_n"), "\n...",
+                            )
+                        </script>
+                    </template>
+                </article>
+
+                <article>
+                    <h3>&#9755; SimpleBase needs a radix from 2-36</h3>
+                    <i>
+                        SimpleBase is a little special. It provides the simple mathematical base conversion
+                        as known from <span class="math">(n).toString(radix)</span> and <span class="math">parseInt(n, radix)</span>.
+                        <br>
+                        The constructor needs a radix between 2-36 as the first argument. In other regards it behaves as any other converter.
+                        (Which means, you can feed it with anything)
+                    </i>
+                    <template class="live-example">
+                        <h1>SimpleBase</h1>
+                        
+                        <script data-run="true">
+                            const sb2 = new SimpleBase(2);
+                            const sb16 = new SimpleBase(16);
+                            const sb36 = new SimpleBase(36);
+
+                            console.log(sb2.encode(new Int16Array([42, 187])));
+                            console.log(sb16.encode(3.14159265359, "upper"));
+                            console.log(sb36.encode("Hello World!"));
+                        </script>
+                    </template>
+                </article>
+                
+            </section>
+
+            <hr>
+            <section>
+                <small>Examples powered by:</small>
+                <a href="https://github.com/UmamiAppearance/JSLiveExamples" target="_blank">
+                    
+                    <h2 style="margin-top: 1px;">
+                        JSLiveExamples
+                    </h2>
+                </a>
+            </section>
+       
+        </main>
+
+        <footer>
+            <a href="https://github.com/UmamiAppearance/BaseExJS" style="text-decoration: none;" title="to repository">
+                <span style="text-decoration: underline;">github.com/UmamiAppearance/BaseExJS</span>
+                <svg height="22" width="22" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="vertical-align: bottom;"><title>GitHub</title><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+        </footer>
+
+    </body>
+</html>
