@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */

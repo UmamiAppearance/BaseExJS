@@ -583,7 +583,7 @@ class Utils {
             if (charset.size === setLen) {
                 charset = [...charset].join("");
                 this.root.charsets[name] = charset;
-                console.log(`New charset added with the name '${name}' added and ready to use`);
+                console.info(`New charset '${name}' was added and is ready to use`);
             } else if (inputLen === setLen) {
                 throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
             } else {
@@ -593,7 +593,7 @@ class Utils {
 
         // Save method (argument gets validated) to 
         // change the default version.
-        this.root.setDefaultVersion = (version) => {
+        this.root.setDefaultCharset = (version) => {
             ({version } = this.validateArgs([version]));
             this.root.version = version;
         };
@@ -1269,7 +1269,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1296,7 +1296,7 @@ class Base1 extends BaseTemplate {
         // it is not suitable for this converter.
         delete this.addCharset;
 
-        // All chars in the sting are used and picked randomly (prob. suitable for obfuscation)
+        // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
         this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         
         // The sequence is used from left to right again and again
@@ -1428,7 +1428,7 @@ class Base1 extends BaseTemplate {
 /**
  * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1507,7 +1507,7 @@ class Base16 extends BaseTemplate {
 /**
  * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1606,7 +1606,7 @@ class Base32 extends BaseTemplate {
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1744,7 +1744,7 @@ class Base58 extends BaseTemplate{
 /**
  * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1831,7 +1831,7 @@ class Base64 extends BaseTemplate {
 /**
  * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1960,7 +1960,7 @@ class Base85 extends BaseTemplate {
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
@@ -2169,7 +2169,7 @@ class Base91 extends BaseTemplate {
 /**
  * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2279,7 +2279,7 @@ class ByteConverter {
 /**
  * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2443,7 +2443,7 @@ class LEB128 extends BaseTemplate {
 /**
  * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2501,10 +2501,10 @@ class SimpleBase extends BaseTemplate {
     }
 }
 
-/*
+/**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
@@ -2545,8 +2545,8 @@ class BaseEx {
         this.base58_flickr = new Base58("flickr", outputType);
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
-        this.base85adobe = new Base85("adobe", outputType);
-        this.base85ascii = new Base85("ascii85", outputType);
+        this.base85_adobe = new Base85("adobe", outputType);
+        this.base85_ascii = new Base85("ascii85", outputType);
         this.base85_z85 = new Base85("z85", outputType);
         this.base91 = new Base91("default",outputType);
         this.leb128 = new LEB128("default", outputType);

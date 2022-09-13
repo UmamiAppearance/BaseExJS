@@ -586,7 +586,7 @@ var Base16 = (function () {
                 if (charset.size === setLen) {
                     charset = [...charset].join("");
                     this.root.charsets[name] = charset;
-                    console.log(`New charset added with the name '${name}' added and ready to use`);
+                    console.info(`New charset '${name}' was added and is ready to use`);
                 } else if (inputLen === setLen) {
                     throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
                 } else {
@@ -596,7 +596,7 @@ var Base16 = (function () {
 
             // Save method (argument gets validated) to 
             // change the default version.
-            this.root.setDefaultVersion = (version) => {
+            this.root.setDefaultCharset = (version) => {
                 ({version } = this.validateArgs([version]));
                 this.root.version = version;
             };
@@ -1272,7 +1272,7 @@ var Base16 = (function () {
     /**
      * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
      *
-     * @version 0.4.1
+     * @version 0.4.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */

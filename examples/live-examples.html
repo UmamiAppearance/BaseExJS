@@ -210,6 +210,26 @@
                 </article>
 
                 <article>
+                    <h3 id="charsets">&#9755; Additional charsets can be added:</h3>
+                    <i id="outputTypes"></i>
+
+                    <template class="live-example">
+                        <h1>Adding and using a charset</h1>
+                        <script data-run="true">
+                            const base16 = new Base16();
+                            base16.addCharset("badchars", "!<>|()[]={}%&?;:");
+                            
+                            console.log("default:    ", base16.encode("Hello World!"));
+                            console.log("badchars:   ", base16.encode("Hello World!", "badchars"));
+
+                            // setting the new set as default
+                            base16.setDefaultCharset("badchars");
+                            console.log("\nnew default:", base16.encode("Hello World!"));
+                        </script>
+                    </template>
+                </article>
+
+                <article>
                     <h3>&#9755; Dealing with numbers (integers)</h3>
                     <i>
                         There is much to say about numbers, actually too much to go into the details (you may want to read more <a href="https://en.wikipedia.org/wiki/Integer_(computer_science)" target="_blank">here</a>).

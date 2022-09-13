@@ -6,7 +6,7 @@ const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replace
 const converters = new Array();
 const bytesOnly = process.argv.includes("BYTES_ONLY");
 
-const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
+const makeConverter = (inputFile, srcDir, distDir, useGroupDir, t=terser()) => {
     const filename = inputFile.replace(/\.js$/, "");
         const modName = toInitCap(filename);
         const groupDir = (useGroupDir) ? `${modName}/`: "";
@@ -23,7 +23,7 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
                     format: "iife",
                     name: modName,
                     file: `${distDir}${groupDir}${filename}.iife.min.js`,
-                    plugins: [terser()]
+                    plugins: [t]
                 },
                 {   
                     format: "es",
@@ -34,7 +34,7 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
                     format: "es",
                     name: modName,
                     file: `${distDir}${groupDir}${filename}.esm.min.js`,
-                    plugins: [terser()]
+                    plugins: [t]
                 },
             ]
         };
@@ -55,8 +55,21 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir=false) => {
         converters.push(converter);
 }
 
+// allow only the main license for base-ex class
+const selectiveTerser = terser({
+    output: {
+        comments: (node, comment) => {
+            const text = comment.value;
+            const type = comment.type;
+            if (type === "comment2") {
+                return !(/BaseEx\|\w+/).test(text) && (/@license/i).test(text);
+            }
+        }
+    },
+})
 
-makeConverter("base-ex.js", "src/", "dist/");
+makeConverter("base-ex.js", "src/", "dist/", false, selectiveTerser);
+
 
 readdirSync("./src/converters").forEach(inputFile => {
     makeConverter(inputFile, "src/converters/", "dist/converters/", true)

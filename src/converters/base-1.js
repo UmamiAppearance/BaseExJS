@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.4.1
+ * @version 0.4.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -30,7 +30,7 @@ export default class Base1 extends BaseTemplate {
         // it is not suitable for this converter.
         delete this.addCharset;
 
-        // All chars in the sting are used and picked randomly (prob. suitable for obfuscation)
+        // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
         this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
         
         // The sequence is used from left to right again and again

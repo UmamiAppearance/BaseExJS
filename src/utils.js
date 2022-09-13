@@ -72,7 +72,7 @@ export class Utils {
             if (charset.size === setLen) {
                 charset = [...charset].join("");
                 this.root.charsets[name] = charset;
-                console.log(`New charset added with the name '${name}' added and ready to use`);
+                console.info(`New charset '${name}' was added and is ready to use`);
             } else if (inputLen === setLen) {
                 throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
             } else {
@@ -82,7 +82,7 @@ export class Utils {
 
         // Save method (argument gets validated) to 
         // change the default version.
-        this.root.setDefaultVersion = (version) => {
+        this.root.setDefaultCharset = (version) => {
             ({version } = this.validateArgs([version]));
             this.root.version = version;
         }

@@ -10,17 +10,108 @@ There are other good solutions for e.g. Base32, Base64, Base85, but BaseEx has t
 The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - for an **X**.
 
 
-### Available converters:
-* ``Base1/Unary``
-* ``Base16``
-* ``Base32 (RFC 3548 and RFC 4648)``
-* ``Base58 (default, bitcoin, flickr)``
-* ``Base64 (standard and urlsafe)``
-* ``Base85 (adobe, ascii85, z85)``
-* ``Base91``
-* ``LEB128``
-* ``SimpleBase (Base2-Base36)``
-* ``ByteConverter``
+### Available converters/charsets:
+
+<table>
+    <thead>
+        <tr><th><h4>converter</h4></th><th><h4>charsets</h4></th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Base1/Unary</td>
+            <td>
+                <ul>
+                    <li>all</li>
+                    <li>sequence</li>
+                    <li>default</li>
+                    <li>tmark</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Base16</td>
+            <td>
+                <ul>
+                    <li>default</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Base32</td>
+            <td>
+                <ul>
+                    <li>crockford</li>
+                    <li>rfc3548</li>
+                    <li>rfc4648</li>
+                    <li>zbase32</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Base58</td>
+            <td>
+                <ul>
+                    <li>default</li>
+                    <li>bitcoin</li>
+                    <li>flickr</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Base64</td>
+            <td>
+                <ul>
+                    <li>standard</li>
+                    <li>urlsafe</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Base85</td>
+            <td>
+                <ul>
+                    <li>adobe</li>
+                    <li>ascii85</li>
+                    <li>rfc1924 <i>(charset only)</i></li>
+                    <li>z85</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Base91</td>
+            <td>
+                <ul>
+                    <li>default</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>LEB128</td>
+            <td>
+                <ul>
+                    <li>default</li>
+                    <li>hex</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>SimpleBase (Base2-Base36)</td>
+            <td>
+                <ul>
+                    <li>default</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>ByteConverter</td>
+            <td>
+                ---
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+_Additional charsets can be added. Watch this [live example](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html#charsets)._
 
 
 ## Installation
