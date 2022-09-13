@@ -276,7 +276,7 @@ var BaseEx = (function (exports) {
             else if (Array.isArray(input)) {
                 const collection = new Array();
                 for (const elem of input) {
-                    collection.push(...this.toBytes(elem));
+                    collection.push(...this.toBytes(elem, settings)[0]);
                 }
                 inputUint8 = Uint8Array.from(collection);
             }
@@ -1272,7 +1272,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1431,7 +1431,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1510,7 +1510,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1609,7 +1609,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1747,7 +1747,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1834,7 +1834,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1963,7 +1963,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
      */
@@ -2172,7 +2172,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2282,7 +2282,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2443,6 +2443,14 @@ var BaseEx = (function (exports) {
         }
     }
 
+    /**
+     * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+     *
+     * @version 0.4.1
+     * @author UmamiAppearance [mail@umamiappearance.eu]
+     * @license GPL-3.0
+     */
+
     class SimpleBase extends BaseTemplate {
         constructor(radix, ...args) {
             super();
@@ -2451,14 +2459,14 @@ var BaseEx = (function (exports) {
                 throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
             }
 
-            this.charsets.selection = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
+            this.charsets.default = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
         
             // predefined settings
             this.converter = new BaseConverter(radix, 0, 0);
             this.hasSignedMode = true;
             this.littleEndian = !(radix === 2 || radix === 16);
             this.signed = true;
-            this.version = "selection";
+            this.version = "default";
             
             // list of allowed/disallowed args to change
             this.isMutable.littleEndian = true,
@@ -2499,7 +2507,7 @@ var BaseEx = (function (exports) {
     /*
      * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
      */

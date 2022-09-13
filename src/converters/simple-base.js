@@ -1,3 +1,12 @@
+/**
+ * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+ *
+ * @version 0.4.1
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+
 import { BaseConverter, BaseTemplate } from "../core.js";
 
 export default class SimpleBase extends BaseTemplate {
@@ -8,14 +17,14 @@ export default class SimpleBase extends BaseTemplate {
             throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
         }
 
-        this.charsets.selection = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
+        this.charsets.default = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
     
         // predefined settings
         this.converter = new BaseConverter(radix, 0, 0);
         this.hasSignedMode = true;
         this.littleEndian = !(radix === 2 || radix === 16);
         this.signed = true;
-        this.version = "selection";
+        this.version = "default";
         
         // list of allowed/disallowed args to change
         this.isMutable.littleEndian = true,

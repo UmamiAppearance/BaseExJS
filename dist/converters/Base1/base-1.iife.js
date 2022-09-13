@@ -276,7 +276,7 @@ var Base1 = (function () {
             else if (Array.isArray(input)) {
                 const collection = new Array();
                 for (const elem of input) {
-                    collection.push(...this.toBytes(elem));
+                    collection.push(...this.toBytes(elem, settings)[0]);
                 }
                 inputUint8 = Uint8Array.from(collection);
             }
@@ -1272,7 +1272,7 @@ var Base1 = (function () {
     /**
      * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
      *
-     * @version 0.4.0
+     * @version 0.4.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */

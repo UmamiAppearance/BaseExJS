@@ -273,7 +273,7 @@ class SmartInput {
         else if (Array.isArray(input)) {
             const collection = new Array();
             for (const elem of input) {
-                collection.push(...this.toBytes(elem));
+                collection.push(...this.toBytes(elem, settings)[0]);
             }
             inputUint8 = Uint8Array.from(collection);
         }
