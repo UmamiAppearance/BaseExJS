@@ -108,6 +108,38 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                 ---
             </td>
         </tr>
+        <tr>
+            <td>BaseEx</td>
+            <td>
+                <i>Ready to use instances of the above converters:</i>
+                <ul>
+                    <li>base1</li>
+                    <li>base16</li>
+                    <li>base32_crockford</li>
+                    <li>base32_rfc3548</li>
+                    <li>base32_rfc4648</li>
+                    <li>base32_zbase32</li>
+                    <li>base58</li>
+                    <li>base58_bitcoin</li>
+                    <li>base58_flickr</li>
+                    <li>base64</li>
+                    <li>base64_urlsafe</li>
+                    <li>base85_adobe</li>
+                    <li>base85_ascii</li>
+                    <li>base85_z85</li>
+                    <li>base91</li>
+                    <li>leb128</li>
+                    <li>byteConverter</li>
+                    <li>simpleBase
+                        <ul>
+                            <li>base2</li>
+                            <li>⋮</li>
+                            <li>base36</li>
+                        </ul>
+                    </li>
+                </ul>
+            </td>
+        </tr>
     </tbody>
 </table>
 

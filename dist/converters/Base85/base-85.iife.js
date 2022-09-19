@@ -1272,7 +1272,7 @@ var Base85 = (function () {
     /**
      * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
      *
-     * @version 0.4.2
+     * @version 0.4.3
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */

@@ -210,6 +210,23 @@
                 </article>
 
                 <article>
+                    <h3>&#9755; The BaseEx class holds ready to use instances of almost any available converter:</h3>
+
+                    <template class="live-example">
+                        <h1>BaseEx Class</h1>
+                        <script data-run="true">
+                            const bx = new BaseEx();
+
+                            console.log(bx.base16.encode("Hello World!"));
+                            console.log(bx.base32_zbase32.encode("Hello World!"));
+                            console.log(bx.base58_bitcoin.encode("Hello World!"));
+                            console.log(bx.base91.encode("Hello World!"));
+                        </script>
+                    </template>
+                </article>
+
+
+                <article>
                     <h3 id="charsets">&#9755; Additional charsets can be added:</h3>
                     <i id="outputTypes"></i>
 
