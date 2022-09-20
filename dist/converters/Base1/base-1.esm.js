@@ -539,11 +539,12 @@ class Utils {
         this.outputHandler = outputHandler;
     }
 
+
+    /**
+     * Constructor for the ability to add a charset and 
+     * change the default version.
+     */
     #charsetUserToolsConstructor() {
-        /*
-            Constructor for the ability to add a charset and 
-            change the default version.
-        */
 
         this.root.addCharset = (name, charset) => {
             /*
@@ -599,13 +600,22 @@ class Utils {
         };
     }
 
+    /**
+     * Argument lists for error messages.
+     * @param {string[]} args 
+     * @returns string - Arguments joined as a string. 
+     */
     makeArgList(args) {
-        /*
-            Returns argument lists for error messages.
-        */
         return args.map(s => `'${s}'`).join(", ");
     }
 
+    /**
+     * Removes all padded zeros a the start of the string,
+     * adds a "-" if value is negative.
+     * @param {string} output - Former output.
+     * @param {boolean} negative - Indicates a negative value if true.
+     * @returns {string} - Output without zero padding and a sign if negative.
+     */
     toSignedStr(output, negative) {
 
         output = output.replace(/^0+(?!$)/, "");
@@ -617,8 +627,14 @@ class Utils {
         return output;
     }
 
+    /**
+     * Analyzes the input for a negative sign.
+     * If a sign is found, it gets removed but
+     * negative bool gets true;
+     * @param {string} input - Input number as a string. 
+     * @returns {array} - Number without sign and negativity indication bool.
+     */
     extractSign(input) {
-        // Test for a negative sign
         let negative = false;
         if (input[0] === "-") {
             negative = true;
@@ -628,6 +644,14 @@ class Utils {
         return [input, negative];
     }
 
+    /**
+     * All possible error messages for invalid arguments,
+     * gets adjusted according to the converter settings.
+     * @param {string} arg - Argument. 
+     * @param {string[]} versions - Charset array. 
+     * @param {string[]} outputTypes - Array of output types. 
+     * @param {boolean} initial - Indicates if the arguments where passed during construction. 
+     */
     invalidArgument(arg, versions, outputTypes, initial) {
         const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
         const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
@@ -641,11 +665,15 @@ class Utils {
         throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
     }
 
+
+    /**
+     * Test if provided arguments are in the argument list.
+     * Everything gets converted to lowercase and returned.
+     * @param {string[]} args - Passed arguments. 
+     * @param {boolean} initial - Indicates if the arguments where passed during construction.  
+     * @returns {Object} - Converter settings object.
+     */
     validateArgs(args, initial=false) {
-        /* 
-            Test if provided arguments are in the argument list.
-            Everything gets converted to lowercase and returned
-        */
         
         // default settings
         const parameters = {
@@ -756,7 +784,7 @@ class Utils {
         // displayed.
         if (parameters.padding && parameters.signed) {
             parameters.padding = false;
-            this.constructor.warning("Padding was set to false due to the signed conversion.");
+            console.warn("Padding was set to false due to the signed conversion.");
         }
         
         // overwrite the default parameters for the initial call
@@ -769,17 +797,13 @@ class Utils {
         return parameters;
     }
 
+    /**
+     * A TypeError specifically for sign errors.
+     */
     signError() {
         throw new TypeError("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
     }
 
-    static warning(message) {
-        if (Object.prototype.hasOwnProperty.call(console, "warn")) {
-            console.warn(message);
-        } else {
-            console.log(`___\n${message}\n`);
-        }
-    }
 }
 
 /**
@@ -1269,7 +1293,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1352,7 +1376,7 @@ class Base1 extends BaseTemplate {
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
         } else if (n > 16777216) {
-            this.utils.constructor.warning("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
+            console.warn("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
         }
         
         n = Number(n);

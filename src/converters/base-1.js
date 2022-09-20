@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -86,7 +86,7 @@ export default class Base1 extends BaseTemplate {
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
         } else if (n > 16777216) {
-            this.utils.constructor.warning("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
+            console.warn("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
         }
         
         n = Number(n);

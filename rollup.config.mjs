@@ -58,6 +58,7 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir, t=terser()) => {
 // allow only the main license for base-ex class
 const selectiveTerser = terser({
     output: {
+        // eslint-disable-next-line consistent-return
         comments: (node, comment) => {
             const text = comment.value;
             const type = comment.type;
