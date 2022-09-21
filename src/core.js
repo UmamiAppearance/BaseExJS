@@ -69,7 +69,7 @@ class BaseConverter {
      * @param {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} inputBytes - Input as Uint8Array.
      * @param {string} charset - The charset used for conversion.
      * @param {boolean} littleEndian - Byte order, little endian bool.
-     * @param {*} replacer - Replacer function can replace groups of characters during encoding.
+     * @param {function} replacer - Replacer function can replace groups of characters during encoding.
      * @returns {number[]} - Output string and padding amount. 
      */
     encode(inputBytes, charset, littleEndian=false, replacer=null) {
@@ -183,7 +183,7 @@ class BaseConverter {
      * BaseEx Universal Base Decoding.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
      * @param {string} charset - The charset used for conversion.
-     * @param {*} littleEndian - Byte order, little endian bool.
+     * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
     decode(inputBaseStr, charset, littleEndian=false) {
@@ -204,7 +204,7 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        inputBaseStr.split('').forEach((c) => {
+        [...inputBaseStr].forEach((c) => {
             const index = charset.indexOf(c);
             if (index > -1) { 
                byteArray.push(index);
@@ -389,8 +389,8 @@ class BaseTemplate {
     /**
      * BaseEx Generic Encoder.
      * @param {*} input - Any input the used byte converter allows.
-     * @param {*} [replacerFN] - Replacer function, which is passed to the encoder. 
-     * @param {*} [postEncodeFN] - Function, which is executed after encoding.
+     * @param {function} [replacerFN] - Replacer function, which is passed to the encoder. 
+     * @param {function} [postEncodeFN] - Function, which is executed after encoding.
      * @param  {...any} args - Converter settings.
      * @returns {string} - Base encoded string.
      */
@@ -410,8 +410,7 @@ class BaseTemplate {
         }
         
         // Convert to base string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
+        let [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
         // set sign if requested
         if (settings.signed) {
@@ -434,26 +433,26 @@ class BaseTemplate {
 
     /**
      * BaseEx Generic Decoder.
-     * @param {string} rawInput - Base String.
-     * @param {*} [preDecodeFN] - Function, which gets executed before decoding. 
-     * @param {*} [postDecodeFN] - Function, which gets executed after decoding
+     * @param {string} input - Base String.
+     * @param {function} [preDecodeFN] - Function, which gets executed before decoding. 
+     * @param {function} [postDecodeFN] - Function, which gets executed after decoding
      * @param  {...any} args - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
+    decode(input, preDecodeFN, postDecodeFN, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        let input = String(rawInput);
+        input = String(input);
 
         // set negative to false for starters
         let negative = false;
         
         // Test for a negative sign if converter supports it
         if (this.hasSignedMode) {
-            [input, negative] = this.utils.extractSign(input);   
+            [ input, negative ] = this.utils.extractSign(input);   
             
             // But don't allow a sign if the decoder is not configured to use it
             if (negative && !settings.signed) {

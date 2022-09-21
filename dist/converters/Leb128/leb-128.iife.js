@@ -1013,7 +1013,7 @@ var Leb128 = (function () {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            inputBaseStr.split('').forEach((c) => {
+            [...inputBaseStr].forEach((c) => {
                 const index = charset.indexOf(c);
                 if (index > -1) { 
                    byteArray.push(index);

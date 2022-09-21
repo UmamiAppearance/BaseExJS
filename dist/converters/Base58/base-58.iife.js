@@ -1013,7 +1013,7 @@ var Base58 = (function () {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            inputBaseStr.split('').forEach((c) => {
+            [...inputBaseStr].forEach((c) => {
                 const index = charset.indexOf(c);
                 if (index > -1) { 
                    byteArray.push(index);
@@ -1324,9 +1324,9 @@ var Base58 = (function () {
             super(); 
 
             // charsets
-            this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
-            this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-            this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+            this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+            this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
+            this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
 
             // converter
             this.converter = new BaseConverter(58, 0, 0);

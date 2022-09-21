@@ -1010,7 +1010,7 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        inputBaseStr.split('').forEach((c) => {
+        [...inputBaseStr].forEach((c) => {
             const index = charset.indexOf(c);
             if (index > -1) { 
                byteArray.push(index);
@@ -1333,10 +1333,10 @@ class Base85 extends BaseTemplate {
         super();
 
         // charsets
-        this.charsets.adobe   =  "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
+        this.charsets.adobe   =  [..."!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu"];
         this.charsets.ascii85 =  this.charsets.adobe;
-        this.charsets.rfc1924 =  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
-        this.charsets.z85     =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
+        this.charsets.rfc1924 =  [..."0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~"];
+        this.charsets.z85     =  [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"];
 
         // converter
         this.converter = new BaseConverter(85, 4, 5, 84);

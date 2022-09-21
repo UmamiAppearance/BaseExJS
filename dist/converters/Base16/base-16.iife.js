@@ -1013,7 +1013,7 @@ var Base16 = (function () {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            inputBaseStr.split('').forEach((c) => {
+            [...inputBaseStr].forEach((c) => {
                 const index = charset.indexOf(c);
                 if (index > -1) { 
                    byteArray.push(index);
@@ -1322,7 +1322,7 @@ var Base16 = (function () {
             this.converter = new BaseConverter(16, 1, 2);
 
             // default settings
-            this.charsets.default = "0123456789abcdef";
+            this.charsets.default = [..."0123456789abcdef"];
             this.hasSignedMode = true;
             
             // mutable extra args

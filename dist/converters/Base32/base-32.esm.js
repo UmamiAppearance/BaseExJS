@@ -1010,7 +1010,7 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        inputBaseStr.split('').forEach((c) => {
+        [...inputBaseStr].forEach((c) => {
             const index = charset.indexOf(c);
             if (index > -1) { 
                byteArray.push(index);
@@ -1324,10 +1324,10 @@ class Base32 extends BaseTemplate {
         super();
 
         // charsets
-        this.charsets.crockford = "0123456789abcdefghjkmnpqrstvwxyz";
-        this.charsets.rfc3548 =   "abcdefghijklmnopqrstuvwxyz234567";
-        this.charsets.rfc4648 =   "0123456789abcdefghijklmnopqrstuv";
-        this.charsets.zbase32 =   "ybndrfg8ejkmcpqxot1uwisza345h769";
+        this.charsets.crockford = [..."0123456789abcdefghjkmnpqrstvwxyz"];
+        this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
+        this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
+        this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
         
         // converter
         this.converter = new BaseConverter(32, 5, 8);

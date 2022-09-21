@@ -1013,7 +1013,7 @@ var Base64 = (function () {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            inputBaseStr.split('').forEach((c) => {
+            [...inputBaseStr].forEach((c) => {
                 const index = charset.indexOf(c);
                 if (index > -1) { 
                    byteArray.push(index);
@@ -1323,9 +1323,9 @@ var Base64 = (function () {
             super();
 
             // charsets
-            const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            this.charsets.default = b62Chars.concat("+/");
-            this.charsets.urlsafe = b62Chars.concat("-_");
+            const b62Chars = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"];
+            this.charsets.default = b62Chars.concat(["+", "/"]);
+            this.charsets.urlsafe = b62Chars.concat(["-", "_"]);
          
             // converter
             this.converter = new BaseConverter(64, 3, 4);

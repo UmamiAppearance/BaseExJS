@@ -978,7 +978,7 @@ var Base91 = (function () {
             super();
 
             // charsets
-            this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
+            this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
 
             // apply user settings
             this.utils.validateArgs(args, true);

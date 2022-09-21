@@ -3,6 +3,13 @@ import { BytesInput, BytesOutput, SmartInput, SmartOutput } from "./io-handlers.
 const DEFAULT_INPUT_HANDLER = SmartInput;
 const DEFAULT_OUTPUT_HANDLER = SmartOutput;
 
+class SignError extends TypeError {
+    constructor() {
+        super("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        this.name = "SignError";
+    }
+}
+  
 
 /**
  * Utilities for every BaseEx class.
@@ -290,7 +297,7 @@ export class Utils {
      * A TypeError specifically for sign errors.
      */
     signError() {
-        throw new TypeError("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        throw new SignError();
     }
 
 }

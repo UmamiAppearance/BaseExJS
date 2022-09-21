@@ -29,7 +29,7 @@ export default class Base16 extends BaseTemplate {
         this.converter = new BaseConverter(16, 1, 2);
 
         // default settings
-        this.charsets.default = "0123456789abcdef";
+        this.charsets.default = [..."0123456789abcdef"];
         this.hasSignedMode = true;
         
         // mutable extra args

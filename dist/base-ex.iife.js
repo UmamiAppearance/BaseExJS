@@ -1013,7 +1013,7 @@ var BaseEx = (function (exports) {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            inputBaseStr.split('').forEach((c) => {
+            [...inputBaseStr].forEach((c) => {
                 const index = charset.indexOf(c);
                 if (index > -1) { 
                    byteArray.push(index);
@@ -1481,7 +1481,7 @@ var BaseEx = (function (exports) {
             this.converter = new BaseConverter(16, 1, 2);
 
             // default settings
-            this.charsets.default = "0123456789abcdef";
+            this.charsets.default = [..."0123456789abcdef"];
             this.hasSignedMode = true;
             
             // mutable extra args
@@ -1565,10 +1565,10 @@ var BaseEx = (function (exports) {
             super();
 
             // charsets
-            this.charsets.crockford = "0123456789abcdefghjkmnpqrstvwxyz";
-            this.charsets.rfc3548 =   "abcdefghijklmnopqrstuvwxyz234567";
-            this.charsets.rfc4648 =   "0123456789abcdefghijklmnopqrstuv";
-            this.charsets.zbase32 =   "ybndrfg8ejkmcpqxot1uwisza345h769";
+            this.charsets.crockford = [..."0123456789abcdefghjkmnpqrstvwxyz"];
+            this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
+            this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
+            this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
             
             // converter
             this.converter = new BaseConverter(32, 5, 8);
@@ -1661,9 +1661,9 @@ var BaseEx = (function (exports) {
             super(); 
 
             // charsets
-            this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
-            this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-            this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+            this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+            this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
+            this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
 
             // converter
             this.converter = new BaseConverter(58, 0, 0);
@@ -1798,9 +1798,9 @@ var BaseEx = (function (exports) {
             super();
 
             // charsets
-            const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            this.charsets.default = b62Chars.concat("+/");
-            this.charsets.urlsafe = b62Chars.concat("-_");
+            const b62Chars = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"];
+            this.charsets.default = b62Chars.concat(["+", "/"]);
+            this.charsets.urlsafe = b62Chars.concat(["-", "_"]);
          
             // converter
             this.converter = new BaseConverter(64, 3, 4);
@@ -1898,10 +1898,10 @@ var BaseEx = (function (exports) {
             super();
 
             // charsets
-            this.charsets.adobe   =  "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
+            this.charsets.adobe   =  [..."!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu"];
             this.charsets.ascii85 =  this.charsets.adobe;
-            this.charsets.rfc1924 =  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
-            this.charsets.z85     =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
+            this.charsets.rfc1924 =  [..."0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~"];
+            this.charsets.z85     =  [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"];
 
             // converter
             this.converter = new BaseConverter(85, 4, 5, 84);
@@ -2018,7 +2018,7 @@ var BaseEx = (function (exports) {
             super();
 
             // charsets
-            this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
+            this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
 
             // apply user settings
             this.utils.validateArgs(args, true);
@@ -2304,6 +2304,176 @@ var BaseEx = (function (exports) {
     }
 
     /**
+     * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
+     *
+     * @version 0.5.0
+     * @author UmamiAppearance [mail@umamiappearance.eu]
+     * @license GPL-3.0
+     */
+
+    /**
+     * BaseEx Ecoji (a Base 1024) Converter.
+     * ------------------------
+     * This an implementation of the  Ecoji/converter.
+     * Various input can be converted to a hex string
+     * or a hex string can be decoded into various formats.
+     */
+    class Ecoji extends BaseTemplate {
+
+        /**
+         * BaseEx Ecoji Constructor.
+         * @param {...string} [args] - Converter settings.
+         */
+        constructor(...args) {
+            super();
+
+            // converter
+            this.converter = new BaseConverter(1024, 5, 4);
+
+            // default settings
+            this.charsets.default = [
+                "🀄", "🃏", "🅰", "🅱", "🅾", "🅿", "🆎", "🆑", "🆒", "🆓", "🆔", "🆕",
+                "🆖", "🆗", "🆘", "🆙", "🆚", "🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬",
+                "🇭", "🇮", "🇯", "🇰", "🇱", "🇲", "🇳", "🇴", "🇵", "🇶", "🇷", "🇸",
+                "🇹", "🇺", "🇻", "🇼", "🇽", "🇾", "🇿", "🈁", "🈂", "🈚", "🈯", "🈲",
+                "🈳", "🈴", "🈵", "🈶", "🈷", "🈸", "🈹", "🈺", "🉐", "🉑", "🌀", "🌁",
+                "🌂", "🌃", "🌄", "🌅", "🌆", "🌇", "🌈", "🌉", "🌊", "🌋", "🌌", "🌍",
+                "🌎", "🌏", "🌐", "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🌙",
+                "🌚", "🌛", "🌜", "🌝", "🌞", "🌟", "🌠", "🌡", "🌤", "🌥", "🌦", "🌧",
+                "🌨", "🌩", "🌪", "🌫", "🌬", "🌭", "🌮", "🌯", "🌰", "🌱", "🌲", "🌳",
+                "🌴", "🌵", "🌶", "🌷", "🌸", "🌹", "🌺", "🌻", "🌼", "🌽", "🌾", "🌿",
+                "🍀", "🍁", "🍂", "🍃", "🍄", "🍅", "🍆", "🍇", "🍈", "🍉", "🍊", "🍋",
+                "🍌", "🍍", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🍔", "🍕", "🍖", "🍗",
+                "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍞", "🍟", "🍠", "🍡", "🍢", "🍣",
+                "🍤", "🍥", "🍦", "🍧", "🍨", "🍩", "🍪", "🍫", "🍬", "🍭", "🍮", "🍯",
+                "🍰", "🍱", "🍲", "🍳", "🍴", "🍵", "🍶", "🍷", "🍸", "🍹", "🍺", "🍻",
+                "🍼", "🍽", "🍾", "🍿", "🎀", "🎁", "🎂", "🎃", "🎄", "🎅", "🎆", "🎇",
+                "🎈", "🎉", "🎊", "🎋", "🎌", "🎍", "🎎", "🎏", "🎐", "🎑", "🎒", "🎓",
+                "🎖", "🎗", "🎙", "🎚", "🎛", "🎞", "🎟", "🎠", "🎡", "🎢", "🎣", "🎤",
+                "🎥", "🎦", "🎧", "🎨", "🎩", "🎪", "🎫", "🎬", "🎭", "🎮", "🎯", "🎰",
+                "🎱", "🎲", "🎳", "🎴", "🎵", "🎶", "🎷", "🎸", "🎹", "🎺", "🎻", "🎼",
+                "🎽", "🎾", "🎿", "🏀", "🏁", "🏂", "🏃", "🏄", "🏅", "🏆", "🏇", "🏈",
+                "🏉", "🏊", "🏋", "🏌", "🏎", "🏏", "🏐", "🏑", "🏒", "🏓", "🏔", "🏕",
+                "🏖", "🏗", "🏘", "🏙", "🏚", "🏛", "🏜", "🏝", "🏞", "🏟", "🏠", "🏡",
+                "🏢", "🏣", "🏤", "🏥", "🏦", "🏧", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭",
+                "🏮", "🏯", "🏰", "🏳", "🏴", "🏵", "🏷", "🏸", "🏹", "🏺", "🏻", "🏼",
+                "🏽", "🏾", "🏿", "🐀", "🐁", "🐂", "🐃", "🐄", "🐅", "🐆", "🐇", "🐈",
+                "🐉", "🐊", "🐋", "🐌", "🐍", "🐎", "🐏", "🐐", "🐑", "🐒", "🐓", "🐔",
+                "🐕", "🐖", "🐗", "🐘", "🐙", "🐚", "🐛", "🐜", "🐝", "🐞", "🐟", "🐠",
+                "🐡", "🐢", "🐣", "🐤", "🐥", "🐦", "🐧", "🐨", "🐩", "🐪", "🐫", "🐬",
+                "🐭", "🐮", "🐯", "🐰", "🐱", "🐲", "🐳", "🐴", "🐵", "🐶", "🐷", "🐸",
+                "🐹", "🐺", "🐻", "🐼", "🐽", "🐾", "🐿", "👀", "👁", "👂", "👃", "👄",
+                "👅", "👆", "👇", "👈", "👉", "👊", "👋", "👌", "👍", "👎", "👏", "👐",
+                "👑", "👒", "👓", "👔", "👕", "👖", "👗", "👘", "👙", "👚", "👛", "👜",
+                "👝", "👞", "👟", "👠", "👡", "👢", "👣", "👤", "👥", "👦", "👧", "👨",
+                "👩", "👪", "👫", "👬", "👭", "👮", "👯", "👰", "👱", "👲", "👳", "👴",
+                "👵", "👶", "👷", "👸", "👹", "👺", "👻", "👼", "👽", "👾", "👿", "💀",
+                "💁", "💂", "💃", "💄", "💅", "💆", "💇", "💈", "💉", "💊", "💋", "💌",
+                "💍", "💎", "💏", "💐", "💑", "💒", "💓", "💔", "💕", "💖", "💗", "💘",
+                "💙", "💚", "💛", "💜", "💝", "💞", "💟", "💠", "💡", "💢", "💣", "💤",
+                "💥", "💦", "💧", "💨", "💩", "💪", "💫", "💬", "💭", "💮", "💯", "💰",
+                "💱", "💲", "💳", "💴", "💵", "💶", "💷", "💸", "💹", "💺", "💻", "💼",
+                "💽", "💾", "💿", "📀", "📁", "📂", "📃", "📄", "📅", "📆", "📇", "📈",
+                "📉", "📊", "📋", "📌", "📍", "📎", "📏", "📐", "📒", "📓", "📔", "📕",
+                "📖", "📗", "📘", "📙", "📚", "📛", "📜", "📝", "📞", "📟", "📠", "📡",
+                "📢", "📣", "📤", "📥", "📦", "📧", "📨", "📩", "📪", "📫", "📬", "📭",
+                "📮", "📯", "📰", "📱", "📲", "📳", "📴", "📵", "📶", "📷", "📸", "📹",
+                "📺", "📻", "📼", "📽", "📿", "🔀", "🔁", "🔂", "🔃", "🔄", "🔅", "🔆",
+                "🔇", "🔈", "🔉", "🔊", "🔋", "🔌", "🔍", "🔎", "🔏", "🔐", "🔑", "🔒",
+                "🔓", "🔔", "🔕", "🔖", "🔗", "🔘", "🔙", "🔚", "🔛", "🔜", "🔝", "🔞",
+                "🔟", "🔠", "🔡", "🔢", "🔣", "🔤", "🔥", "🔦", "🔧", "🔨", "🔩", "🔪",
+                "🔫", "🔬", "🔭", "🔮", "🔯", "🔰", "🔱", "🔲", "🔳", "🔴", "🔵", "🔶",
+                "🔷", "🔸", "🔹", "🔺", "🔻", "🔼", "🔽", "🕉", "🕊", "🕋", "🕌", "🕍",
+                "🕎", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚",
+                "🕛", "🕜", "🕝", "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦",
+                "🕧", "🕯", "🕰", "🕳", "🕴", "🕵", "🕶", "🕷", "🕸", "🕹", "🕺", "🖇",
+                "🖊", "🖋", "🖌", "🖍", "🖐", "🖕", "🖖", "🖤", "🖥", "🖨", "🖱", "🖲",
+                "🖼", "🗂", "🗃", "🗄", "🗑", "🗒", "🗓", "🗜", "🗝", "🗞", "🗡", "🗣",
+                "🗨", "🗯", "🗳", "🗺", "🗻", "🗼", "🗽", "🗾", "🗿", "😀", "😁", "😂",
+                "😃", "😄", "😅", "😆", "😇", "😈", "😉", "😊", "😋", "😌", "😍", "😎",
+                "😏", "😐", "😑", "😒", "😓", "😔", "😕", "😖", "😗", "😘", "😙", "😚",
+                "😛", "😜", "😝", "😞", "😟", "😠", "😡", "😢", "😣", "😤", "😥", "😦",
+                "😧", "😨", "😩", "😪", "😫", "😬", "😭", "😮", "😯", "😰", "😱", "😲",
+                "😳", "😴", "😵", "😶", "😷", "😸", "😹", "😺", "😻", "😼", "😽", "😾",
+                "😿", "🙀", "🙁", "🙂", "🙃", "🙄", "🙅", "🙆", "🙇", "🙈", "🙉", "🙊",
+                "🙌", "🙍", "🙎", "🙏", "🚀", "🚁", "🚂", "🚃", "🚄", "🚅", "🚆", "🚇",
+                "🚈", "🚉", "🚊", "🚋", "🚌", "🚍", "🚎", "🚏", "🚐", "🚑", "🚒", "🚓",
+                "🚔", "🚕", "🚖", "🚗", "🚘", "🚙", "🚚", "🚛", "🚜", "🚝", "🚞", "🚟",
+                "🚠", "🚡", "🚢", "🚣", "🚤", "🚥", "🚦", "🚧", "🚨", "🚩", "🚪", "🚫",
+                "🚬", "🚭", "🚮", "🚯", "🚰", "🚱", "🚲", "🚳", "🚴", "🚵", "🚶", "🚷",
+                "🚸", "🚹", "🚺", "🚻", "🚼", "🚽", "🚾", "🚿", "🛀", "🛁", "🛂", "🛃",
+                "🛄", "🛅", "🛋", "🛌", "🛍", "🛎", "🛏", "🛐", "🛑", "🛒", "🛠", "🛡",
+                "🛢", "🛣", "🛤", "🛥", "🛩", "🛫", "🛬", "🛰", "🛳", "🛴", "🛵", "🛶",
+                "\U0001f6f7", "\U0001f6f8", "\U0001f6f9", "🤐", "🤑", "🤒", "🤓", "🤔",
+                "🤕", "🤖", "🤗", "🤘", "🤙", "🤚", "🤛", "🤜", "🤝", "🤞", "\U0001f91f",
+                "🤠", "🤡", "🤢", "🤣", "🤤", "🤥", "🤦", "🤧", "\U0001f928", "\U0001f929",
+                "\U0001f92a", "\U0001f92b", "\U0001f92c", "\U0001f92d", "\U0001f92e",
+                "\U0001f92f", "🤰", "\U0001f931", "\U0001f932", "🤳", "🤴", "🤵", "🤶",
+                "🤷", "🤸", "🤹", "🤺", "🤼", "🤽", "🤾", "🥀", "🥁", "🥂", "🥃", "🥄",
+                "🥅", "🥇", "🥈", "🥉", "🥊", "🥋", "\U0001f94c", "\U0001f94d",
+                "\U0001f94e", "\U0001f94f", "🥐", "🥑", "🥒", "🥓", "🥔", "🥕", "🥖", "🥗",
+                "🥘", "🥙", "🥚", "🥛", "🥜", "🥝", "🥞", "\U0001f95f", "\U0001f960",
+                "\U0001f961", "\U0001f962", "\U0001f963", "\U0001f964", "\U0001f965",
+                "\U0001f966", "\U0001f967", "\U0001f968", "\U0001f969", "\U0001f96a",
+                "\U0001f96b", "\U0001f96c", "\U0001f96d", "\U0001f96e", "\U0001f96f",
+                "\U0001f970", "\U0001f973", "\U0001f974", "\U0001f975", "\U0001f976",
+                "\U0001f97a", "\U0001f97c", "\U0001f97d", "\U0001f97e", "\U0001f97f", "🦀",
+                "🦁", "🦂", "🦃", "🦄", "🦅", "🦆", "🦇", "🦈", "🦉", "🦊", "🦋", "🦌",
+                "🦍", "🦎", "🦏", "🦐", "🦑", "\U0001f992", "\U0001f993", "\U0001f994",
+                "\U0001f995", "\U0001f996", "\U0001f997", "\U0001f998", "\U0001f999",
+                "\U0001f99a", "\U0001f99b", "\U0001f99c", "\U0001f99d", "\U0001f99e",
+                "\U0001f99f", "\U0001f9a0", "\U0001f9a1", "\U0001f9a2", "\U0001f9b0",
+                "\U0001f9b1", "\U0001f9b2", "\U0001f9b3", "\U0001f9b4", "\U0001f9b5",
+                "\U0001f9b6", "\U0001f9b7", "\U0001f9b8", "\U0001f9b9", "🧀", "\U0001f9c1",
+                "\U0001f9c2", "\U0001f9d0", "\U0001f9d1", "\U0001f9d2", "\U0001f9d3",
+                "\U0001f9d4", "\U0001f9d5"
+            ];
+            
+
+            // apply user settings
+            this.utils.validateArgs(args, true);
+        }
+
+
+        /**
+         * BaseEx Base16 Encoder.
+         * @param {*} input - Input according to the used byte converter.
+         * @param  {...str} [args] - Converter settings.
+         * @returns {string} - Base16 encoded string.
+         */
+        encode(input, ...args) {
+            return super.encode(input, null, null, ...args);
+        }
+
+        
+        /**
+         * BaseEx Base16 Decoder.
+         * @param {string} input - Base16/Hex String.
+         * @param  {...any} [args] - Converter settings.
+         * @returns {*} - Output according to converter settings.
+         */
+        decode(input, ...args) {
+            
+            // pre decoding function
+            const normalizeInput = (scope) => {
+
+                let { input: normInput } = scope;
+                // Remove "0x" if present
+                normInput = normInput.replace(/^0x/, "");
+
+                // Ensure even number of characters
+                if (normInput.length % 2) {
+                    normInput = "0".concat(normInput);
+                }
+
+                return normInput;
+            };
+            
+            return super.decode(input, normalizeInput, null, ...args);
+        }
+    }
+
+    /**
      * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
      *
      * @version 0.5.0
@@ -2536,7 +2706,6 @@ var BaseEx = (function (exports) {
      * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
      */
 
-
     /**
      * BaseEx Converter Collection.
      * ---------------------------
@@ -2577,6 +2746,7 @@ var BaseEx = (function (exports) {
             this.base85_z85 = new Base85("z85", outputType);
             this.base91 = new Base91("default",outputType);
             this.leb128 = new LEB128("default", outputType);
+            this.ecoji = new Ecoji("default");
             this.byteConverter = new ByteConverter(outputType);
 
             this.simpleBase = {};
@@ -2595,6 +2765,7 @@ var BaseEx = (function (exports) {
     exports.Base91 = Base91;
     exports.BaseEx = BaseEx;
     exports.ByteConverter = ByteConverter;
+    exports.Ecoji = Ecoji;
     exports.LEB128 = LEB128;
     exports.SimpleBase = SimpleBase;
 

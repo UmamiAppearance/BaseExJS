@@ -14,10 +14,10 @@ import Base64 from "./converters/base-64.js";
 import Base85 from "./converters/base-85.js";
 import Base91 from "./converters/base-91.js";
 import ByteConverter from "./converters/byte-converter.js";
-import { DEFAULT_OUTPUT_HANDLER } from "./utils.js";
+import Ecoji from "./converters/ecoji.js";
 import LEB128 from "./converters/leb-128.js";
 import SimpleBase from "./converters/simple-base.js";
-
+import { DEFAULT_OUTPUT_HANDLER } from "./utils.js";
 
 /**
  * BaseEx Converter Collection.
@@ -59,6 +59,7 @@ class BaseEx {
         this.base85_z85 = new Base85("z85", outputType);
         this.base91 = new Base91("default",outputType);
         this.leb128 = new LEB128("default", outputType);
+        this.ecoji = new Ecoji("default");
         this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};
@@ -78,6 +79,7 @@ export {
     Base91,
     ByteConverter,
     LEB128,
+    Ecoji,
     SimpleBase,
     BaseEx
 };

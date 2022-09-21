@@ -1291,7 +1291,7 @@ class BaseTemplate {
 }
 
 /**
- * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
+ * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
  * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
@@ -1299,154 +1299,165 @@ class BaseTemplate {
  */
 
 /**
- * BaseEx Base 1 Converter.
- * -----------------------
- * This is a unary/base1 converter. It is converting input 
- * to a decimal number, which is converted into an unary
- * string. Due to the limitations on string (or array) length
- * it is only suitable for the  conversions of numbers up to
- * roughly 2^28.
+ * BaseEx Ecoji (a Base 1024) Converter.
+ * ------------------------
+ * This an implementation of the  Ecoji/converter.
+ * Various input can be converted to a hex string
+ * or a hex string can be decoded into various formats.
  */
-class Base1 extends BaseTemplate {
-    
+class Ecoji extends BaseTemplate {
+
     /**
-     * BaseEx Base1 Constructor.
+     * BaseEx Ecoji Constructor.
      * @param {...string} [args] - Converter settings.
      */
     constructor(...args) {
         super();
 
-        // Remove global charset adding method as
-        // it is not suitable for this converter.
-        delete this.addCharset;
+        // converter
+        this.converter = new BaseConverter(1024, 5, 4);
 
-        // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
-        this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        // default settings
+        this.charsets.default = [
+            "🀄", "🃏", "🅰", "🅱", "🅾", "🅿", "🆎", "🆑", "🆒", "🆓", "🆔", "🆕",
+            "🆖", "🆗", "🆘", "🆙", "🆚", "🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬",
+            "🇭", "🇮", "🇯", "🇰", "🇱", "🇲", "🇳", "🇴", "🇵", "🇶", "🇷", "🇸",
+            "🇹", "🇺", "🇻", "🇼", "🇽", "🇾", "🇿", "🈁", "🈂", "🈚", "🈯", "🈲",
+            "🈳", "🈴", "🈵", "🈶", "🈷", "🈸", "🈹", "🈺", "🉐", "🉑", "🌀", "🌁",
+            "🌂", "🌃", "🌄", "🌅", "🌆", "🌇", "🌈", "🌉", "🌊", "🌋", "🌌", "🌍",
+            "🌎", "🌏", "🌐", "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘", "🌙",
+            "🌚", "🌛", "🌜", "🌝", "🌞", "🌟", "🌠", "🌡", "🌤", "🌥", "🌦", "🌧",
+            "🌨", "🌩", "🌪", "🌫", "🌬", "🌭", "🌮", "🌯", "🌰", "🌱", "🌲", "🌳",
+            "🌴", "🌵", "🌶", "🌷", "🌸", "🌹", "🌺", "🌻", "🌼", "🌽", "🌾", "🌿",
+            "🍀", "🍁", "🍂", "🍃", "🍄", "🍅", "🍆", "🍇", "🍈", "🍉", "🍊", "🍋",
+            "🍌", "🍍", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🍔", "🍕", "🍖", "🍗",
+            "🍘", "🍙", "🍚", "🍛", "🍜", "🍝", "🍞", "🍟", "🍠", "🍡", "🍢", "🍣",
+            "🍤", "🍥", "🍦", "🍧", "🍨", "🍩", "🍪", "🍫", "🍬", "🍭", "🍮", "🍯",
+            "🍰", "🍱", "🍲", "🍳", "🍴", "🍵", "🍶", "🍷", "🍸", "🍹", "🍺", "🍻",
+            "🍼", "🍽", "🍾", "🍿", "🎀", "🎁", "🎂", "🎃", "🎄", "🎅", "🎆", "🎇",
+            "🎈", "🎉", "🎊", "🎋", "🎌", "🎍", "🎎", "🎏", "🎐", "🎑", "🎒", "🎓",
+            "🎖", "🎗", "🎙", "🎚", "🎛", "🎞", "🎟", "🎠", "🎡", "🎢", "🎣", "🎤",
+            "🎥", "🎦", "🎧", "🎨", "🎩", "🎪", "🎫", "🎬", "🎭", "🎮", "🎯", "🎰",
+            "🎱", "🎲", "🎳", "🎴", "🎵", "🎶", "🎷", "🎸", "🎹", "🎺", "🎻", "🎼",
+            "🎽", "🎾", "🎿", "🏀", "🏁", "🏂", "🏃", "🏄", "🏅", "🏆", "🏇", "🏈",
+            "🏉", "🏊", "🏋", "🏌", "🏎", "🏏", "🏐", "🏑", "🏒", "🏓", "🏔", "🏕",
+            "🏖", "🏗", "🏘", "🏙", "🏚", "🏛", "🏜", "🏝", "🏞", "🏟", "🏠", "🏡",
+            "🏢", "🏣", "🏤", "🏥", "🏦", "🏧", "🏨", "🏩", "🏪", "🏫", "🏬", "🏭",
+            "🏮", "🏯", "🏰", "🏳", "🏴", "🏵", "🏷", "🏸", "🏹", "🏺", "🏻", "🏼",
+            "🏽", "🏾", "🏿", "🐀", "🐁", "🐂", "🐃", "🐄", "🐅", "🐆", "🐇", "🐈",
+            "🐉", "🐊", "🐋", "🐌", "🐍", "🐎", "🐏", "🐐", "🐑", "🐒", "🐓", "🐔",
+            "🐕", "🐖", "🐗", "🐘", "🐙", "🐚", "🐛", "🐜", "🐝", "🐞", "🐟", "🐠",
+            "🐡", "🐢", "🐣", "🐤", "🐥", "🐦", "🐧", "🐨", "🐩", "🐪", "🐫", "🐬",
+            "🐭", "🐮", "🐯", "🐰", "🐱", "🐲", "🐳", "🐴", "🐵", "🐶", "🐷", "🐸",
+            "🐹", "🐺", "🐻", "🐼", "🐽", "🐾", "🐿", "👀", "👁", "👂", "👃", "👄",
+            "👅", "👆", "👇", "👈", "👉", "👊", "👋", "👌", "👍", "👎", "👏", "👐",
+            "👑", "👒", "👓", "👔", "👕", "👖", "👗", "👘", "👙", "👚", "👛", "👜",
+            "👝", "👞", "👟", "👠", "👡", "👢", "👣", "👤", "👥", "👦", "👧", "👨",
+            "👩", "👪", "👫", "👬", "👭", "👮", "👯", "👰", "👱", "👲", "👳", "👴",
+            "👵", "👶", "👷", "👸", "👹", "👺", "👻", "👼", "👽", "👾", "👿", "💀",
+            "💁", "💂", "💃", "💄", "💅", "💆", "💇", "💈", "💉", "💊", "💋", "💌",
+            "💍", "💎", "💏", "💐", "💑", "💒", "💓", "💔", "💕", "💖", "💗", "💘",
+            "💙", "💚", "💛", "💜", "💝", "💞", "💟", "💠", "💡", "💢", "💣", "💤",
+            "💥", "💦", "💧", "💨", "💩", "💪", "💫", "💬", "💭", "💮", "💯", "💰",
+            "💱", "💲", "💳", "💴", "💵", "💶", "💷", "💸", "💹", "💺", "💻", "💼",
+            "💽", "💾", "💿", "📀", "📁", "📂", "📃", "📄", "📅", "📆", "📇", "📈",
+            "📉", "📊", "📋", "📌", "📍", "📎", "📏", "📐", "📒", "📓", "📔", "📕",
+            "📖", "📗", "📘", "📙", "📚", "📛", "📜", "📝", "📞", "📟", "📠", "📡",
+            "📢", "📣", "📤", "📥", "📦", "📧", "📨", "📩", "📪", "📫", "📬", "📭",
+            "📮", "📯", "📰", "📱", "📲", "📳", "📴", "📵", "📶", "📷", "📸", "📹",
+            "📺", "📻", "📼", "📽", "📿", "🔀", "🔁", "🔂", "🔃", "🔄", "🔅", "🔆",
+            "🔇", "🔈", "🔉", "🔊", "🔋", "🔌", "🔍", "🔎", "🔏", "🔐", "🔑", "🔒",
+            "🔓", "🔔", "🔕", "🔖", "🔗", "🔘", "🔙", "🔚", "🔛", "🔜", "🔝", "🔞",
+            "🔟", "🔠", "🔡", "🔢", "🔣", "🔤", "🔥", "🔦", "🔧", "🔨", "🔩", "🔪",
+            "🔫", "🔬", "🔭", "🔮", "🔯", "🔰", "🔱", "🔲", "🔳", "🔴", "🔵", "🔶",
+            "🔷", "🔸", "🔹", "🔺", "🔻", "🔼", "🔽", "🕉", "🕊", "🕋", "🕌", "🕍",
+            "🕎", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚",
+            "🕛", "🕜", "🕝", "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦",
+            "🕧", "🕯", "🕰", "🕳", "🕴", "🕵", "🕶", "🕷", "🕸", "🕹", "🕺", "🖇",
+            "🖊", "🖋", "🖌", "🖍", "🖐", "🖕", "🖖", "🖤", "🖥", "🖨", "🖱", "🖲",
+            "🖼", "🗂", "🗃", "🗄", "🗑", "🗒", "🗓", "🗜", "🗝", "🗞", "🗡", "🗣",
+            "🗨", "🗯", "🗳", "🗺", "🗻", "🗼", "🗽", "🗾", "🗿", "😀", "😁", "😂",
+            "😃", "😄", "😅", "😆", "😇", "😈", "😉", "😊", "😋", "😌", "😍", "😎",
+            "😏", "😐", "😑", "😒", "😓", "😔", "😕", "😖", "😗", "😘", "😙", "😚",
+            "😛", "😜", "😝", "😞", "😟", "😠", "😡", "😢", "😣", "😤", "😥", "😦",
+            "😧", "😨", "😩", "😪", "😫", "😬", "😭", "😮", "😯", "😰", "😱", "😲",
+            "😳", "😴", "😵", "😶", "😷", "😸", "😹", "😺", "😻", "😼", "😽", "😾",
+            "😿", "🙀", "🙁", "🙂", "🙃", "🙄", "🙅", "🙆", "🙇", "🙈", "🙉", "🙊",
+            "🙌", "🙍", "🙎", "🙏", "🚀", "🚁", "🚂", "🚃", "🚄", "🚅", "🚆", "🚇",
+            "🚈", "🚉", "🚊", "🚋", "🚌", "🚍", "🚎", "🚏", "🚐", "🚑", "🚒", "🚓",
+            "🚔", "🚕", "🚖", "🚗", "🚘", "🚙", "🚚", "🚛", "🚜", "🚝", "🚞", "🚟",
+            "🚠", "🚡", "🚢", "🚣", "🚤", "🚥", "🚦", "🚧", "🚨", "🚩", "🚪", "🚫",
+            "🚬", "🚭", "🚮", "🚯", "🚰", "🚱", "🚲", "🚳", "🚴", "🚵", "🚶", "🚷",
+            "🚸", "🚹", "🚺", "🚻", "🚼", "🚽", "🚾", "🚿", "🛀", "🛁", "🛂", "🛃",
+            "🛄", "🛅", "🛋", "🛌", "🛍", "🛎", "🛏", "🛐", "🛑", "🛒", "🛠", "🛡",
+            "🛢", "🛣", "🛤", "🛥", "🛩", "🛫", "🛬", "🛰", "🛳", "🛴", "🛵", "🛶",
+            "\U0001f6f7", "\U0001f6f8", "\U0001f6f9", "🤐", "🤑", "🤒", "🤓", "🤔",
+            "🤕", "🤖", "🤗", "🤘", "🤙", "🤚", "🤛", "🤜", "🤝", "🤞", "\U0001f91f",
+            "🤠", "🤡", "🤢", "🤣", "🤤", "🤥", "🤦", "🤧", "\U0001f928", "\U0001f929",
+            "\U0001f92a", "\U0001f92b", "\U0001f92c", "\U0001f92d", "\U0001f92e",
+            "\U0001f92f", "🤰", "\U0001f931", "\U0001f932", "🤳", "🤴", "🤵", "🤶",
+            "🤷", "🤸", "🤹", "🤺", "🤼", "🤽", "🤾", "🥀", "🥁", "🥂", "🥃", "🥄",
+            "🥅", "🥇", "🥈", "🥉", "🥊", "🥋", "\U0001f94c", "\U0001f94d",
+            "\U0001f94e", "\U0001f94f", "🥐", "🥑", "🥒", "🥓", "🥔", "🥕", "🥖", "🥗",
+            "🥘", "🥙", "🥚", "🥛", "🥜", "🥝", "🥞", "\U0001f95f", "\U0001f960",
+            "\U0001f961", "\U0001f962", "\U0001f963", "\U0001f964", "\U0001f965",
+            "\U0001f966", "\U0001f967", "\U0001f968", "\U0001f969", "\U0001f96a",
+            "\U0001f96b", "\U0001f96c", "\U0001f96d", "\U0001f96e", "\U0001f96f",
+            "\U0001f970", "\U0001f973", "\U0001f974", "\U0001f975", "\U0001f976",
+            "\U0001f97a", "\U0001f97c", "\U0001f97d", "\U0001f97e", "\U0001f97f", "🦀",
+            "🦁", "🦂", "🦃", "🦄", "🦅", "🦆", "🦇", "🦈", "🦉", "🦊", "🦋", "🦌",
+            "🦍", "🦎", "🦏", "🦐", "🦑", "\U0001f992", "\U0001f993", "\U0001f994",
+            "\U0001f995", "\U0001f996", "\U0001f997", "\U0001f998", "\U0001f999",
+            "\U0001f99a", "\U0001f99b", "\U0001f99c", "\U0001f99d", "\U0001f99e",
+            "\U0001f99f", "\U0001f9a0", "\U0001f9a1", "\U0001f9a2", "\U0001f9b0",
+            "\U0001f9b1", "\U0001f9b2", "\U0001f9b3", "\U0001f9b4", "\U0001f9b5",
+            "\U0001f9b6", "\U0001f9b7", "\U0001f9b8", "\U0001f9b9", "🧀", "\U0001f9c1",
+            "\U0001f9c2", "\U0001f9d0", "\U0001f9d1", "\U0001f9d2", "\U0001f9d3",
+            "\U0001f9d4", "\U0001f9d5"
+        ];
         
-        // The sequence is used from left to right again and again
-        this.charsets.sequence = "Hello World!";
-        
-        // Standard unary string with one character
-        this.charsets.default = "1";
 
-        // Telly Mark string, using hash for 5 and vertical bar for 1 
-        this.charsets.tmark = "|#";
-
-        // Base 10 converter
-        this.converter = new BaseConverter(10, 0, 0);
-        
-        // converter settings
-        this.hasSignedMode = true;
-        this.littleEndian = true;
-        this.signed = true;
-        
-        // mutable extra args
-        this.isMutable.signed = true;
-        this.isMutable.upper = true;
-        
         // apply user settings
         this.utils.validateArgs(args, true);
     }
-    
+
 
     /**
-     * BaseEx Base1 Encoder.
+     * BaseEx Base16 Encoder.
      * @param {*} input - Input according to the used byte converter.
      * @param  {...str} [args] - Converter settings.
-     * @returns {string} - Base1 encoded string.
+     * @returns {string} - Base16 encoded string.
      */
     encode(input, ...args) {
-
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args);
-        
-        let inputBytes, negative;
-        [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
-
-        // Convert to BaseRadix string
-        let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
-        
-        let n = BigInt(base10);
-
-        // Limit the input before it even starts.
-        // The executing engine will most likely
-        // give up much earlier.
-        // (2**29-24 during tests)
-
-        if (n > Number.MAX_SAFE_INTEGER) {
-            throw new RangeError("Invalid string length.");
-        } else if (n > 16777216) {
-            console.warn("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
-        }
-        
-        n = Number(n);
-        
-        const charset = this.charsets[settings.version];
-        const charAmount = charset.length;
-        let output = "";
-
-        // Convert to unary in respect to the version differences
-        if (charAmount === 1) {
-            output = charset.repeat(n);
-        } else if (settings.version === "all") {
-            for (let i=0; i<n; i++) {
-                const charIndex = Math.floor(Math.random() * charAmount); 
-                output += charset[charIndex];
-            }
-        } else if (settings.version === "tmark") {
-            const singulars = n % 5;
-            if (n > 4) {
-                output = charset[1].repeat((n - singulars) / 5);
-            }
-            output += charset[0].repeat(singulars);
-        } else {
-            for (let i=0; i<n; i++) {
-                output += charset[i%charAmount];
-            }
-        }
-        
-        output = this.utils.toSignedStr(output, negative);
-
-        if (settings.upper) {
-            output = output.toUpperCase();
-        }
-        
-        return output;
+        return super.encode(input, null, null, ...args);
     }
-    
 
+    
     /**
-     * BaseEx Base1 Decoder.
-     * @param {string} input - Base1/Unary String.
-     * @param  {...any} [args] - Converter settings. 
+     * BaseEx Base16 Decoder.
+     * @param {string} input - Base16/Hex String.
+     * @param  {...any} [args] - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
     decode(input, ...args) {
-
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
-
-        // Make it a string, whatever goes in
-        input = String(input);
         
-        // Test for a negative sign
-        let negative;
-        [input, negative] = this.utils.extractSign(input);
-        
-        // remove all but the relevant character
-        if (settings.version !== "all") {
-            const cleanedSet = [...new Set(this.charsets[settings.version])].join("");
-            const regex = new RegExp(`[^${cleanedSet}]`,"g");
-            input = input.replace(regex, "");
-        }
-        input = String(input.length);
+        // pre decoding function
+        const normalizeInput = (scope) => {
 
-        // Run the decoder
-        const output = this.converter.decode(input, "0123456789", settings.littleEndian);
+            let { input: normInput } = scope;
+            // Remove "0x" if present
+            normInput = normInput.replace(/^0x/, "");
+
+            // Ensure even number of characters
+            if (normInput.length % 2) {
+                normInput = "0".concat(normInput);
+            }
+
+            return normInput;
+        };
         
-        // Return the output
-        return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
+        return super.decode(input, normalizeInput, null, ...args);
     }
 }
 
-export { Base1 as default };
+export { Ecoji as default };
