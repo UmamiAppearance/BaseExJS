@@ -514,6 +514,13 @@ class SmartOutput {
 const DEFAULT_INPUT_HANDLER = SmartInput;
 const DEFAULT_OUTPUT_HANDLER = SmartOutput;
 
+class SignError extends TypeError {
+    constructor() {
+        super("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        this.name = "SignError";
+    }
+}
+  
 
 /**
  * Utilities for every BaseEx class.
@@ -801,7 +808,7 @@ class Utils {
      * A TypeError specifically for sign errors.
      */
     signError() {
-        throw new TypeError("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        throw new SignError();
     }
 
 }
@@ -875,7 +882,7 @@ class BaseConverter {
      * @param {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} inputBytes - Input as Uint8Array.
      * @param {string} charset - The charset used for conversion.
      * @param {boolean} littleEndian - Byte order, little endian bool.
-     * @param {*} replacer - Replacer function can replace groups of characters during encoding.
+     * @param {function} replacer - Replacer function can replace groups of characters during encoding.
      * @returns {number[]} - Output string and padding amount. 
      */
     encode(inputBytes, charset, littleEndian=false, replacer=null) {
@@ -989,7 +996,7 @@ class BaseConverter {
      * BaseEx Universal Base Decoding.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
      * @param {string} charset - The charset used for conversion.
-     * @param {*} littleEndian - Byte order, little endian bool.
+     * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
     decode(inputBaseStr, charset, littleEndian=false) {
@@ -1195,8 +1202,8 @@ class BaseTemplate {
     /**
      * BaseEx Generic Encoder.
      * @param {*} input - Any input the used byte converter allows.
-     * @param {*} [replacerFN] - Replacer function, which is passed to the encoder. 
-     * @param {*} [postEncodeFN] - Function, which is executed after encoding.
+     * @param {function} [replacerFN] - Replacer function, which is passed to the encoder. 
+     * @param {function} [postEncodeFN] - Function, which is executed after encoding.
      * @param  {...any} args - Converter settings.
      * @returns {string} - Base encoded string.
      */
@@ -1216,8 +1223,7 @@ class BaseTemplate {
         }
         
         // Convert to base string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
+        let [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
         // set sign if requested
         if (settings.signed) {
@@ -1240,26 +1246,26 @@ class BaseTemplate {
 
     /**
      * BaseEx Generic Decoder.
-     * @param {string} rawInput - Base String.
-     * @param {*} [preDecodeFN] - Function, which gets executed before decoding. 
-     * @param {*} [postDecodeFN] - Function, which gets executed after decoding
+     * @param {string} input - Base String.
+     * @param {function} [preDecodeFN] - Function, which gets executed before decoding. 
+     * @param {function} [postDecodeFN] - Function, which gets executed after decoding
      * @param  {...any} args - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
+    decode(input, preDecodeFN, postDecodeFN, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        let input = String(rawInput);
+        input = String(input);
 
         // set negative to false for starters
         let negative = false;
         
         // Test for a negative sign if converter supports it
         if (this.hasSignedMode) {
-            [input, negative] = this.utils.extractSign(input);   
+            [ input, negative ] = this.utils.extractSign(input);   
             
             // But don't allow a sign if the decoder is not configured to use it
             if (negative && !settings.signed) {
@@ -2301,11 +2307,12 @@ class ByteConverter {
 }
 
 /**
- * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
+ * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/ecoji.js}
  *
  * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
+ * @license GPL-3.0 OR Apache-2.0
+ * @see https://github.com/keith-turner/ecoji
  */
 
 /**
@@ -2326,6 +2333,9 @@ class Ecoji extends BaseTemplate {
 
         // converter
         this.converter = new BaseConverter(1024, 5, 4);
+
+        // predefined settings
+        this.padding = true;
 
         // default settings
         this.charsets.default = [
@@ -2401,30 +2411,35 @@ class Ecoji extends BaseTemplate {
             "🚸", "🚹", "🚺", "🚻", "🚼", "🚽", "🚾", "🚿", "🛀", "🛁", "🛂", "🛃",
             "🛄", "🛅", "🛋", "🛌", "🛍", "🛎", "🛏", "🛐", "🛑", "🛒", "🛠", "🛡",
             "🛢", "🛣", "🛤", "🛥", "🛩", "🛫", "🛬", "🛰", "🛳", "🛴", "🛵", "🛶",
-            "\U0001f6f7", "\U0001f6f8", "\U0001f6f9", "🤐", "🤑", "🤒", "🤓", "🤔",
-            "🤕", "🤖", "🤗", "🤘", "🤙", "🤚", "🤛", "🤜", "🤝", "🤞", "\U0001f91f",
-            "🤠", "🤡", "🤢", "🤣", "🤤", "🤥", "🤦", "🤧", "\U0001f928", "\U0001f929",
-            "\U0001f92a", "\U0001f92b", "\U0001f92c", "\U0001f92d", "\U0001f92e",
-            "\U0001f92f", "🤰", "\U0001f931", "\U0001f932", "🤳", "🤴", "🤵", "🤶",
+            "🛷", "🛸", "🛹", "🤐", "🤑", "🤒", "🤓", "🤔",
+            "🤕", "🤖", "🤗", "🤘", "🤙", "🤚", "🤛", "🤜", "🤝", "🤞", "🤟",
+            "🤠", "🤡", "🤢", "🤣", "🤤", "🤥", "🤦", "🤧", "🤨", "🤩",
+            "🤪", "🤫", "🤬", "🤭", "🤮",
+            "🤯", "🤰", "🤱", "🤲", "🤳", "🤴", "🤵", "🤶",
             "🤷", "🤸", "🤹", "🤺", "🤼", "🤽", "🤾", "🥀", "🥁", "🥂", "🥃", "🥄",
-            "🥅", "🥇", "🥈", "🥉", "🥊", "🥋", "\U0001f94c", "\U0001f94d",
-            "\U0001f94e", "\U0001f94f", "🥐", "🥑", "🥒", "🥓", "🥔", "🥕", "🥖", "🥗",
-            "🥘", "🥙", "🥚", "🥛", "🥜", "🥝", "🥞", "\U0001f95f", "\U0001f960",
-            "\U0001f961", "\U0001f962", "\U0001f963", "\U0001f964", "\U0001f965",
-            "\U0001f966", "\U0001f967", "\U0001f968", "\U0001f969", "\U0001f96a",
-            "\U0001f96b", "\U0001f96c", "\U0001f96d", "\U0001f96e", "\U0001f96f",
-            "\U0001f970", "\U0001f973", "\U0001f974", "\U0001f975", "\U0001f976",
-            "\U0001f97a", "\U0001f97c", "\U0001f97d", "\U0001f97e", "\U0001f97f", "🦀",
+            "🥅", "🥇", "🥈", "🥉", "🥊", "🥋", "🥌", "🥍",
+            "🥎", "🥏", "🥐", "🥑", "🥒", "🥓", "🥔", "🥕", "🥖", "🥗",
+            "🥘", "🥙", "🥚", "🥛", "🥜", "🥝", "🥞", "🥟", "🥠",
+            "🥡", "🥢", "🥣", "🥤", "🥥",
+            "🥦", "🥧", "🥨", "🥩", "🥪",
+            "🥫", "🥬", "🥭", "🥮", "🥯",
+            "🥰", "🥳", "🥴", "🥵", "🥶",
+            "🥺", "🥼", "🥽", "🥾", "🥿", "🦀",
             "🦁", "🦂", "🦃", "🦄", "🦅", "🦆", "🦇", "🦈", "🦉", "🦊", "🦋", "🦌",
-            "🦍", "🦎", "🦏", "🦐", "🦑", "\U0001f992", "\U0001f993", "\U0001f994",
-            "\U0001f995", "\U0001f996", "\U0001f997", "\U0001f998", "\U0001f999",
-            "\U0001f99a", "\U0001f99b", "\U0001f99c", "\U0001f99d", "\U0001f99e",
-            "\U0001f99f", "\U0001f9a0", "\U0001f9a1", "\U0001f9a2", "\U0001f9b0",
-            "\U0001f9b1", "\U0001f9b2", "\U0001f9b3", "\U0001f9b4", "\U0001f9b5",
-            "\U0001f9b6", "\U0001f9b7", "\U0001f9b8", "\U0001f9b9", "🧀", "\U0001f9c1",
-            "\U0001f9c2", "\U0001f9d0", "\U0001f9d1", "\U0001f9d2", "\U0001f9d3",
-            "\U0001f9d4", "\U0001f9d5"
+            "🦍", "🦎", "🦏", "🦐", "🦑", "🦒", "🦓", "🦔",
+            "🦕", "🦖", "🦗", "🦘", "🦙",
+            "🦚", "🦛", "🦜", "🦝", "🦞",
+            "🦟", "🦠", "🦡", "🦢", "🦰",
+            "🦱", "🦲", "🦳", "🦴", "🦵",
+            "🦶", "🦷", "🦸", "🦹", "🧀", "🧁",
+            "🧂", "🧐", "🧑", "🧒", "🧓",
+            "🧔", "🧕"
         ];
+
+        this.padChars = {
+            default: "☕",
+            p4x: [ "⚜", "🏍", "📑", "🙋" ]
+        };
         
 
         // apply user settings
@@ -2433,40 +2448,82 @@ class Ecoji extends BaseTemplate {
 
 
     /**
-     * BaseEx Base16 Encoder.
+     * BaseEx Ecoji Encoder.
      * @param {*} input - Input according to the used byte converter.
      * @param  {...str} [args] - Converter settings.
      * @returns {string} - Base16 encoded string.
      */
     encode(input, ...args) {
-        return super.encode(input, null, null, ...args);
+        
+        const applyPadding = (scope) => {
+
+            let { output, settings, zeroPadding } = scope;
+
+            const charset = this.charsets[settings.version];
+
+            let outArray = [...output];
+            
+            if (zeroPadding > 1) {
+                const padValue = this.converter.padBytes(zeroPadding);
+                const padArr = new Array(padValue).fill(this.padChars.default);
+                outArray.splice(outArray.length-padValue, padValue, ...padArr);
+            }
+            
+            else if (zeroPadding === 1) {
+                const lastVal = charset.indexOf(outArray.pop());
+                const x = lastVal >> 8;
+                outArray.push(this.padChars.p4x.at(x));
+            }
+
+            return outArray.join("");
+        };
+        
+        return super.encode(input, null, applyPadding, ...args);
     }
 
     
     /**
-     * BaseEx Base16 Decoder.
+     * BaseEx Ecoji Decoder.
      * @param {string} input - Base16/Hex String.
      * @param  {...any} [args] - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
     decode(input, ...args) {
         
-        // pre decoding function
-        const normalizeInput = (scope) => {
+        let skipLast = false;
 
-            let { input: normInput } = scope;
-            // Remove "0x" if present
-            normInput = normInput.replace(/^0x/, "");
+        const applyPadding = (scope) => {
+            
+            let { input, settings } = scope;
 
-            // Ensure even number of characters
-            if (normInput.length % 2) {
-                normInput = "0".concat(normInput);
+            const charset = this.charsets[settings.version];
+            const inArray = [...input];
+            const lastChar = inArray.at(-1);
+
+            for (let i=0; i<this.padChars.p4x.length; i++) {                
+                if (lastChar === this.padChars.p4x[i]) {
+                    inArray.splice(-1, 1, charset.at(i << 8));
+                    input = inArray.join("");
+                    skipLast = true;
+                    break;
+                }
             }
 
-            return normInput;
+            return input;
         };
         
-        return super.decode(input, normalizeInput, null, ...args);
+        
+        const postFN = (scope) => {
+            let { output } = scope;
+            
+            if (skipLast) {
+                output = new Uint8Array(output.buffer.slice(0, -1));
+            }
+            return output;
+        };
+
+        return super.decode(input, applyPadding, postFN, ...args);
+    
     }
 }
 
