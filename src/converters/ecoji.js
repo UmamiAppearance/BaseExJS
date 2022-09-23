@@ -134,7 +134,7 @@ export default class Ecoji extends BaseTemplate {
 
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
-        if ((/emojis_v[1|2|3]/).test(settings.version)) {
+        if ((/emojis_v[1|2]/).test(settings.version)) {
             settings.version = "emojis_v3";
         }
 
