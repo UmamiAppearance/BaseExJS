@@ -71,6 +71,11 @@ export default class Ecoji extends BaseTemplate {
         // apply user settings
         this.utils.validateArgs(args, true);
 
+        
+        if (this.version === "emojis_v3") {
+            this.version = "emojis_v2";
+        }
+
         if (this.trim === null) {
             this.trim = this.version === "emojis_v2";
         }
@@ -84,6 +89,10 @@ export default class Ecoji extends BaseTemplate {
      * @returns {string} - Base16 encoded string.
      */
     encode(input, ...args) {
+
+        if (args.includes("emojis_v3")) {
+            args.splice(args.indexOf("emojis_v3"), 1, "emojis_v2");
+        }
 
         const applyPadding = (scope) => {
 
