@@ -181,16 +181,14 @@ class BaseConverter {
 
     /**
      * BaseEx Universal Base Decoding.
+     * Decodes to a string of the given radix to a byte array.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
      * @param {string} charset - The charset used for conversion.
      * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
     decode(inputBaseStr, charset, littleEndian=false) {
-        /*
-            Decodes to a string of the given radix to a byte array
-        */
-        
+
         // Convert each char of the input to the radix-integer
         // (this becomes the corresponding index of the char
         // from the charset). Every char, that is not found in
@@ -204,12 +202,24 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        [...inputBaseStr].forEach((c) => {
-            const index = charset.indexOf(c);
-            if (index > -1) { 
-               byteArray.push(index);
-            }
-        });
+        // Array Charset
+        if (Array.isArray(charset)) {
+            [...inputBaseStr].forEach(c => {
+                const index = charset.indexOf(c);
+                if (index > -1) { 
+                    byteArray.push(index);
+                }
+            });
+        }
+
+        // Object Charset
+        else {
+            [...inputBaseStr].forEach(c => {
+                if (c in charset) {
+                    byteArray.push(charset[c]);
+                }
+            });
+        }
 
         
         let padChars;
