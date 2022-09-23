@@ -537,6 +537,9 @@ var Base91 = (function () {
             // Store the calling class in this.root
             // for accessability.
             this.root = main;
+            
+            // set specific args object for converters
+            this.converterArgs = {};
 
             // If charsets are uses by the parent class,
             // add extra functions for the user.
@@ -556,14 +559,13 @@ var Base91 = (function () {
          */
         #charsetUserToolsConstructor() {
 
+            /**
+             * Save method to add a charset.
+             * @param {string} name - "Charset name."
+             * @param {[string|set|array]} - "Charset"
+             */
             this.root.addCharset = (name, charset) => {
-                /*
-                    Save method to add a charset.
-                    ----------------------------
-
-                    @name: string that represents the key for the new charset
-                    @charset: string, array or Set of chars - the length must fit to the according class 
-                */
+                // FIXME: update to new charset type (array)
                     
                 if (typeof name !== "string") {
                     throw new TypeError("The charset name must be a string.");
@@ -663,6 +665,14 @@ var Base91 = (function () {
          * @param {boolean} initial - Indicates if the arguments where passed during construction. 
          */
         invalidArgument(arg, versions, outputTypes, initial) {
+            const loopConverterArgs = () => Object.keys(this.converterArgs).map(
+                key => this.converterArgs[key].map(
+                    keyword => `'${keyword}'`
+                ).
+                join(" and ")
+            ).
+            join("\n   - ");
+
             const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
             const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
             const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
@@ -671,8 +681,9 @@ var Base91 = (function () {
             const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
             const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
             const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
+            const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
             
-            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
+            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
         }
 
 
@@ -695,6 +706,11 @@ var Base91 = (function () {
                 upper: this.root.upper,
                 version: this.root.version
             };
+
+            // add any existing converter specific args
+            for (const param in this.converterArgs) {
+                parameters[param] = this.root[param];
+            }
 
             // if no args are provided return the default settings immediately
             if (!args.length) {
@@ -725,6 +741,7 @@ var Base91 = (function () {
                 padding: ["nopad", "pad"],
                 signed: ["unsigned", "signed"],
                 upper: ["lower", "upper"],
+                ...this.converterArgs
             };
 
             // if initial, look for IO specifications

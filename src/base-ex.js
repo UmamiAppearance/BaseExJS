@@ -59,7 +59,8 @@ class BaseEx {
         this.base85_z85 = new Base85("z85", outputType);
         this.base91 = new Base91("default",outputType);
         this.leb128 = new LEB128("default", outputType);
-        this.ecoji = new Ecoji("default");
+        this.ecoji_v1 = new Ecoji("emojis_v1");
+        this.ecoji_v2 = new Ecoji("emojis_v2");
         this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};

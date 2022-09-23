@@ -537,6 +537,9 @@ var BaseEx = (function (exports) {
             // Store the calling class in this.root
             // for accessability.
             this.root = main;
+            
+            // set specific args object for converters
+            this.converterArgs = {};
 
             // If charsets are uses by the parent class,
             // add extra functions for the user.
@@ -556,14 +559,13 @@ var BaseEx = (function (exports) {
          */
         #charsetUserToolsConstructor() {
 
+            /**
+             * Save method to add a charset.
+             * @param {string} name - "Charset name."
+             * @param {[string|set|array]} - "Charset"
+             */
             this.root.addCharset = (name, charset) => {
-                /*
-                    Save method to add a charset.
-                    ----------------------------
-
-                    @name: string that represents the key for the new charset
-                    @charset: string, array or Set of chars - the length must fit to the according class 
-                */
+                // FIXME: update to new charset type (array)
                     
                 if (typeof name !== "string") {
                     throw new TypeError("The charset name must be a string.");
@@ -663,6 +665,14 @@ var BaseEx = (function (exports) {
          * @param {boolean} initial - Indicates if the arguments where passed during construction. 
          */
         invalidArgument(arg, versions, outputTypes, initial) {
+            const loopConverterArgs = () => Object.keys(this.converterArgs).map(
+                key => this.converterArgs[key].map(
+                    keyword => `'${keyword}'`
+                ).
+                join(" and ")
+            ).
+            join("\n   - ");
+
             const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
             const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
             const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
@@ -671,8 +681,9 @@ var BaseEx = (function (exports) {
             const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
             const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
             const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
+            const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
             
-            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
+            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
         }
 
 
@@ -695,6 +706,11 @@ var BaseEx = (function (exports) {
                 upper: this.root.upper,
                 version: this.root.version
             };
+
+            // add any existing converter specific args
+            for (const param in this.converterArgs) {
+                parameters[param] = this.root[param];
+            }
 
             // if no args are provided return the default settings immediately
             if (!args.length) {
@@ -725,6 +741,7 @@ var BaseEx = (function (exports) {
                 padding: ["nopad", "pad"],
                 signed: ["unsigned", "signed"],
                 upper: ["lower", "upper"],
+                ...this.converterArgs
             };
 
             // if initial, look for IO specifications
@@ -997,16 +1014,14 @@ var BaseEx = (function (exports) {
 
         /**
          * BaseEx Universal Base Decoding.
+         * Decodes to a string of the given radix to a byte array.
          * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
          * @param {string} charset - The charset used for conversion.
          * @param {boolean} littleEndian - Byte order, little endian bool.
          * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
          */
         decode(inputBaseStr, charset, littleEndian=false) {
-            /*
-                Decodes to a string of the given radix to a byte array
-            */
-            
+
             // Convert each char of the input to the radix-integer
             // (this becomes the corresponding index of the char
             // from the charset). Every char, that is not found in
@@ -1020,12 +1035,24 @@ var BaseEx = (function (exports) {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            [...inputBaseStr].forEach((c) => {
-                const index = charset.indexOf(c);
-                if (index > -1) { 
-                   byteArray.push(index);
-                }
-            });
+            // Array Charset
+            if (Array.isArray(charset)) {
+                [...inputBaseStr].forEach(c => {
+                    const index = charset.indexOf(c);
+                    if (index > -1) { 
+                        byteArray.push(index);
+                    }
+                });
+            }
+
+            // Object Charset
+            else {
+                [...inputBaseStr].forEach(c => {
+                    if (c in charset) {
+                        byteArray.push(charset[c]);
+                    }
+                });
+            }
 
             
             let padChars;
@@ -1330,16 +1357,16 @@ var BaseEx = (function (exports) {
             delete this.addCharset;
 
             // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
-            this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+            this.charsets.all = [..." !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"];
             
             // The sequence is used from left to right again and again
-            this.charsets.sequence = "Hello World!";
+            this.charsets.sequence = [..."Hello World!"];
             
             // Standard unary string with one character
-            this.charsets.default = "1";
+            this.charsets.default = ["1"];
 
             // Telly Mark string, using hash for 5 and vertical bar for 1 
-            this.charsets.tmark = "|#";
+            this.charsets.tmark = ["|", "#"];
 
             // Base 10 converter
             this.converter = new BaseConverter(10, 0, 0);
@@ -1396,7 +1423,7 @@ var BaseEx = (function (exports) {
 
             // Convert to unary in respect to the version differences
             if (charAmount === 1) {
-                output = charset.repeat(n);
+                output = charset.at(0).repeat(n);
             } else if (settings.version === "all") {
                 for (let i=0; i<n; i++) {
                     const charIndex = Math.floor(Math.random() * charAmount); 
@@ -1405,9 +1432,9 @@ var BaseEx = (function (exports) {
             } else if (settings.version === "tmark") {
                 const singulars = n % 5;
                 if (n > 4) {
-                    output = charset[1].repeat((n - singulars) / 5);
+                    output = charset.at(1).repeat((n - singulars) / 5);
                 }
-                output += charset[0].repeat(singulars);
+                output += charset.at(0).repeat(singulars);
             } else {
                 for (let i=0; i<n; i++) {
                     output += charset[i%charAmount];
@@ -1451,7 +1478,7 @@ var BaseEx = (function (exports) {
             input = String(input.length);
 
             // Run the decoder
-            const output = this.converter.decode(input, "0123456789", settings.littleEndian);
+            const output = this.converter.decode(input, [..."0123456789"], settings.littleEndian);
             
             // Return the output
             return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
@@ -2334,26 +2361,60 @@ var BaseEx = (function (exports) {
         constructor(...args) {
             super();
 
+            // charsets
+            this.charsets.emojis_v1 = [..."🀄🃏🅰🅱🅾🅿🆎🆑🆒🆓🆔🆕🆖🆗🆘🆙🆚🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿🈁🈂🈚🈯🈲🈳🈴🈵🈶🈷🈸🈹🈺🉐🉑🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🌡🌤🌥🌦🌧🌨🌩🌪🌫🌬🌭🌮🌯🌰🌱🌲🌳🌴🌵🌶🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🍽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🎖🎗🎙🎚🎛🎞🎟🎠🎡🎢🎣🎤🎥🎦🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🏋🏌🏎🏏🏐🏑🏒🏓🏔🏕🏖🏗🏘🏙🏚🏛🏜🏝🏞🏟🏠🏡🏢🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🏳🏴🏵🏷🏸🏹🏺🏻🏼🏽🏾🏿🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🐿👀👁👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸💹💺💻💼💽💾💿📀📁📂📃📄📅📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳📴📵📶📷📸📹📺📻📼📽📿🔀🔁🔂🔃🔄🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🔙🔚🔛🔜🔝🔞🔟🔠🔡🔢🔣🔤🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🔴🔵🔶🔷🔸🔹🔺🔻🔼🔽🕉🕊🕋🕌🕍🕎🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧🕯🕰🕳🕴🕵🕶🕷🕸🕹🕺🖇🖊🖋🖌🖍🖐🖕🖖🖤🖥🖨🖱🖲🖼🗂🗃🗄🗑🗒🗓🗜🗝🗞🗡🗣🗨🗯🗳🗺🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🛋🛌🛍🛎🛏🛐🛑🛒🛠🛡🛢🛣🛤🛥🛩🛫🛬🛰🛳🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🦰🦱🦲🦳🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
+            this.charsets.emojis_v2 = [..."🀄🃏⏰⏳☔♈♉♊♋♌♍♎♏♐♑♒♓♿⚓⚡⚽⚾⛄⛅⛎⛔⛪⛲⛳⛵⛺⛽✊✋✨⭐🛕🛖🛗🛝🛞🛟🛺🈁🛻🤌🤏🤿🥱🥲🥸🥹🥻🦣🦤🦥🦦🦧🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🦨🦩🦪🦫🦬🦭🦮🦯🦺🦻🌭🌮🌯🌰🌱🌲🌳🌴🌵🦼🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🦽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🦾🦿🧃🧄🧅🧆🧇🎠🎡🎢🎣🎤🎥🧈🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🧉🧊🧋🏏🏐🏑🏒🏓🧌🧍🧎🧏🧖🧗🧘🧙🧚🧛🧜🧝🏠🏡🏢🏣🏤🏥🏦🧞🏨🏩🏪🏫🏬🏭🏮🏯🏰🧟🏴🧠🧢🏸🏹🏺🧣🧤🧥🧦🧧🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🧨👀🧩👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸🧪💺💻💼💽💾💿📀🧫📂📃📄🧬📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳🧭📵📶📷📸📹📺📻📼🧮📿🧯🧰🧱🧲🧳🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🧴🧵🧶🧷🧸🧹🧺🧻🧼🧽🧾🧿🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🩰🩱🩲🩳🩴🩸🩹🩺🩻🩼🪀🪁🕋🕌🕍🕎🪂🪃🪄🪅🪆🪐🪑🪒🪓🪔🪕🪖🪗🪘🪙🪚🪛🪜🪝🪞🪟🪠🪡🪢🪣🪤🪥🪦🪧🪨🪩🪪🪫🕺🪬🪰🪱🪲🪳🪴🖕🖖🖤🪵🪶🪷🪸🪹🪺🫀🫁🫂🫃🫄🫅🫐🫑🫒🫓🫔🫕🫖🫗🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🫘🛌🫙🫠🫡🛐🛑🛒🫢🫣🫤🫥🫦🫧🫰🛫🛬🫱🫲🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🫳🫴🫵🫶🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
+            
+            // backward (v1) compatibel decoding charset for v2
+            this.charsets.emojis_v3 = Object.fromEntries(this.charsets.emojis_v2.map((e, i) => [e, i]));
+            this.charsets.emojis_v1.forEach((char, i) => {
+                if (!(char in this.charsets.emojis_v3)) {
+                    this.charsets.emojis_v3[char] = i;
+                }
+            });
+
+            this.padChars = {
+                default: "☕",
+                p4x: {
+                    emojis_v1: [ "⚜", "🏍", "📑", "🙋" ],
+                    emojis_v2: [ "🥷", "🛼", "📑", "🙋" ],
+                    emojis_v3: {
+                        "⚜": "🀄",
+                        "🥷": "🀄",
+                        "🏍": "🧋",
+                        "🛼": "🧋",
+                        "📑": "📒",
+                        "🙋": "🙌"
+                    }
+                }
+            };
+
             // converter
             this.converter = new BaseConverter(1024, 5, 4);
 
             // predefined settings
             this.padding = true;
-            this.version = "emojisV1";
-
-            // default settings
-            this.charsets.emojisV1 = [..."🀄🃏🅰🅱🅾🅿🆎🆑🆒🆓🆔🆕🆖🆗🆘🆙🆚🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿🈁🈂🈚🈯🈲🈳🈴🈵🈶🈷🈸🈹🈺🉐🉑🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🌡🌤🌥🌦🌧🌨🌩🌪🌫🌬🌭🌮🌯🌰🌱🌲🌳🌴🌵🌶🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🍽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🎖🎗🎙🎚🎛🎞🎟🎠🎡🎢🎣🎤🎥🎦🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🏋🏌🏎🏏🏐🏑🏒🏓🏔🏕🏖🏗🏘🏙🏚🏛🏜🏝🏞🏟🏠🏡🏢🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🏳🏴🏵🏷🏸🏹🏺🏻🏼🏽🏾🏿🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🐿👀👁👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸💹💺💻💼💽💾💿📀📁📂📃📄📅📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳📴📵📶📷📸📹📺📻📼📽📿🔀🔁🔂🔃🔄🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🔙🔚🔛🔜🔝🔞🔟🔠🔡🔢🔣🔤🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🔴🔵🔶🔷🔸🔹🔺🔻🔼🔽🕉🕊🕋🕌🕍🕎🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧🕯🕰🕳🕴🕵🕶🕷🕸🕹🕺🖇🖊🖋🖌🖍🖐🖕🖖🖤🖥🖨🖱🖲🖼🗂🗃🗄🗑🗒🗓🗜🗝🗞🗡🗣🗨🗯🗳🗺🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🛋🛌🛍🛎🛏🛐🛑🛒🛠🛡🛢🛣🛤🛥🛩🛫🛬🛰🛳🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🦰🦱🦲🦳🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
-            this.padChars = {
-                default: "☕",
-                p4x: {
-                    emojisV1: [ "⚜", "🏍", "📑", "🙋" ],
-                    emojisV2: [ "🥷", "🛼", "📑", "🙋" ]
-                }
-            };
+            this.version = "emojis_v1";
             
+            // mutable extra args
+            this.isMutable.padding = true;
+            this.isMutable.trim = true;
 
+            // set trim option
+            this.trim = null;
+            this.utils.converterArgs.trim = ["notrim", "trim"];
+            
             // apply user settings
             this.utils.validateArgs(args, true);
+
+            
+            if (this.version === "emojis_v3") {
+                this.version = "emojis_v2";
+            }
+
+            if (this.trim === null) {
+                this.trim = this.version === "emojis_v2";
+            }
         }
 
 
@@ -2364,19 +2425,26 @@ var BaseEx = (function (exports) {
          * @returns {string} - Base16 encoded string.
          */
         encode(input, ...args) {
-            
+
+            if (args.includes("emojis_v3")) {
+                args.splice(args.indexOf("emojis_v3"), 1, "emojis_v2");
+            }
+
             const applyPadding = (scope) => {
 
                 let { output, settings, zeroPadding } = scope;
-
                 const charset = this.charsets[settings.version];
-
                 let outArray = [...output];
                 
                 if (zeroPadding > 1) {
                     const padValue = this.converter.padBytes(zeroPadding);
-                    const padArr = new Array(padValue).fill(this.padChars.default);
-                    outArray.splice(outArray.length-padValue, padValue, ...padArr);
+                    if (settings.padding) {
+                        const padLen = settings.trim ? 1 : padValue;
+                        const padArr = new Array(padLen).fill(this.padChars.default);
+                        outArray.splice(outArray.length-padValue, padValue, ...padArr);
+                    } else {
+                        outArray.splice(outArray.length-padValue, padValue);
+                    }
                 }
                 
                 else if (zeroPadding === 1) {
@@ -2399,18 +2467,22 @@ var BaseEx = (function (exports) {
          * @returns {*} - Output according to converter settings.
          */
         decode(input, ...args) {
-            
+
+            // Argument validation and output settings
+            const settings = this.utils.validateArgs(args);
+            if ((/emojis_v[1|2]/).test(settings.version)) {
+                settings.version = "emojis_v3";
+            }
+
+            input = String(input);
+            const charset = this.charsets[settings.version];
+            const inArray = [...input];
+            const lastChar = inArray.at(-1);
             let skipLast = false;
 
-            const applyPadding = (scope) => {
-                
-                let { input, settings } = scope;
-
-                const charset = this.charsets[settings.version];
-                const inArray = [...input];
-                const lastChar = inArray.at(-1);
-
-                for (let i=0; i<this.padChars.p4x.length; i++) {                
+            // in case of another charset than v1/v2
+            if (Array.isArray(charset)) {
+                for (let i=0; i<this.padChars.p4x[settings.version].length; i++) {                
                     if (lastChar === this.padChars.p4x[settings.version].at(i)) {
                         inArray.splice(-1, 1, charset.at(i << 8));
                         input = inArray.join("");
@@ -2418,22 +2490,22 @@ var BaseEx = (function (exports) {
                         break;
                     }
                 }
-
-                return input;
-            };
+            }
             
-            
-            const postFN = (scope) => {
-                let { output } = scope;
-                
-                if (skipLast) {
-                    output = new Uint8Array(output.buffer.slice(0, -1));
-                }
-                return output;
-            };
+            // v1 & v2
+            else if (lastChar in this.padChars.p4x[settings.version]) {
+                inArray.splice(-1, 1, this.padChars.p4x[settings.version][lastChar]);
+                input = inArray.join("");
+                skipLast = true;
+            }
 
-            return super.decode(input, applyPadding, postFN, ...args);
-        
+            let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+
+            if (skipLast) {
+                output = new Uint8Array(output.buffer.slice(0, -1));
+            }
+
+            return this.utils.outputHandler.compile(output, settings.outputType);
         }
     }
 
@@ -2547,7 +2619,7 @@ var BaseEx = (function (exports) {
             const Uint8Output = Uint8Array.from(output);
 
             if (settings.version === "hex") {
-                return this.hexlify.encode(Uint8Output, "0123456789abcdef", false)[0];
+                return this.hexlify.encode(Uint8Output, [..."0123456789abcdef"], false)[0];
             }
 
             return Uint8Output;
@@ -2566,7 +2638,7 @@ var BaseEx = (function (exports) {
             const settings = this.utils.validateArgs(args);
 
             if (settings.version === "hex") {
-                input = this.hexlify.decode(String(input).toLowerCase(), "0123456789abcdef", false);
+                input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], false);
             } else if (input instanceof ArrayBuffer) {
                 input = new Uint8Array(input);
             }
@@ -2594,7 +2666,7 @@ var BaseEx = (function (exports) {
             let decimalNum, negative;
             [decimalNum, negative] = this.utils.extractSign(n.toString());
 
-            const output = this.converter.decode(decimalNum, "0123456789", true);
+            const output = this.converter.decode(decimalNum, [..."0123456789"], true);
 
             // Return the output
             return this.utils.outputHandler.compile(output, settings.outputType, true, negative);
@@ -2617,7 +2689,7 @@ var BaseEx = (function (exports) {
                 throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
             }
 
-            this.charsets.default = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
+            this.charsets.default = [..."0123456789abcdefghijklmnopqrstuvwxyz"].slice(0, radix);
         
             // predefined settings
             this.converter = new BaseConverter(radix, 0, 0);
@@ -2710,7 +2782,8 @@ var BaseEx = (function (exports) {
             this.base85_z85 = new Base85("z85", outputType);
             this.base91 = new Base91("default",outputType);
             this.leb128 = new LEB128("default", outputType);
-            this.ecoji = new Ecoji("default");
+            this.ecoji_v1 = new Ecoji("emojis_v1");
+            this.ecoji_v2 = new Ecoji("emojis_v2");
             this.byteConverter = new ByteConverter(outputType);
 
             this.simpleBase = {};

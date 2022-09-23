@@ -45,14 +45,13 @@ export class Utils {
      */
     #charsetUserToolsConstructor() {
 
+        /**
+         * Save method to add a charset.
+         * @param {string} name - "Charset name."
+         * @param {[string|set|array]} - "Charset"
+         */
         this.root.addCharset = (name, charset) => {
-            /*
-                Save method to add a charset.
-                ----------------------------
-
-                @name: string that represents the key for the new charset
-                @charset: string, array or Set of chars - the length must fit to the according class 
-            */
+            // FIXME: update to new charset type (array)
                 
             if (typeof name !== "string") {
                 throw new TypeError("The charset name must be a string.");

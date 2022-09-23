@@ -111,7 +111,7 @@ export default class LEB128 extends BaseTemplate {
         const Uint8Output = Uint8Array.from(output);
 
         if (settings.version === "hex") {
-            return this.hexlify.encode(Uint8Output, "0123456789abcdef", false)[0];
+            return this.hexlify.encode(Uint8Output, [..."0123456789abcdef"], false)[0];
         }
 
         return Uint8Output;
@@ -130,7 +130,7 @@ export default class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         if (settings.version === "hex") {
-            input = this.hexlify.decode(String(input).toLowerCase(), "0123456789abcdef", false);
+            input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], false);
         } else if (input instanceof ArrayBuffer) {
             input = new Uint8Array(input);
         }
@@ -158,7 +158,7 @@ export default class LEB128 extends BaseTemplate {
         let decimalNum, negative;
         [decimalNum, negative] = this.utils.extractSign(n.toString());
 
-        const output = this.converter.decode(decimalNum, "0123456789", true);
+        const output = this.converter.decode(decimalNum, [..."0123456789"], true);
 
         // Return the output
         return this.utils.outputHandler.compile(output, settings.outputType, true, negative);

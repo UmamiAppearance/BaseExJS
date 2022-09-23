@@ -17,7 +17,7 @@ export default class SimpleBase extends BaseTemplate {
             throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
         }
 
-        this.charsets.default = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
+        this.charsets.default = [..."0123456789abcdefghijklmnopqrstuvwxyz"].slice(0, radix);
     
         // predefined settings
         this.converter = new BaseConverter(radix, 0, 0);
