@@ -3,6 +3,7 @@ import { Ecoji } from "base-ex";
 import { readdir, readFile } from "fs/promises";
 //import test from "ava";
 
+const path = "./fixtures/ecoji/";
 const files = await (readdir("./fixtures/ecoji"));
 
 const plainFilesA = files.filter(f => (/\.plain$/).test(f));
@@ -15,10 +16,10 @@ const ecojiV2 = new Ecoji("emojis_v2");
 for (const plainFile of plainFilesA) {
     const bareName = plainFile.slice(0, -6);
     
-    const input = await readFile(`./fixtures/ecoji/${plainFile}`);
+    const input = await readFile(`${path}${plainFile}`);
     
-    const expectedV1 = await readFile(`./fixtures/ecoji/${bareName}.ev1`, "utf-8");
-    const expectedV2 = await readFile(`./fixtures/ecoji/${bareName}.ev2`, "utf-8");
+    const expectedV1 = await readFile(`${path}${bareName}.ev1`, "utf-8");
+    const expectedV2 = await readFile(`${path}${bareName}.ev2`, "utf-8");
     
     const outputV1 = ecojiV1.encode(input);
     const outputV2 = ecojiV2.encode(input);
@@ -28,8 +29,14 @@ for (const plainFile of plainFilesA) {
 for (const plainFile of plainFilesB) {
     const bareName = plainFile.slice(0, -7);
     
-    const input = await readFile(`./fixtures/ecoji/${plainFile}`);
-    //console.log(input)
+    const input = await readFile(`${path}${bareName}.enc`);
+    const expected = await readFile(`${path}${plainFile}`, "utf-8");
+
+    const output = ecojiV2.decode(input, "str");
+    
+    console.log(input);
+    console.log(expected);
+    console.log(output);
 
 }
 
