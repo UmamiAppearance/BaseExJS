@@ -38,7 +38,11 @@ export default class Ecoji extends BaseTemplate {
         });
 
         this.padChars = {
-            default: "☕",
+            default: {
+                emojis_v1: "☕",
+                emojis_v2: "☕",
+                emojis_v3: "☕"
+            },
             p4x: {
                 emojis_v1: [ "⚜", "🏍", "📑", "🙋" ],
                 emojis_v2: [ "🥷", "🛼", "📑", "🙋" ],
@@ -104,7 +108,7 @@ export default class Ecoji extends BaseTemplate {
                 const padValue = this.converter.padBytes(zeroPadding);
                 if (settings.padding) {
                     const padLen = settings.trim ? 1 : padValue;
-                    const padArr = new Array(padLen).fill(this.padChars.default);
+                    const padArr = new Array(padLen).fill(this.padChars.default[settings.version]);
                     outArray.splice(outArray.length-padValue, padValue, ...padArr);
                 } else {
                     outArray.splice(outArray.length-padValue, padValue);
@@ -140,35 +144,77 @@ export default class Ecoji extends BaseTemplate {
 
         input = String(input);
         const charset = this.charsets[settings.version];
-        const inArray = [...input];
-        const lastChar = inArray.at(-1);
-        let skipLast = false;
+        console.log(charset);
+        const charsetIsArray = Array.isArray(charset);
 
-        // in case of another charset than v1/v2
-        if (Array.isArray(charset)) {
-            for (let i=0; i<this.padChars.p4x[settings.version].length; i++) {                
-                if (lastChar === this.padChars.p4x[settings.version].at(i)) {
-                    inArray.splice(-1, 1, charset.at(i << 8));
-                    input = inArray.join("");
-                    skipLast = true;
-                    break;
+        console.log(charsetIsArray, "charsetIsArray");
+        
+        
+        const decode = (input) => {
+            const inArray = [...input];
+            const lastChar = inArray.at(-1);
+            let skipLast = false;
+
+            // in case of another charset than v1/v2
+            if (charsetIsArray) {
+                for (let i=0; i<this.padChars.p4x[settings.version].length; i++) {                
+                    if (lastChar === this.padChars.p4x[settings.version].at(i)) {
+                        inArray.splice(-1, 1, charset.at(i << 8));
+                        input = inArray.join("");
+                        skipLast = true;
+                        break;
+                    }
                 }
             }
-        }
-        
-        // v1 & v2
-        else if (lastChar in this.padChars.p4x[settings.version]) {
-            inArray.splice(-1, 1, this.padChars.p4x[settings.version][lastChar]);
-            input = inArray.join("");
-            skipLast = true;
+            
+            // v1 & v2
+            else if (lastChar in this.padChars.p4x[settings.version]) {
+                inArray.splice(-1, 1, this.padChars.p4x[settings.version][lastChar]);
+                input = inArray.join("");
+                skipLast = true;
+            }
+
+            let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+
+            if (skipLast) {
+                output = new Uint8Array(output.buffer.slice(0, -1));
+            }
+
+            return output;
         }
 
-        let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+        // look for concateneted strings with padding included
+        const regexArray = charsetIsArray
+            ? this.padChars.p4x[settings.version]
+            : Object.keys(this.padChars.p4x[settings.version]);
 
-        if (skipLast) {
-            output = new Uint8Array(output.buffer.slice(0, -1));
+        regexArray.push(`${this.padChars.default[settings.version]}+`);
+        const regex = new RegExp(regexArray.join("|"), "g");
+        const matchGroup = [...input.matchAll(regex)];
+
+        let output;
+        if (matchGroup.length < 2) {
+            output = decode(input);
+        } else {
+
+            const preOutArray = [];
+            let start = 0;
+            
+            matchGroup.forEach(match => {
+                const end = match.index + match.at(0).length;
+                preOutArray.push(...decode(input.slice(start, end)));
+                start = end;
+            });
+
+            if (start !== input.length) {
+                preOutArray.push(...decode(input.slice(start, input.length)));
+            }
+
+            output = Uint8Array.from(preOutArray);
         }
+
 
         return this.utils.outputHandler.compile(output, settings.outputType);
+
     }
 }

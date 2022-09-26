@@ -50,8 +50,8 @@ export class Utils {
          * @param {string} name - "Charset name."
          * @param {[string|set|array]} - "Charset"
          */
-        this.root.addCharset = (name, charset) => {
-            // FIXME: update to new charset type (array)
+        this.root.addCharset = (name, charset, info=true) => {
+            // TODO: add padding chars
                 
             if (typeof name !== "string") {
                 throw new TypeError("The charset name must be a string.");
@@ -62,8 +62,12 @@ export class Utils {
             
             const setLen = this.root.converter.radix;
             let inputLen = setLen;
+
+            if (typeof charset === "string") {
+                charset = [...charset];
+            }
             
-            if (typeof charset === "string" || Array.isArray(charset)) {
+            if (Array.isArray(charset)) {
                 
                 // Store the input length of the input
                 inputLen = charset.length;
@@ -80,9 +84,11 @@ export class Utils {
             }
             
             if (charset.size === setLen) {
-                charset = [...charset].join("");
+                charset = [...charset];
                 this.root.charsets[name] = charset;
-                console.info(`New charset '${name}' was added and is ready to use`);
+                if (info) {
+                    console.info(`New charset '${name}' was added and is ready to use`);
+                }
             } else if (inputLen === setLen) {
                 throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
             } else {

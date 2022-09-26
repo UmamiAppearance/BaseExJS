@@ -34,7 +34,6 @@ for (const plainFile of plainFilesB) {
 
     const output = ecojiV2.decode(input, "str");
     
-    console.log(input);
     console.log(expected);
     console.log(output);
 
