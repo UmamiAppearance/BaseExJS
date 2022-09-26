@@ -33,9 +33,6 @@ for (const plainFile of plainFilesB) {
     const expected = await readFile(`${path}${plainFile}`, "utf-8");
 
     const output = ecojiV2.decode(input, "str");
-    
-    console.log(expected);
-    console.log(output);
 
 }
 

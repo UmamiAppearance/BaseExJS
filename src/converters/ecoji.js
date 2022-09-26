@@ -30,10 +30,10 @@ export default class Ecoji extends BaseTemplate {
         this.charsets.emojis_v2 = [..."🀄🃏⏰⏳☔♈♉♊♋♌♍♎♏♐♑♒♓♿⚓⚡⚽⚾⛄⛅⛎⛔⛪⛲⛳⛵⛺⛽✊✋✨⭐🛕🛖🛗🛝🛞🛟🛺🈁🛻🤌🤏🤿🥱🥲🥸🥹🥻🦣🦤🦥🦦🦧🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🦨🦩🦪🦫🦬🦭🦮🦯🦺🦻🌭🌮🌯🌰🌱🌲🌳🌴🌵🦼🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🦽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🦾🦿🧃🧄🧅🧆🧇🎠🎡🎢🎣🎤🎥🧈🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🧉🧊🧋🏏🏐🏑🏒🏓🧌🧍🧎🧏🧖🧗🧘🧙🧚🧛🧜🧝🏠🏡🏢🏣🏤🏥🏦🧞🏨🏩🏪🏫🏬🏭🏮🏯🏰🧟🏴🧠🧢🏸🏹🏺🧣🧤🧥🧦🧧🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🧨👀🧩👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸🧪💺💻💼💽💾💿📀🧫📂📃📄🧬📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳🧭📵📶📷📸📹📺📻📼🧮📿🧯🧰🧱🧲🧳🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🧴🧵🧶🧷🧸🧹🧺🧻🧼🧽🧾🧿🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🩰🩱🩲🩳🩴🩸🩹🩺🩻🩼🪀🪁🕋🕌🕍🕎🪂🪃🪄🪅🪆🪐🪑🪒🪓🪔🪕🪖🪗🪘🪙🪚🪛🪜🪝🪞🪟🪠🪡🪢🪣🪤🪥🪦🪧🪨🪩🪪🪫🕺🪬🪰🪱🪲🪳🪴🖕🖖🖤🪵🪶🪷🪸🪹🪺🫀🫁🫂🫃🫄🫅🫐🫑🫒🫓🫔🫕🫖🫗🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🫘🛌🫙🫠🫡🛐🛑🛒🫢🫣🫤🫥🫦🫧🫰🛫🛬🫱🫲🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🫳🫴🫵🫶🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
         
         // backward (v1) compatibel decoding charset for v2
-        this.charsets.emojis_v3 = Object.fromEntries(this.charsets.emojis_v2.map((e, i) => [e, i]));
+        this.charsets.emojis_v3_decoding = Object.fromEntries(this.charsets.emojis_v2.map((e, i) => [e, i]));
         this.charsets.emojis_v1.forEach((char, i) => {
-            if (!(char in this.charsets.emojis_v3)) {
-                this.charsets.emojis_v3[char] = i;
+            if (!(char in this.charsets.emojis_v3_decoding)) {
+                this.charsets.emojis_v3_decoding[char] = i;
             }
         });
 
@@ -41,12 +41,12 @@ export default class Ecoji extends BaseTemplate {
             default: {
                 emojis_v1: "☕",
                 emojis_v2: "☕",
-                emojis_v3: "☕"
+                emojis_v3_decoding: "☕"
             },
             p4x: {
                 emojis_v1: [ "⚜", "🏍", "📑", "🙋" ],
                 emojis_v2: [ "🥷", "🛼", "📑", "🙋" ],
-                emojis_v3: {
+                emojis_v3_decoding: {
                     "⚜": "🀄",
                     "🥷": "🀄",
                     "🏍": "🧋",
@@ -76,7 +76,7 @@ export default class Ecoji extends BaseTemplate {
         this.utils.validateArgs(args, true);
 
         
-        if (this.version === "emojis_v3") {
+        if (this.version === "emojis_v3_decoding") {
             this.version = "emojis_v2";
         }
 
@@ -94,8 +94,8 @@ export default class Ecoji extends BaseTemplate {
      */
     encode(input, ...args) {
 
-        if (args.includes("emojis_v3")) {
-            args.splice(args.indexOf("emojis_v3"), 1, "emojis_v2");
+        if (args.includes("emojis_v3_decoding")) {
+            args.splice(args.indexOf("emojis_v3_decoding"), 1, "emojis_v2");
         }
 
         const applyPadding = (scope) => {
@@ -139,18 +139,17 @@ export default class Ecoji extends BaseTemplate {
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
         if ((/emojis_v[1|2]/).test(settings.version)) {
-            settings.version = "emojis_v3";
+            settings.version = "emojis_v3_decoding";
         }
 
         input = String(input);
         const charset = this.charsets[settings.version];
-        console.log(charset);
         const charsetIsArray = Array.isArray(charset);
-
-        console.log(charsetIsArray, "charsetIsArray");
         
-        
+        // the actual decoding is wrapped in a function
+        // for the possibility to call it multiple times
         const decode = (input) => {
+            
             const inArray = [...input];
             const lastChar = inArray.at(-1);
             let skipLast = false;
@@ -184,18 +183,29 @@ export default class Ecoji extends BaseTemplate {
         }
 
         // look for concateneted strings with padding included
+        // first the p4x is added to a temporary array
         const regexArray = charsetIsArray
             ? this.padChars.p4x[settings.version]
             : Object.keys(this.padChars.p4x[settings.version]);
 
+        // second add the default pad char (allow multiple
+        // consecutive occurences)
         regexArray.push(`${this.padChars.default[settings.version]}+`);
+        
+        // create a regex obj for matching all pad chars 
         const regex = new RegExp(regexArray.join("|"), "g");
         const matchGroup = [...input.matchAll(regex)];
 
+        // decode the input directly if no or just one 
+        // match for padding was found
         let output;
         if (matchGroup.length < 2) {
             output = decode(input);
-        } else {
+        }
+        
+        // otherwise decode every group seperatly and join it
+        // afterwards
+        else {
 
             const preOutArray = [];
             let start = 0;
@@ -206,6 +216,8 @@ export default class Ecoji extends BaseTemplate {
                 start = end;
             });
 
+            // in case the last group has no padding, it is not yet
+            // decoded -> do it now
             if (start !== input.length) {
                 preOutArray.push(...decode(input.slice(start, input.length)));
             }
