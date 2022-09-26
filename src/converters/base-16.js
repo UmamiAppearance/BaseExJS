@@ -30,6 +30,10 @@ export default class Base16 extends BaseTemplate {
 
         // default settings
         this.charsets.default = [..."0123456789abcdef"];
+        this.padChars = {
+            default: ""
+        }
+
         this.hasSignedMode = true;
         
         // mutable extra args

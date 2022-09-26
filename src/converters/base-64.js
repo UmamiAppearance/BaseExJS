@@ -33,6 +33,11 @@ export default class Base64 extends BaseTemplate {
         const b62Chars = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"];
         this.charsets.default = b62Chars.concat(["+", "/"]);
         this.charsets.urlsafe = b62Chars.concat(["-", "_"]);
+
+        this.padChars = {
+            default: "=",
+            urlsafe: "="
+        }
      
         // converter
         this.converter = new BaseConverter(64, 3, 4);
@@ -65,7 +70,7 @@ export default class Base64 extends BaseTemplate {
                 const padValue = this.converter.padBytes(zeroPadding);
                 output = output.slice(0, output.length-padValue);
                 if (settings.padding) { 
-                    output = output.concat("=".repeat(padValue));
+                    output = output.concat(this.padChars[settings.version].repeat(padValue));
                 }
             }
 

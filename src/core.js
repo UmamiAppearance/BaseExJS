@@ -183,11 +183,13 @@ class BaseConverter {
      * BaseEx Universal Base Decoding.
      * Decodes to a string of the given radix to a byte array.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
-     * @param {string} charset - The charset used for conversion.
+     * @param {string[]} charset - The charset used for conversion.
+     * @param {string[]} padSet - Padding characters for integrity check.
+     * @param {boolean} integrity - If set to false invalid character will be ignored.
      * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
-    decode(inputBaseStr, charset, littleEndian=false) {
+    decode(inputBaseStr, charset, padSet=[], integrity=true, littleEndian=false) {
 
         // Convert each char of the input to the radix-integer
         // (this becomes the corresponding index of the char
@@ -208,6 +210,8 @@ class BaseConverter {
                 const index = charset.indexOf(c);
                 if (index > -1) { 
                     byteArray.push(index);
+                } else if (integrity && padSet.indexOf(c) === -1) {
+                    throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
                 }
             });
         }
@@ -217,6 +221,8 @@ class BaseConverter {
             [...inputBaseStr].forEach(c => {
                 if (c in charset) {
                     byteArray.push(charset[c]);
+                } else if (integrity && !(c in padSet)) {
+                    throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
                 }
             });
         }
@@ -378,10 +384,14 @@ class BaseTemplate {
         // predefined settings
         this.charsets = {};
         this.hasSignedMode = false;
+        this.integrity = true;
         this.littleEndian = false;
         this.numberMode = false;
         this.outputType = "buffer";
         this.padding = false;
+        this.padChars = {
+            default: ""
+        } 
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
@@ -482,7 +492,13 @@ class BaseTemplate {
         }
 
         // Run the decoder
-        let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+        let output = this.converter.decode(
+            input,
+            this.charsets[settings.version],
+            this.padChars[settings.version],
+            settings.integrity,
+            settings.littleEndian
+        );
 
         // Run post decode function if provided
         if (postDecodeFN) {

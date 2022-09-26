@@ -38,13 +38,20 @@ export default class Base32 extends BaseTemplate {
         this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
         this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
         this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
+
+        this.padChars = {
+            crockford: "=",
+            rfc3548: "=",
+            rfc4648: "=",
+            zbase32: "="
+        }
+
         
         // converter
         this.converter = new BaseConverter(32, 5, 8);
 
         // predefined settings
         this.hasSignedMode = true;
-        this.padding = true;
         this.version = "rfc4648";
         
         // mutable extra args
@@ -55,6 +62,8 @@ export default class Base32 extends BaseTemplate {
 
         // apply user settings
         this.utils.validateArgs(args, true);
+        this.padding = (/rfc3548|rfc4648/).test(this.version);
+        this.upper = this.version === "crockford";
     }
     
 
@@ -76,7 +85,7 @@ export default class Base32 extends BaseTemplate {
                     const padValue = this.converter.padBytes(zeroPadding);
                     output = output.slice(0, output.length-padValue);
                     if (settings.padding) { 
-                        output = output.concat("=".repeat(padValue));
+                        output = output.concat(this.padChars[settings.version].repeat(padValue));
                     }
                 }
             }

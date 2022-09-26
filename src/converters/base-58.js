@@ -35,6 +35,12 @@ export default class Base58 extends BaseTemplate{
         this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
         this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
 
+        this.padChars = {
+            default: this.charsets.default[0],
+            bitcoin: this.charsets.bitcoin[0],
+            flickr:  this.charsets.flickr[0]
+        }
+
         // converter
         this.converter = new BaseConverter(58, 0, 0);
 
@@ -71,6 +77,9 @@ export default class Base58 extends BaseTemplate{
                 let i = 0;
                 const end = inputBytes.length;
 
+                // pad char is always! the first char in the set
+                const padChar = this.charsets[settings.version].at(0);
+
                 // only proceed if input has a length at all
                 if (end) {
                     while (!inputBytes[i]) {
@@ -87,7 +96,7 @@ export default class Base58 extends BaseTemplate{
 
                     // Set a one for every leading null byte
                     if (zeroPadding) {
-                        output = ("1".repeat(zeroPadding)).concat(output);
+                        output = (padChar.repeat(zeroPadding)).concat(output);
                     }
                 }
             }
@@ -112,11 +121,15 @@ export default class Base58 extends BaseTemplate{
 
             let { input, output, settings } = scope;
 
+            // pad char is always! the first char in the set
+            const padChar = this.charsets[settings.version].at(0);
+
+
             if (settings.padding && input.length > 1) {
                 
-                // Count leading ones 
+                // Count leading padding (char should be 1)
                 let i = 0;
-                while (input[i] === "1") {
+                while (input[i] === padChar) {
                     i++;
                 }
     

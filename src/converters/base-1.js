@@ -152,7 +152,7 @@ export default class Base1 extends BaseTemplate {
         input = String(input.length);
 
         // Run the decoder
-        const output = this.converter.decode(input, [..."0123456789"], settings.littleEndian);
+        const output = this.converter.decode(input, [..."0123456789"], [], settings.integrity, settings.littleEndian);
         
         // Return the output
         return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);

@@ -172,10 +172,11 @@ export class Utils {
         const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
         const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
         const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+        const integrityHint = "\n * valid args for integrity check are : 'integrity' and 'nointegrity'";
         const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
         const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
         
-        throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
+        throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${integrityHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
     }
 
 
@@ -190,6 +191,7 @@ export class Utils {
         
         // default settings
         const parameters = {
+            integrity: this.root.integrity,
             littleEndian: this.root.littleEndian,
             numberMode: this.root.numberMode,
             outputType: this.root.outputType,
@@ -229,6 +231,7 @@ export class Utils {
         // set available versions and extra arguments
         const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
         const extraArgList = {
+            integrity: ["nointegrity", "integrity"],
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],
             signed: ["unsigned", "signed"],
