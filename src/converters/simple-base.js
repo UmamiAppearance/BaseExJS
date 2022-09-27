@@ -6,10 +6,27 @@
  * @license GPL-3.0
  */
 
-
 import { BaseConverter, BaseTemplate } from "../core.js";
 
+
+/**
+ * BaseEx SimpleBase Converter.
+ * ---------------------------
+ * SimpleBase provides the simple mathematical base
+ * conversion as known from (n).toString(radix) and
+ * parseInt(n, radix).
+ * 
+ * The constructor needs a radix between 2-36 as the
+ * first argument. In other regards it behaves pretty
+ * much as any other converter. 
+ */
 export default class SimpleBase extends BaseTemplate {
+    
+    /**
+     * SimpleBase Constructor.
+     * @param {number} radix - Radix between 2 and 36 
+     * @param  {...any} args - Converter settings.
+     */
     constructor(radix, ...args) {
         super();
 
@@ -34,10 +51,24 @@ export default class SimpleBase extends BaseTemplate {
         this.utils.validateArgs(args, true);
     }
     
+
+    /**
+     * BaseEx SimpleBase Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {string} - Base 2-36 encoded string.
+     */
     encode(input, ...args) {
         return super.encode(input, null, null, ...args);
     }
 
+
+    /**
+     * BaseEx SimpleBase Decoder.
+     * @param {string} input - Base 2-36 String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
     decode(rawInput, ...args) {
 
         // pre decoding function

@@ -13,7 +13,7 @@ import {  BaseTemplate } from "../core.js";
  * ------------------------
  * 
  * This is a base91 converter. Various input can be 
- * converted to a base85 string or a base91 string
+ * converted to a base91 string or a base91 string
  * can be decoded into various formats.
  * 
  * It is an  implementation of Joachim Henkes method

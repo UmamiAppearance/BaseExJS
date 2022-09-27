@@ -10,7 +10,7 @@ import { SmartInput, SmartOutput } from "../io-handlers.js";
 
 /**
  * BaseEx Byte Converter.
- * ---------------------------------------
+ * ---------------------
  * 
  * This is a byte converter. Various input can be 
  * converted to a bytes or bytes can be decoded into

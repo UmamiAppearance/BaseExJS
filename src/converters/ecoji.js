@@ -11,13 +11,13 @@ import { BaseConverter, BaseTemplate } from "../core.js";
 
 /**
  * BaseEx Ecoji (a Base 1024) Converter.
- * ------------------------
+ * ------------------------------------
  * This an implementation of the Ecoji converter.
  * Various input can be converted to an Ecoji string
  * or an Ecoji string can be decoded into various 
  * formats. Versions 1 and 2 are supported.
  * This variant pretty much follows the standard
- * (at least in its resuls, the algorithm is very
+ * (at least in its results, the algorithm is very
  * different from the original).
  * A deviation is the handling of padding. The last
  * pad char can be trimmed for both versions and
@@ -324,7 +324,7 @@ export default class Ecoji extends BaseTemplate {
             }
         });
 
-        // lastely test for invalid string length
+        // lastely test for invalid string 
         if (integrity && inArray.length % 4) {
             if (
                 versionKey === 1 ||
