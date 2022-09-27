@@ -399,6 +399,7 @@ class BaseTemplate {
         
         // list of allowed/disallowed args to change
         this.isMutable = {
+            integrity: true,
             littleEndian: false,
             padding: false,
             signed: false,

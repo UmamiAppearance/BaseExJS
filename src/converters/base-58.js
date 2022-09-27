@@ -32,14 +32,14 @@ export default class Base58 extends BaseTemplate{
 
         // charsets
         this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
-        this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
-        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        this.padChars.default = this.charsets.default[0];
 
-        this.padChars = {
-            default: this.charsets.default[0],
-            bitcoin: this.charsets.bitcoin[0],
-            flickr:  this.charsets.flickr[0]
-        }
+        this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
+        this.padChars.bitcoin = this.charsets.bitcoin[0];
+
+        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        this.padChars.flickr =  this.charsets.flickr[0];
+        
 
         // converter
         this.converter = new BaseConverter(58, 0, 0);

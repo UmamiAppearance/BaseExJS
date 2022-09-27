@@ -35,17 +35,16 @@ export default class Base32 extends BaseTemplate {
 
         // charsets
         this.charsets.crockford = [..."0123456789abcdefghjkmnpqrstvwxyz"];
+        this.padChars.crockford = "=",
+
         this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
+        this.padChars.rfc3548 = "=";
+
         this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
+        this.padChars.rfc4648 = "=";
+
         this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
-
-        this.padChars = {
-            crockford: "=",
-            rfc3548: "=",
-            rfc4648: "=",
-            zbase32: "="
-        }
-
+        this.padChars.zbase32 = "=";
         
         // converter
         this.converter = new BaseConverter(32, 5, 8);

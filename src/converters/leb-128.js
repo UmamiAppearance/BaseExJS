@@ -33,14 +33,13 @@ export default class LEB128 extends BaseTemplate {
         super(false);
 
         // charsets
-        this.charsets.default = "<placeholder>",
-        this.charsets.hex = "<placeholder>"
-        this.version = "default";
+        this.charsets.default = "<placeholder>";
+        this.padChars.default = "";
 
-        this.padChars = {
-            default: "",
-            hex: ""
-        }
+        this.charsets.hex = "<placeholder>";
+        this.padChars.hex = "";
+        
+        this.version = "default";
 
         // converters
         this.converter = new BaseConverter(10, 0, 0);

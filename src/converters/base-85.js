@@ -44,16 +44,12 @@ export default class Base85 extends BaseTemplate {
 
         // charsets
         this.charsets.adobe   =  [..."!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu"];
-        this.charsets.ascii85 =  this.charsets.adobe;
+        this.charsets.ascii85 =  this.charsets.adobe.slice();
         this.charsets.rfc1924 =  [..."0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~"];
         this.charsets.z85     =  [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"];
 
-        this.padChars = {
-            adobe:   "",
-            ascii85: "",
-            rfc1924: "",
-            z85:     ""
-        }
+        // set an empty string for every padChar
+        for (const set in this.charsets) this.padChars[set] = "";
 
         // converter
         this.converter = new BaseConverter(85, 4, 5, 84);

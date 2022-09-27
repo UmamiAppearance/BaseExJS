@@ -37,6 +37,13 @@ for (const plainFile of plainFilesB) {
 }
 
 for (const plainFile of garbage) {
-    const bareName = plainFile.slice(0, -8);
-    console.log(plainFile, bareName);
+    const input = await readFile(`${path}${plainFile}`, "utf-8");
+    try {
+        const output = ecojiV2.decode(input, "str");
+        console.log("no", plainFile);
+        console.log(input);
+        console.log(output);
+    } catch (e) {
+        console.log("yes");
+    }
 }

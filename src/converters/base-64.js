@@ -22,7 +22,7 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  */
 export default class Base64 extends BaseTemplate {
 
-    /**
+    /**this.padChars.
      * BaseEx Base64 Constructor.
      * @param {...string} [args] - Converter settings.
      */
@@ -30,15 +30,12 @@ export default class Base64 extends BaseTemplate {
         super();
 
         // charsets
-        const b62Chars = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"];
-        this.charsets.default = b62Chars.concat(["+", "/"]);
-        this.charsets.urlsafe = b62Chars.concat(["-", "_"]);
-
-        this.padChars = {
-            default: "=",
-            urlsafe: "="
-        }
-     
+        this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"];
+        this.padChars.default = "=";
+        
+        this.charsets.urlsafe = this.charsets.default.slice(0, -2).concat(["-", "_"]);
+        this.padChars.urlsafe = "=";
+             
         // converter
         this.converter = new BaseConverter(64, 3, 4);
 
