@@ -564,8 +564,8 @@ var Leb128 = (function () {
              * @param {string} name - "Charset name."
              * @param {[string|set|array]} - "Charset"
              */
-            this.root.addCharset = (name, charset) => {
-                // FIXME: update to new charset type (array)
+            this.root.addCharset = (name, charset, padChars="", info=true) => {
+                // TODO: add padding chars
                     
                 if (typeof name !== "string") {
                     throw new TypeError("The charset name must be a string.");
@@ -576,8 +576,12 @@ var Leb128 = (function () {
                 
                 const setLen = this.root.converter.radix;
                 let inputLen = setLen;
+
+                if (typeof charset === "string") {
+                    charset = [...charset];
+                }
                 
-                if (typeof charset === "string" || Array.isArray(charset)) {
+                if (Array.isArray(charset)) {
                     
                     // Store the input length of the input
                     inputLen = charset.length;
@@ -594,9 +598,11 @@ var Leb128 = (function () {
                 }
                 
                 if (charset.size === setLen) {
-                    charset = [...charset].join("");
+                    charset = [...charset];
                     this.root.charsets[name] = charset;
-                    console.info(`New charset '${name}' was added and is ready to use`);
+                    if (info) {
+                        console.info(`New charset '${name}' was added and is ready to use`);
+                    }
                 } else if (inputLen === setLen) {
                     throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
                 } else {
@@ -680,10 +686,11 @@ var Leb128 = (function () {
             const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
             const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
             const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+            const integrityHint = "\n * valid args for integrity check are : 'integrity' and 'nointegrity'";
             const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
             const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
             
-            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
+            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${integrityHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
         }
 
 
@@ -698,6 +705,7 @@ var Leb128 = (function () {
             
             // default settings
             const parameters = {
+                integrity: this.root.integrity,
                 littleEndian: this.root.littleEndian,
                 numberMode: this.root.numberMode,
                 outputType: this.root.outputType,
@@ -737,6 +745,7 @@ var Leb128 = (function () {
             // set available versions and extra arguments
             const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
             const extraArgList = {
+                integrity: ["nointegrity", "integrity"],
                 littleEndian: ["be", "le"],
                 padding: ["nopad", "pad"],
                 signed: ["unsigned", "signed"],
@@ -1016,11 +1025,13 @@ var Leb128 = (function () {
          * BaseEx Universal Base Decoding.
          * Decodes to a string of the given radix to a byte array.
          * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
-         * @param {string} charset - The charset used for conversion.
+         * @param {string[]} charset - The charset used for conversion.
+         * @param {string[]} padSet - Padding characters for integrity check.
+         * @param {boolean} integrity - If set to false invalid character will be ignored.
          * @param {boolean} littleEndian - Byte order, little endian bool.
          * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
          */
-        decode(inputBaseStr, charset, littleEndian=false) {
+        decode(inputBaseStr, charset, padSet=[], integrity=true, littleEndian=false) {
 
             // Convert each char of the input to the radix-integer
             // (this becomes the corresponding index of the char
@@ -1041,6 +1052,8 @@ var Leb128 = (function () {
                     const index = charset.indexOf(c);
                     if (index > -1) { 
                         byteArray.push(index);
+                    } else if (integrity && padSet.indexOf(c) === -1) {
+                        throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
                     }
                 });
             }
@@ -1050,6 +1063,8 @@ var Leb128 = (function () {
                 [...inputBaseStr].forEach(c => {
                     if (c in charset) {
                         byteArray.push(charset[c]);
+                    } else if (integrity && !(c in padSet)) {
+                        throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
                     }
                 });
             }
@@ -1211,10 +1226,14 @@ var Leb128 = (function () {
             // predefined settings
             this.charsets = {};
             this.hasSignedMode = false;
+            this.integrity = true;
             this.littleEndian = false;
             this.numberMode = false;
             this.outputType = "buffer";
             this.padding = false;
+            this.padChars = {
+                default: ""
+            }; 
             this.signed = false;
             this.upper = null;
             if (appendUtils) this.utils = new Utils(this);
@@ -1222,6 +1241,7 @@ var Leb128 = (function () {
             
             // list of allowed/disallowed args to change
             this.isMutable = {
+                integrity: true,
                 littleEndian: false,
                 padding: false,
                 signed: false,
@@ -1315,7 +1335,13 @@ var Leb128 = (function () {
             }
 
             // Run the decoder
-            let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+            let output = this.converter.decode(
+                input,
+                this.charsets[settings.version],
+                this.padChars[settings.version],
+                settings.integrity,
+                settings.littleEndian
+            );
 
             // Run post decode function if provided
             if (postDecodeFN) {
@@ -1358,8 +1384,12 @@ var Leb128 = (function () {
             super(false);
 
             // charsets
-            this.charsets.default = "<placeholder>",
+            this.charsets.default = "<placeholder>";
+            this.padChars.default = "";
+
             this.charsets.hex = "<placeholder>";
+            this.padChars.hex = "";
+            
             this.version = "default";
 
             // converters
@@ -1455,7 +1485,7 @@ var Leb128 = (function () {
             const settings = this.utils.validateArgs(args);
 
             if (settings.version === "hex") {
-                input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], false);
+                input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], "", settings.integrity, false);
             } else if (input instanceof ArrayBuffer) {
                 input = new Uint8Array(input);
             }
@@ -1483,7 +1513,7 @@ var Leb128 = (function () {
             let decimalNum, negative;
             [decimalNum, negative] = this.utils.extractSign(n.toString());
 
-            const output = this.converter.decode(decimalNum, [..."0123456789"], true);
+            const output = this.converter.decode(decimalNum, [..."0123456789"], [], settings.integrity, true);
 
             // Return the output
             return this.utils.outputHandler.compile(output, settings.outputType, true, negative);

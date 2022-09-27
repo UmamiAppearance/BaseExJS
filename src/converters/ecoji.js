@@ -195,7 +195,7 @@ export default class Ecoji extends BaseTemplate {
         // for the possibility to call it multiple times
         const decode = (input) => {
 
-            versionKey = this.determineDecodingCharset(input, versionKey, settings.integrity);
+            versionKey = this.preDecode(input, versionKey, settings.integrity);
             const version = (versionKey === 3)
                 ? settings.version
                 : `emojis_v${versionKey}`;
@@ -268,27 +268,22 @@ export default class Ecoji extends BaseTemplate {
      * Determines the version (1/2) and analyzes the input for itegrity.
      * @param {string} input - Input string. 
      * @param {number} versionKey - Version key from former calls (initially alwas 3). 
-     * @param {boolean} integrity - If false non standard of wron padding gets ignored. 
+     * @param {boolean} integrity - If false non standard or wrong padding gets ignored. 
      * @returns {number} - Version key (1|2|3)
      */
-    determineDecodingCharset(input, versionKey, integrity) {
+    preDecode(input, versionKey, integrity) {
         
         const inArray = [...input];
         let sawPadding;
 
         inArray.forEach((char, i) => {
-            
-            // Store a relative index, for premature grouping
-            // of the decoding block size (the actual decoding)
-            // will be done separately).
-            const relIndex = i%4;
 
             if (char in this.#revEmojiVersion) {
 
                 const charVersion = this.#revEmojiVersion[char].version;
 
                 // version changes can only happen if the char is
-                // not in both versions
+                // not in both versions (not 3)
                 if (charVersion !== 3) {
                     if (versionKey === 3) {
                         versionKey = charVersion;
@@ -302,7 +297,9 @@ export default class Ecoji extends BaseTemplate {
                 if (integrity) {
                     const padding = this.#revEmojiVersion[char].padding;
                     if (padding) {
-                        
+
+                        // index relative to a group of four bytes
+                        const relIndex = i%4;
                         sawPadding = true;
 
                         if (padding === "fill") {

@@ -50,7 +50,7 @@ export class Utils {
          * @param {string} name - "Charset name."
          * @param {[string|set|array]} - "Charset"
          */
-        this.root.addCharset = (name, charset, padChar="", info=true) => {
+        this.root.addCharset = (name, charset, padChars="", info=true) => {
             // TODO: add padding chars
                 
             if (typeof name !== "string") {

@@ -564,8 +564,8 @@ var Base91 = (function () {
              * @param {string} name - "Charset name."
              * @param {[string|set|array]} - "Charset"
              */
-            this.root.addCharset = (name, charset) => {
-                // FIXME: update to new charset type (array)
+            this.root.addCharset = (name, charset, padChars="", info=true) => {
+                // TODO: add padding chars
                     
                 if (typeof name !== "string") {
                     throw new TypeError("The charset name must be a string.");
@@ -576,8 +576,12 @@ var Base91 = (function () {
                 
                 const setLen = this.root.converter.radix;
                 let inputLen = setLen;
+
+                if (typeof charset === "string") {
+                    charset = [...charset];
+                }
                 
-                if (typeof charset === "string" || Array.isArray(charset)) {
+                if (Array.isArray(charset)) {
                     
                     // Store the input length of the input
                     inputLen = charset.length;
@@ -594,9 +598,11 @@ var Base91 = (function () {
                 }
                 
                 if (charset.size === setLen) {
-                    charset = [...charset].join("");
+                    charset = [...charset];
                     this.root.charsets[name] = charset;
-                    console.info(`New charset '${name}' was added and is ready to use`);
+                    if (info) {
+                        console.info(`New charset '${name}' was added and is ready to use`);
+                    }
                 } else if (inputLen === setLen) {
                     throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
                 } else {
@@ -680,10 +686,11 @@ var Base91 = (function () {
             const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
             const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
             const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+            const integrityHint = "\n * valid args for integrity check are : 'integrity' and 'nointegrity'";
             const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
             const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
             
-            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
+            throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${integrityHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
         }
 
 
@@ -698,6 +705,7 @@ var Base91 = (function () {
             
             // default settings
             const parameters = {
+                integrity: this.root.integrity,
                 littleEndian: this.root.littleEndian,
                 numberMode: this.root.numberMode,
                 outputType: this.root.outputType,
@@ -737,6 +745,7 @@ var Base91 = (function () {
             // set available versions and extra arguments
             const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
             const extraArgList = {
+                integrity: ["nointegrity", "integrity"],
                 littleEndian: ["be", "le"],
                 padding: ["nopad", "pad"],
                 signed: ["unsigned", "signed"],
@@ -852,10 +861,14 @@ var Base91 = (function () {
             // predefined settings
             this.charsets = {};
             this.hasSignedMode = false;
+            this.integrity = true;
             this.littleEndian = false;
             this.numberMode = false;
             this.outputType = "buffer";
             this.padding = false;
+            this.padChars = {
+                default: ""
+            }; 
             this.signed = false;
             this.upper = null;
             if (appendUtils) this.utils = new Utils(this);
@@ -863,6 +876,7 @@ var Base91 = (function () {
             
             // list of allowed/disallowed args to change
             this.isMutable = {
+                integrity: true,
                 littleEndian: false,
                 padding: false,
                 signed: false,
@@ -956,7 +970,13 @@ var Base91 = (function () {
             }
 
             // Run the decoder
-            let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+            let output = this.converter.decode(
+                input,
+                this.charsets[settings.version],
+                this.padChars[settings.version],
+                settings.integrity,
+                settings.littleEndian
+            );
 
             // Run post decode function if provided
             if (postDecodeFN) {
@@ -980,7 +1000,7 @@ var Base91 = (function () {
      * ------------------------
      * 
      * This is a base91 converter. Various input can be 
-     * converted to a base85 string or a base91 string
+     * converted to a base91 string or a base91 string
      * can be decoded into various formats.
      * 
      * It is an  implementation of Joachim Henkes method
