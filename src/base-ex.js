@@ -1,3 +1,5 @@
+/* eslint-disable sort-imports */
+
 /**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
@@ -6,17 +8,19 @@
  * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
-import Base1  from "./converters/base-1.js";
-import Base16 from "./converters/base-16.js";
-import Base32 from "./converters/base-32.js";
-import Base58 from "./converters/base-58.js";
-import Base64 from "./converters/base-64.js";
-import Base85 from "./converters/base-85.js";
-import Base91 from "./converters/base-91.js";
+import Base1         from "./converters/base-1.js";
+import Base16        from "./converters/base-16.js";
+import Base32        from "./converters/base-32.js";
+import Base58        from "./converters/base-58.js";
+import Base64        from "./converters/base-64.js";
+import Base85        from "./converters/base-85.js";
+import Base91        from "./converters/base-91.js";
+import LEB128        from "./converters/leb-128.js";
+import Ecoji         from "./converters/ecoji.js";
+import Base2048      from "./converters/base-2048.js";
+import SimpleBase    from "./converters/simple-base.js";
 import ByteConverter from "./converters/byte-converter.js";
-import Ecoji from "./converters/ecoji.js";
-import LEB128 from "./converters/leb-128.js";
-import SimpleBase from "./converters/simple-base.js";
+
 import { DEFAULT_OUTPUT_HANDLER } from "./utils.js";
 
 /**
@@ -59,8 +63,9 @@ class BaseEx {
         this.base85_z85 = new Base85("z85", outputType);
         this.base91 = new Base91("default",outputType);
         this.leb128 = new LEB128("default", outputType);
-        this.ecoji_v1 = new Ecoji("emojis_v1");
-        this.ecoji_v2 = new Ecoji("emojis_v2");
+        this.ecoji_v1 = new Ecoji("emojis_v1", outputType);
+        this.ecoji_v2 = new Ecoji("emojis_v2", outputType);
+        this.base2048 = new Base2048("default", outputType);
         this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};
@@ -81,6 +86,7 @@ export {
     ByteConverter,
     LEB128,
     Ecoji,
+    Base2048,
     SimpleBase,
     BaseEx
 };
