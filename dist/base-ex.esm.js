@@ -1043,29 +1043,14 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        // Array Charset
-        if (Array.isArray(charset)) {
-            [...inputBaseStr].forEach(c => {
-                const index = charset.indexOf(c);
-                if (index > -1) { 
-                    byteArray.push(index);
-                } else if (integrity && padSet.indexOf(c) === -1) {
-                    throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
-                }
-            });
-        }
-
-        // Object Charset
-        else {
-            [...inputBaseStr].forEach(c => {
-                if (c in charset) {
-                    byteArray.push(charset[c]);
-                } else if (integrity && !(c in padSet)) {
-                    throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
-                }
-            });
-        }
-
+        [...inputBaseStr].forEach(c => {
+            const index = charset.indexOf(c);
+            if (index > -1) { 
+                byteArray.push(index);
+            } else if (integrity && padSet.indexOf(c) === -1) {
+                throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
+            }
+        });
         
         let padChars;
 
@@ -2582,7 +2567,7 @@ class Ecoji extends BaseTemplate {
         // for the possibility to call it multiple times
         const decode = (input) => {
 
-            versionKey = this.preDecode(input, versionKey, settings.integrity);
+            versionKey = this.#preDecode(input, versionKey, settings.integrity);
             const version = (versionKey === 3)
                 ? settings.version
                 : `emojis_v${versionKey}`;
@@ -2658,7 +2643,7 @@ class Ecoji extends BaseTemplate {
      * @param {boolean} integrity - If false non standard or wrong padding gets ignored. 
      * @returns {number} - Version key (1|2|3)
      */
-    preDecode(input, versionKey, integrity) {
+    #preDecode(input, versionKey, integrity) {
         
         const inArray = [...input];
         let sawPadding;

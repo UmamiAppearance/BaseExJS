@@ -1046,29 +1046,14 @@ var Leb128 = (function () {
             let bs = this.bsDec;
             const byteArray = new Array();
 
-            // Array Charset
-            if (Array.isArray(charset)) {
-                [...inputBaseStr].forEach(c => {
-                    const index = charset.indexOf(c);
-                    if (index > -1) { 
-                        byteArray.push(index);
-                    } else if (integrity && padSet.indexOf(c) === -1) {
-                        throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
-                    }
-                });
-            }
-
-            // Object Charset
-            else {
-                [...inputBaseStr].forEach(c => {
-                    if (c in charset) {
-                        byteArray.push(charset[c]);
-                    } else if (integrity && !(c in padSet)) {
-                        throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
-                    }
-                });
-            }
-
+            [...inputBaseStr].forEach(c => {
+                const index = charset.indexOf(c);
+                if (index > -1) { 
+                    byteArray.push(index);
+                } else if (integrity && padSet.indexOf(c) === -1) {
+                    throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
+                }
+            });
             
             let padChars;
 

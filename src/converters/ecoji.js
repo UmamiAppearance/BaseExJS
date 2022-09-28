@@ -195,7 +195,7 @@ export default class Ecoji extends BaseTemplate {
         // for the possibility to call it multiple times
         const decode = (input) => {
 
-            versionKey = this.preDecode(input, versionKey, settings.integrity);
+            versionKey = this.#preDecode(input, versionKey, settings.integrity);
             const version = (versionKey === 3)
                 ? settings.version
                 : `emojis_v${versionKey}`;
@@ -271,7 +271,7 @@ export default class Ecoji extends BaseTemplate {
      * @param {boolean} integrity - If false non standard or wrong padding gets ignored. 
      * @returns {number} - Version key (1|2|3)
      */
-    preDecode(input, versionKey, integrity) {
+    #preDecode(input, versionKey, integrity) {
         
         const inArray = [...input];
         let sawPadding;
