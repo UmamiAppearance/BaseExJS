@@ -406,8 +406,7 @@ class BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         // handle input
-        let inputBytes, negative, type;
-        [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
+        let [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
 
         // generate replacer function if given
         let replacer = null;
