@@ -92,8 +92,8 @@ export default class Base2048 extends BaseTemplate {
             while (numZBits !== bitCount) {
                 z = (z << 1) + 1
                 numZBits++
-                if (numZBits > 12) {
-                    throw new Error("Converter ran into an endless loop. This is a bug!");
+                if (numZBits > this.converter.bsEnc) {
+                    throw new Error("Cannot process input. This is a bug!");
                 }
             }
           
@@ -115,7 +115,66 @@ export default class Base2048 extends BaseTemplate {
      * @returns {*} - Output according to converter settings.
      */
     decode(input, ...args) {
-    
-        return super.decode(input, null, null, ...args);
+
+        // apply settings
+        const settings = this.utils.validateArgs(args);
+
+        // ensure a string input
+        input = String(input);
+        const inArray = [...input];
+
+        const charset = this.charsets[settings.version];
+        const padChars = this.padChars[settings.version];
+
+        const byteArray = new Array();
+        let uint8 = 0;
+        let numUint8Bits = 0;
+
+        inArray.forEach((c, i) => {
+
+            let numZBits;
+            let z = charset.indexOf(c);
+            if (z > -1) { 
+                numZBits = this.converter.bsEnc;
+            } else {
+                z = padChars.indexOf(c);
+                if (z > -1) {
+                    if (i+1 !== inArray.length) {
+                        throw new Error(`Secondary character found before end of input, index: ${i}`);    
+                    } else if (settings.integrity) {
+                        throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
+                    }
+
+                    numZBits = this.converter.bsEncPad;
+                }
+            }
+
+            // Take most significant bit first
+            for (let j = numZBits - 1; j >= 0; j--) {
+                const bit = (z >> j) & 1
+
+                uint8 = (uint8 << 1) + bit
+                numUint8Bits++
+
+                if (numUint8Bits === this.converter.bsDec) {
+                    byteArray.push(uint8);
+                    uint8 = 0;
+                    numUint8Bits = 0;
+                }
+            }
+        });
+
+        // TODO: required?
+        // Final padding bits! Requires special consideration!
+        // Remember how we always pad with 1s?
+        // Note: there could be 0 such bits, check still works though
+        if (uint8 !== ((1 << numUint8Bits) - 1)) {
+            throw new TypeError("Padding mismatch");
+        }
+
+        return this.utils.outputHandler.compile(
+            Uint8Array.from(byteArray),
+            settings.outputType
+        );
     }
 }
