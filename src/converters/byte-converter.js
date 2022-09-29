@@ -8,6 +8,14 @@
 
 import { SmartInput, SmartOutput } from "../io-handlers.js";
 
+// Endianness of the system
+const LITTLE_ENDIAN = (() => {
+    const testInt = new Uint16Array([1]);
+    const byteRepresentation = new Uint8Array(testInt.buffer);
+    return Boolean(byteRepresentation.at(0));
+})();
+
+
 /**
  * BaseEx Byte Converter.
  * ---------------------
@@ -30,7 +38,7 @@ export default class ByteConverter {
     constructor(...args) {
 
         // predefined settings
-        this.littleEndian = true;
+        this.littleEndian = LITTLE_ENDIAN;
         this.numberMode = false;
         this.outputType = "buffer";
 

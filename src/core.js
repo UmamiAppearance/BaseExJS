@@ -1,4 +1,5 @@
-import { Utils } from "./utils.js";
+import { CharsetError, Utils } from "./utils.js";
+
 
 /**
  * BaseEx Base Converter.
@@ -209,7 +210,7 @@ class BaseConverter {
             if (index > -1) { 
                 byteArray.push(index);
             } else if (integrity && padSet.indexOf(c) === -1) {
-                throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
+                throw new CharsetError(c);
             }
         });
         

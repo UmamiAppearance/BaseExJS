@@ -7,6 +7,7 @@
  */
 
 import { BaseConverter, BaseTemplate } from "../core.js";
+import { BytesInput } from "../io-handlers.js";
 import { Utils } from "../utils.js";
 
 /**
@@ -19,7 +20,7 @@ import { Utils } from "../utils.js";
  * 
  * There is no real charset available as the input is
  * getting converted to bytes. For having the chance 
- * to store these byes, there is a hexadecimal output
+ * to store these bytes, there is a hexadecimal output
  * available.
  */
 export default class LEB128 extends BaseTemplate {
@@ -134,9 +135,11 @@ export default class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         if (settings.version === "hex") {
-            input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], "", settings.integrity, false);
-        } else if (input instanceof ArrayBuffer) {
-            input = new Uint8Array(input);
+            input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], [], settings.integrity, false);
+        } else if (typeof input.byteLength !== "undefined") {
+            input = BytesInput.toBytes(input)[0];
+        } else {
+            throw new TypeError("Input must be a bytes like object.");
         }
 
         if (input.length === 1 && !input[0]) {

@@ -6,7 +6,8 @@
  * @license GPL-3.0
  */
 
-import { BaseConverter, BaseTemplate } from "../core.js";
+import { BaseTemplate } from "../core.js";
+import { CharsetError } from "../utils.js";
 
 /**
  * BaseEx Base 2048 Converter.
@@ -37,6 +38,7 @@ export default class Base2048 extends BaseTemplate {
         this.padChars.default = [..."01234567"];
 
         this.hasSignedMode = true;
+        this.littleEndian = false;
         
         // mutable extra args
         // --
@@ -151,12 +153,12 @@ export default class Base2048 extends BaseTemplate {
                 }
                 
                 else if (settings.integrity) {
-                    throw new TypeError(`Invalid input. Character: '${c}' is not part of the charset.`)
+                    throw new CharsetError(c);
                 }
             }
 
             // Take most significant bit first
-            for (let j = numZBits - 1; j >= 0; j--) {
+            for (let j=numZBits-1; j>=0; j--) {
                 const bit = (z >> j) & 1
 
                 uint8 = (uint8 << 1) + bit
@@ -174,7 +176,7 @@ export default class Base2048 extends BaseTemplate {
         // Final padding bits! Requires special consideration!
         // Remember how we always pad with 1s?
         // Note: there could be 0 such bits, check still works though
-        if (uint8 !== ((1 << numUint8Bits) - 1)) {
+        if (uint8 !== (1 << numUint8Bits) - 1) {
             throw new TypeError("Padding mismatch");
         }
 

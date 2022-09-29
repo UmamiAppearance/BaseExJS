@@ -9,14 +9,21 @@ class SignError extends TypeError {
         this.name = "SignError";
     }
 }
-  
+
+class CharsetError extends TypeError {
+    constructor(char) {
+        super(`Invalid input. Character: '${char}' is not part of the charset.`);
+        this.name = "CharsetError";
+    }
+}
+
 
 /**
  * Utilities for every BaseEx class.
  * --------------------------------
  * Requires IO Handlers
  */
-export class Utils {
+class Utils {
 
     constructor(main, addCharsetTools=true) {
 
@@ -109,7 +116,7 @@ export class Utils {
      * @param {string[]} args 
      * @returns string - Arguments joined as a string. 
      */
-    makeArgList(args) {
+    #makeArgList(args) {
         return args.map(s => `'${s}'`).join(", ");
     }
 
@@ -156,7 +163,7 @@ export class Utils {
      * @param {string[]} outputTypes - Array of output types. 
      * @param {boolean} initial - Indicates if the arguments where passed during construction. 
      */
-    invalidArgument(arg, versions, outputTypes, initial) {
+    #invalidArgument(arg, versions, outputTypes, initial) {
         const loopConverterArgs = () => Object.keys(this.converterArgs).map(
             key => this.converterArgs[key].map(
                 keyword => `'${keyword}'`
@@ -170,8 +177,8 @@ export class Utils {
         const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
         const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
         const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
-        const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
-        const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
+        const outputHint = `\n * valid args for the output type are ${this.#makeArgList(outputTypes)}`;
+        const versionHint = (versions) ? `\n * the option(s) for version/charset are: ${this.#makeArgList(versions)}` : "";
         const integrityHint = "\n * valid args for integrity check are : 'integrity' and 'nointegrity'";
         const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
         const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
@@ -296,7 +303,7 @@ export class Utils {
                 }
 
                 if (invalidArg) {
-                    this.invalidArgument(arg, versions, outputTypes, initial);
+                    this.#invalidArgument(arg, versions, outputTypes, initial);
                 }
             }
         });
@@ -328,4 +335,9 @@ export class Utils {
 
 }
 
-export { DEFAULT_INPUT_HANDLER, DEFAULT_OUTPUT_HANDLER };
+export {
+    DEFAULT_INPUT_HANDLER,
+    DEFAULT_OUTPUT_HANDLER,
+    CharsetError,
+    Utils
+};
