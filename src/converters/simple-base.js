@@ -30,14 +30,14 @@ export default class SimpleBase extends BaseTemplate {
     constructor(radix, ...args) {
         super();
 
-        if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 36) {
-            throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
+        if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 62) {
+            throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 62.")
         }
         this.converter = new BaseConverter(radix, 0, 0);
 
 
         // charsets
-        this.charsets.default = [..."0123456789abcdefghijklmnopqrstuvwxyz"].slice(0, radix);
+        this.charsets.default = [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"].slice(0, radix);
     
 
         // predefined settings
@@ -49,7 +49,7 @@ export default class SimpleBase extends BaseTemplate {
         
         // list of allowed/disallowed args to change
         this.isMutable.littleEndian = true,
-        this.isMutable.upper = true;
+        this.isMutable.upper = radix < 37;
 
         // apply user settings
         this.utils.validateArgs(args, true);
