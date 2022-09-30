@@ -8,7 +8,6 @@
 
 import { BaseConverter, BaseTemplate } from "../core.js";
 import { BytesInput } from "../io-handlers.js";
-import { Utils } from "../utils.js";
 
 /**
  * BaseEx Little Endian Base 128 Converter.
