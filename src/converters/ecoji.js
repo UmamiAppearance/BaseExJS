@@ -52,6 +52,7 @@ export default class Ecoji extends BaseTemplate {
 
         // predefined settings
         this.padding = true;
+        this.padCharAmount = 5;
         this.version = "emojis_v1";
         
         // mutable extra args
@@ -189,18 +190,25 @@ export default class Ecoji extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
         input = String(input);
 
-        // versonKey can be both v1 or v2
-        let versionKey = 3;
+        let version = settings.version;
+        let versionKey = null;
+
+        if (settings.version === "emojis_v1" || settings.version === "emojis_v2") {
+            // versonKey can be both v1 or v2
+            versionKey = 3;
+        }
 
         // the actual decoding is wrapped in a function
         // for the possibility to call it multiple times
         const decode = (input) => {
 
-            versionKey = this.#preDecode(input, versionKey, settings.integrity);
-            const version = (versionKey === 3)
-                ? settings.version
-                : `emojis_v${versionKey}`;
-            
+            if (versionKey !== null) {
+                versionKey = this.#preDecode(input, versionKey, settings.integrity);
+                version = (versionKey === 3)
+                    ? settings.version
+                    : `emojis_v${versionKey}`;
+            }
+
             const charset = this.charsets[version];
             
             const inArray = [...input];
@@ -273,7 +281,7 @@ export default class Ecoji extends BaseTemplate {
      * @returns {number} - Version key (1|2|3)
      */
     #preDecode(input, versionKey, integrity) {
-        
+ 
         const inArray = [...input];
         let sawPadding;
 

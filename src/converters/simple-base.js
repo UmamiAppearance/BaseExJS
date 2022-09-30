@@ -33,11 +33,15 @@ export default class SimpleBase extends BaseTemplate {
         if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 36) {
             throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
         }
+        this.converter = new BaseConverter(radix, 0, 0);
 
+
+        // charsets
         this.charsets.default = [..."0123456789abcdefghijklmnopqrstuvwxyz"].slice(0, radix);
     
+
         // predefined settings
-        this.converter = new BaseConverter(radix, 0, 0);
+        this.frozenCharsets = true;
         this.hasSignedMode = true;
         this.littleEndian = !(radix === 2 || radix === 16);
         this.signed = true;

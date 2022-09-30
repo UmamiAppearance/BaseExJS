@@ -32,24 +32,23 @@ export default class Base32 extends BaseTemplate {
      */
     constructor(...args) {
         super();
+        this.converter = new BaseConverter(32, 5, 8);
 
         // charsets
         this.charsets.crockford = [..."0123456789abcdefghjkmnpqrstvwxyz"];
-        this.padChars.crockford = "=",
+        this.padChars.crockford = ["="],
 
         this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
-        this.padChars.rfc3548 = "=";
+        this.padChars.rfc3548 =   ["="];
 
         this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
-        this.padChars.rfc4648 = "=";
+        this.padChars.rfc4648 =   ["="];
 
         this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
-        this.padChars.zbase32 = "=";
+        this.padChars.zbase32 =   ["="];
         
-        // converter
-        this.converter = new BaseConverter(32, 5, 8);
-
         // predefined settings
+        this.padCharAmount = 1;
         this.hasSignedMode = true;
         this.version = "rfc4648";
         
@@ -82,9 +81,10 @@ export default class Base32 extends BaseTemplate {
                 // Cut of redundant chars and append padding if set
                 if (zeroPadding) {
                     const padValue = this.converter.padBytes(zeroPadding);
-                    output = output.slice(0, output.length-padValue);
+                    const padChar = this.padChars[settings.version].at(0);
+                    output = output.slice(0, -padValue);
                     if (settings.padding) { 
-                        output = output.concat(this.padChars[settings.version].repeat(padValue));
+                        output = output.concat(padChar.repeat(padValue));
                     }
                 }
             }

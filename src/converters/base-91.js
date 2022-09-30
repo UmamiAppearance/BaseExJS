@@ -34,15 +34,23 @@ export default class Base91 extends BaseTemplate {
     constructor(...args) {
         super();
 
+        // converter (properties only)
+        this.converter = {
+            radix: 91,
+            bsEnc: 0,
+            bsDec: 0
+        }
+
         // charsets
         this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
+
+        this.version = "default";
 
         // apply user settings
         this.utils.validateArgs(args, true);
 
         // mutable extra args
         this.isMutable.integrity = false;
-        
     }
 
 
@@ -149,8 +157,9 @@ export default class Base91 extends BaseTemplate {
 
         // Make it a string, whatever goes in
         input = String(input);
+        const inArray = [...input];
 
-        let l = input.length;
+        let l = inArray.length;
 
         // For starters leave the last char behind
         // if the length of the input string is odd.
@@ -175,14 +184,14 @@ export default class Base91 extends BaseTemplate {
         // (aka collect remainder- and quotient-pairs)
         for (let i=0; i<l; i+=2) {
 
-            const c0 = charset.indexOf(input[i]);
-            const c1 =  charset.indexOf(input[i+1]);
+            const c0 = charset.indexOf(inArray[i]);
+            const c1 =  charset.indexOf(inArray[i+1]);
             
             if (c0 < 0) {
-                throw new CharsetError(input[i]);
+                throw new CharsetError(inArray[i]);
             }
             if (c1 < 0) {
-                throw new CharsetError(input[i+1]);
+                throw new CharsetError(inArray[i+1]);
             }
 
             // Calculate back the remainder of the integer "n"
@@ -201,7 +210,7 @@ export default class Base91 extends BaseTemplate {
         // Calculate the last byte if the input is odd
         // and add it
         if (odd) {
-            const lastChar = input.at(l);
+            const lastChar = inArray.at(l);
             const rN = charset.indexOf(lastChar);
             b256Array.push(((rN << bitCount) + n) % 256);
         }

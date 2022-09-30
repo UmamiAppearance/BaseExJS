@@ -28,21 +28,25 @@ export default class Base58 extends BaseTemplate{
      * @param {...string} [args] - Converter settings.
      */
     constructor(...args) {
-        super(); 
+        super();
+        this.converter = new BaseConverter(58, 0, 0);
 
         // charsets
         this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
-        this.padChars.default = this.charsets.default[0];
+        Object.defineProperty(this.padChars, "default", {
+            get: () => [ this.charsets.default.at(0) ]
+        });
 
         this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
-        this.padChars.bitcoin = this.charsets.bitcoin[0];
-
-        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
-        this.padChars.flickr =  this.charsets.flickr[0];
+        Object.defineProperty(this.padChars, "bitcoin", {
+            get: () => [ this.charsets.bitcoin.at(0) ]
+        });
         
-
-        // converter
-        this.converter = new BaseConverter(58, 0, 0);
+        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "flickr", {
+            get: () => [ this.charsets.flickr.at(0) ]
+        });
+        
 
         // predefined settings
         this.padding = true;

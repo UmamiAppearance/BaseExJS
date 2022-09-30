@@ -28,6 +28,7 @@ export default class Base64 extends BaseTemplate {
      */
     constructor(...args) {
         super();
+        this.converter = new BaseConverter(64, 3, 4);
 
         // charsets
         this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"];
@@ -35,11 +36,10 @@ export default class Base64 extends BaseTemplate {
         
         this.charsets.urlsafe = this.charsets.default.slice(0, -2).concat(["-", "_"]);
         this.padChars.urlsafe = "=";
-             
-        // converter
-        this.converter = new BaseConverter(64, 3, 4);
+
 
         // predefined settings
+        this.padCharAmount = 1;
         this.padding = true;
         
         // mutable extra args
@@ -65,9 +65,10 @@ export default class Base64 extends BaseTemplate {
             // Cut of redundant chars and append padding if set
             if (zeroPadding) {
                 const padValue = this.converter.padBytes(zeroPadding);
-                output = output.slice(0, output.length-padValue);
+                const padChar = this.padChars[settings.version].at(0);
+                output = output.slice(0, -padValue);
                 if (settings.padding) { 
-                    output = output.concat(this.padChars[settings.version].repeat(padValue));
+                    output = output.concat(padChar.repeat(padValue));
                 }
             }
 

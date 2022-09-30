@@ -25,7 +25,7 @@ class CharsetError extends TypeError {
  */
 class Utils {
 
-    constructor(main, addCharsetTools=true) {
+    constructor(main) {
 
         // Store the calling class in this.root
         // for accessability.
@@ -37,7 +37,7 @@ class Utils {
         // If charsets are uses by the parent class,
         // add extra functions for the user.
 
-        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
+        this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -57,56 +57,103 @@ class Utils {
          * @param {string} name - "Charset name."
          * @param {[string|set|array]} - "Charset"
          */
-        this.root.addCharset = (name, charset, padChars="", info=true) => {
-            // TODO: add padding chars
+        this.root.addCharset = (name, _charset, _padChars=[], info=true) => {
+
+            const normalize = (typeName, set, setLen) => {
+
+                if (setLen === 0 && set.length) {
+                    console.warn(`This converter has no ${typeName}. The following argument was ignored:\n'${set}'`);
+                    return [];
+                }
+
+                let inputLen = setLen;
+
+                if (typeof set === "string") {
+                    set = [...set];
+                }
                 
+                if (Array.isArray(set)) {
+                    
+                    // Store the input length of the input
+                    inputLen = set.length;
+                    
+                    // Convert to "Set" -> eliminate duplicates
+                    // If duplicates are found the length of the
+                    // Set and the length of the initial input
+                    // differ.
+
+                    set = new Set(set);
+
+                } else if (!(set instanceof Set)) {
+                    throw new TypeError(`The ${typeName} must be one of the types:\n'str', 'set', 'array'."`);
+                }
+                
+                if (set.size === setLen) {
+                    return [...set];
+                }
+                
+                if (inputLen !== setLen) {
+                    throw new Error(`Your ${typeName} has a length of ${inputLen}. The converter requires a length of ${setLen}.`);
+                } else {
+                    const charAmounts = {};
+                    _charset = [..._charset];
+                    _charset.forEach(c => {
+                        if (c in charAmounts) {
+                            charAmounts[c]++;
+                        } else {
+                            charAmounts[c] = 1;
+                        }
+                    })
+                    
+                    let infoStr = "";
+                    if (setLen < 100) {
+                        infoStr = `${_charset.join("")}\n`;
+                        _charset.forEach(c => {
+                            if (charAmounts[c] > 1) {
+                                infoStr += "^";
+                            } else {
+                                infoStr += " ";
+                            }
+                        });
+                    }
+                    const rChars = Object.keys(charAmounts).filter(c => charAmounts[c] > 1);
+                    throw new Error(`You have repetitive char(s) [ ${rChars.join(" | ")} ] in your ${typeName}. Make sure each character is unique.\n${infoStr}`);
+                }
+            }
+
+            if (this.root.frozenCharsets) {
+                throw new Error("The charsets of this converter cannot be changed.");
+            }
+
             if (typeof name !== "string") {
                 throw new TypeError("The charset name must be a string.");
             }
 
-            // Get the appropriate length for the charset
-            // from the according converter
-            
-            const setLen = this.root.converter.radix;
-            let inputLen = setLen;
-
-            if (typeof charset === "string") {
-                charset = [...charset];
+            if (info && name in this.root.charsets) {
+                console.warn(`An existing charset with name ${name} will get replaced.`);
             }
-            
-            if (Array.isArray(charset)) {
-                
-                // Store the input length of the input
-                inputLen = charset.length;
-                
-                // Convert to "Set" -> eliminate duplicates
-                // If duplicates are found the length of the
-                // Set and the length of the initial input
-                // differ.
 
-                charset = new Set(charset);
+            const charset = normalize("charset", _charset, this.root.converter.radix);
+            const padChars = normalize("padding set", _padChars, this.root.padCharAmount);
 
-            } else if (!(charset instanceof Set)) {
-                throw new TypeError("The charset must be one of the types:\n'str', 'set', 'array'.");
+            this.root.charsets[name] = charset;
+            if (padChars.length) {
+                this.root.padChars[name] = padChars
             }
-            
-            if (charset.size === setLen) {
-                charset = [...charset];
-                this.root.charsets[name] = charset;
-                if (info) {
-                    console.info(`New charset '${name}' was added and is ready to use`);
-                }
-            } else if (inputLen === setLen) {
-                throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
-            } else {
-                throw new Error(`The length of the charset must be ${setLen}.`);
+
+            if (info) {
+                console.info(`New charset '${name}' was added and is ready to use`);
             }
         }
 
         // Save method (argument gets validated) to 
         // change the default version.
         this.root.setDefaultCharset = (version) => {
-            ({version } = this.validateArgs([version]));
+            if (!(version in this.root.charsets)) {
+                const sets = Object.keys(this.root.charsets).join("\n   * ");
+                const msg = `Charset ${version} was not found. Available charsets are:\n   * ${sets}`;
+                throw new TypeError(msg);
+            }
             this.root.version = version;
         }
     }
@@ -236,7 +283,7 @@ class Utils {
         }
 
         // set available versions and extra arguments
-        const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
+        const versions = Object.keys(this.root.charsets);
         const extraArgList = {
             integrity: ["nointegrity", "integrity"],
             littleEndian: ["be", "le"],

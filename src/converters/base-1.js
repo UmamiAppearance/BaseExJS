@@ -26,10 +26,6 @@ export default class Base1 extends BaseTemplate {
     constructor(...args) {
         super();
 
-        // Remove global charset adding method as
-        // it is not suitable for this converter.
-        delete this.addCharset;
-
         // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
         this.charsets.all = [..." !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"];
         
@@ -51,6 +47,7 @@ export default class Base1 extends BaseTemplate {
         this.signed = true;
         
         // mutable extra args
+        this.isMutable.charsets = false;
         this.isMutable.signed = true;
         this.isMutable.upper = true;
         

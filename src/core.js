@@ -369,15 +369,15 @@ class BaseTemplate {
 
         // predefined settings
         this.charsets = {};
+        this.frozenCharsets = false;
         this.hasSignedMode = false;
         this.integrity = true;
         this.littleEndian = false;
         this.numberMode = false;
         this.outputType = "buffer";
         this.padding = false;
-        this.padChars = {
-            default: ""
-        } 
+        this.padCharAmount = 0;
+        this.padChars = {} 
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);

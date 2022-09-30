@@ -31,24 +31,20 @@ export default class LEB128 extends BaseTemplate {
      */
     constructor(...args) {
         // initialize base template without utils
-        super(false);
-
-        // charsets
-        this.charsets.default = "<placeholder>";
-        this.padChars.default = "";
-
-        this.charsets.hex = "<placeholder>";
-        this.padChars.hex = "";
-        
-        this.version = "default";
+        super();
 
         // converters
         this.converter = new BaseConverter(10, 0, 0);
         this.hexlify = new BaseConverter(16, 1, 2);
 
-        // utils (as lacking before)
-        this.utils = new Utils(this, false);
-        
+        // charsets
+        this.charsets.default = "<placeholder>";
+        this.charsets.hex = "<placeholder>"
+
+        // predefined settings
+        this.version = "default";
+        this.frozenCharsets = true;
+
         // predefined settings
         this.littleEndian = true;
         this.hasSignedMode = true;
