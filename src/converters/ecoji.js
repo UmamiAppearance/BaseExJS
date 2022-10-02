@@ -73,9 +73,10 @@ export default class Ecoji extends BaseTemplate {
 
 
     /**
-     * Analyzes v1 and two charsets for equal and
-     * non eqaul characters, to be able to decide
-     * of which version the input for deoding is. 
+     * Analyzes v1 and two charsets for equal and non
+     * eqaul characters, to create a revEmojiObj for
+     * decoding lookup, also generates a regex object 
+     * for handling concatenated strings.
      */
     #init() {
 

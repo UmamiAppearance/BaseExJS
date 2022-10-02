@@ -76,10 +76,8 @@ export default class SimpleBase extends BaseTemplate {
     decode(rawInput, ...args) {
 
         // pre decoding function
-        const normalizeInput = (scope) => {
-
-            let { input } = scope;
-
+        const normalizeInput = ({ input }) => {
+            
             // normalize input (add leading zeros) for base 2 and 16
             if (this.converter.radix === 2) {
                 const leadingZeros = (8 - (input.length % 8)) % 8;

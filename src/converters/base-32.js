@@ -73,9 +73,7 @@ export default class Base32 extends BaseTemplate {
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const applyPadding = ({ output, settings, zeroPadding }) => {
 
             if (!settings.littleEndian) {
                 // Cut of redundant chars and append padding if set

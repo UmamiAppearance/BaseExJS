@@ -77,9 +77,7 @@ export default class Base85 extends BaseTemplate {
                     
         // Remove padded values and add a frame for the
         // adobe variant
-        const framesAndPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const framesAndPadding = ({ output, settings, zeroPadding }) => {
 
             // Cut of redundant chars
             if (zeroPadding) {
@@ -107,9 +105,7 @@ export default class Base85 extends BaseTemplate {
      */
     decode(input, ...args) {
 
-        const prepareInput = (scope) => {
-
-            let { input, settings } = scope;
+        const prepareInput = ({ input, settings }) => {
 
             // For default ascii85 convert "z" back to "!!!!!"
             // Remove the adobe <~frame~>

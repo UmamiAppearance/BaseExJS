@@ -63,9 +63,8 @@ export default class Base16 extends BaseTemplate {
     decode(input, ...args) {
         
         // pre decoding function
-        const normalizeInput = (scope) => {
-
-            let { input: normInput } = scope;
+        const normalizeInput = ({ input: normInput }) => {
+            
             // Remove "0x" if present
             normInput = normInput.replace(/^0x/, "");
 

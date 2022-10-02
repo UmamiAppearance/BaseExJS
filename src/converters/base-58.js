@@ -69,9 +69,7 @@ export default class Base58 extends BaseTemplate{
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
-
-            let { inputBytes, output, settings, type } = scope;
+        const applyPadding = ({ inputBytes, output, settings, type }) => {
 
             if (settings.padding && type !== "int") { 
                 
@@ -121,13 +119,10 @@ export default class Base58 extends BaseTemplate{
     decode(input, ...args) {
         
         // post decoding function
-        const applyPadding = (scope) => {
-
-            let { input, output, settings } = scope;
+        const applyPadding = ({ input, output, settings }) => {
 
             // pad char is always! the first char in the set
             const padChar = this.charsets[settings.version].at(0);
-
 
             if (settings.padding && input.length > 1) {
                 

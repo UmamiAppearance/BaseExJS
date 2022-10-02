@@ -59,21 +59,26 @@ export default class UUencode extends BaseTemplate {
 
             let { output, settings, zeroPadding } = scope;
 
-            console.log(output, zeroPadding);
-
             const charset = this.charsets[settings.version];
-            let [full, last] = this.#divmod(output.length, 60);
-            last = this.converter.padChars(last) - zeroPadding;
-            
-            output = output.
-            match(/.{1,60}/g).
-            map((line, i) => (i < full)
-                ? line = `M${line}`
-                : line = `${charset.at(last)}${line}` 
-            ).
-            join("\n");
-        
-            output += `\n${charset.at(0)}\n`
+            const outArray = [...output];
+            output = "";
+
+            for (;;) {
+                const lArray = outArray.splice(0, 60)
+
+                if (lArray.length !== 60) { 
+                    const byteCount = this.converter.padChars(lArray.length) - zeroPadding;
+
+                    if (byteCount > 0) {
+                        output += `${charset.at(byteCount)}${lArray.join("")}\n`;
+                    }
+                    break;
+                }
+                
+                output += `${charset.at(45)}${lArray.join("")}\n`;
+            }
+
+            output += `${charset.at(0)}\n`;
 
             return output;
         }
@@ -90,19 +95,41 @@ export default class UUencode extends BaseTemplate {
      */
      decode(input, ...args) {
 
-        const format = null; 
-        // TODO
+        let padChars = 0;
 
-        return super.decode(input, format, null, ...args);
-    }
+        const format = ({ input, settings }) => {
 
-    /**
-     * Divmod Function.
-     * @param {*} x - number 1
-     * @param {*} y - number 2
-     * @returns {number} Modulo y of x
-     */
-    #divmod (x, y) {
-        return [Math.floor(x/y), x%y];
+            const charset = this.charsets[settings.version];
+            const lines = input.split("\n");
+            const inArray = [];
+            
+            for (const line of lines) {
+                const lArray = [...line];
+                const byteCount = charset.indexOf(lArray.shift());
+                
+                if (!(byteCount > 0)) {
+                    break;
+                }
+
+                inArray.push(...lArray);
+
+                if (byteCount !== 45) {
+                    padChars = this.converter.padChars(lArray.length) - byteCount;
+                    break;
+                }
+            }
+
+            return inArray.join("");
+
+        }
+
+        const removePadChars = ({ output }) => {
+            if (padChars) {
+                output = new Uint8Array(output.slice(0, -padChars));
+            }
+            return output;
+        }
+
+        return super.decode(input, format, removePadChars, ...args);
     }
 }

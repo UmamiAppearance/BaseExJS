@@ -58,9 +58,7 @@ export default class Base64 extends BaseTemplate {
      */
     encode(input, ...args) {
         
-        const applyPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const applyPadding = ({ output, settings, zeroPadding }) => {
 
             // Cut of redundant chars and append padding if set
             if (zeroPadding) {
