@@ -33,7 +33,7 @@ export default class UUencode extends BaseTemplate {
         // charsets
         this.charsets.default = [..."`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"];
         this.charsets.original = [" ", ...this.charsets.default.slice(1)];
-        this.charsets.xxencode = [..."+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"];
+        this.charsets.xx = [..."+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"];
 
         // predefined settings
         this.padCharAmount = 0;
