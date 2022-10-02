@@ -74,8 +74,8 @@ export default class Ecoji extends BaseTemplate {
 
     /**
      * Analyzes v1 and two charsets for equal and non
-     * eqaul characters, to create a revEmojiObj for
-     * decoding lookup, also generates a regex object 
+     * eqaul characters to create a revEmojiObj for
+     * decoding lookup. Also generates a RegExp object 
      * for handling concatenated strings.
      */
     #init() {
