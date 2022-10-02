@@ -113,7 +113,7 @@ export default class Base91 extends BaseTemplate {
                 // the before calculated remainder of n 
                 // -> "rN"
                 let q, r;
-                [q, r] = this.divmod(rN, 91);
+                [q, r] = this.#divmod(rN, 91);
 
                 // Lookup the corresponding characters for
                 // "r" and "q" in the set, append it to the 
@@ -127,7 +127,7 @@ export default class Base91 extends BaseTemplate {
         // once more.
         if (bitCount) {
             let q, r;
-            [q, r] = this.divmod(n, 91);
+            [q, r] = this.#divmod(n, 91);
 
             // The remainder is concatenated in any case
             output = output.concat(charset[r]);
@@ -228,7 +228,7 @@ export default class Base91 extends BaseTemplate {
      * @param {*} y - number 2
      * @returns {number} Modulo y of x
      */
-    divmod (x, y) {
+    #divmod (x, y) {
         return [Math.floor(x/y), x%y];
     }
 }
