@@ -31,12 +31,13 @@ export default class UUencode extends BaseTemplate {
         this.converter = new BaseConverter(64, 3, 4);
 
         // charsets
-        this.charsets.default = [..." !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"];
-        //this.padChars.default = "=";
+        this.charsets.default = [..."`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"];
+        this.charsets.original = [" ", ...this.charsets.default.slice(1)];
+        this.charsets.xxencode = [..."+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"];
 
         // predefined settings
         this.padCharAmount = 0;
-        this.padding = false;
+        this.padding = true;
         
         // mutable extra args
         this.isMutable.padding = false;
@@ -50,50 +51,49 @@ export default class UUencode extends BaseTemplate {
      * BaseEx UUencoder.
      * @param {*} input - Input according to the used byte converter.
      * @param  {...str} [args] - Converter settings.
-     * @returns {string} - Base64 encoded string.
+     * @returns {string} - UUencode string.
      */
     encode(input, ...args) {
-        const settings = this.utils.validateArgs(args);
-        let inputBytes = this.utils.inputHandler.toBytes(input, settings).at(0);
 
-        console.log(inputBytes);
+        const format = (scope) => {
 
-        const bs = this.converter.bsEnc;
-        const charset = this.charsets[settings.version];
+            let { output, settings, zeroPadding } = scope;
 
-        const byteCount = inputBytes.byteLength;
-        const zeroPadding = (bs - byteCount % bs) % bs;
+            console.log(output, zeroPadding);
+
+            const charset = this.charsets[settings.version];
+            let [full, last] = this.#divmod(output.length, 60);
+            last = this.converter.padChars(last) - zeroPadding;
+            
+            output = output.
+            match(/.{1,60}/g).
+            map((line, i) => (i < full)
+                ? line = `M${line}`
+                : line = `${charset.at(last)}${line}` 
+            ).
+            join("\n");
         
-        inputBytes = Uint8Array.from([
-            ...inputBytes,
-            ...new Array(zeroPadding).fill(1)
-        ]);
-        
-        console.log(inputBytes);
+            output += `\n${charset.at(0)}\n`
 
-        let [output,, ] = this.converter.encode(inputBytes, charset, settings.littleEndian);
-        //output = `${charset.at()}`
-
-        return output;
+            return output;
+        }
+            
+        return super.encode(input, null, format, ...args);
     }
 
 
     /**
      * BaseEx UUdecoder.
-     * @param {string} input - Base64 String.
+     * @param {string} input - UUencode String.
      * @param  {...any} [args] - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(input, ...args) {
-        // apply settings
-        const settings = this.utils.validateArgs(args);
+     decode(input, ...args) {
 
-        // ensure a string input
-        input = String(input);
-        const inArray = [...input];
+        const format = null; 
+        // TODO
 
-        const charset = this.charsets[settings.version];
-        
+        return super.decode(input, format, null, ...args);
     }
 
     /**

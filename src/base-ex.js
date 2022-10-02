@@ -57,9 +57,9 @@ class BaseEx {
         this.base58 = new Base58("default", outputType);
         this.base58_bitcoin = new Base58("bitcoin", outputType);
         this.base58_flickr = new Base58("flickr", outputType);
-        this.uuencode = new UUencode();
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
+        this.uuencode = new UUencode();
         this.base85_adobe = new Base85("adobe", outputType);
         this.base85_ascii = new Base85("ascii85", outputType);
         this.base85_z85 = new Base85("z85", outputType);
@@ -82,8 +82,8 @@ export {
     Base16,
     Base32,
     Base58,
-    UUencode,
     Base64,
+    UUencode,
     Base85,
     Base91,
     LEB128,
