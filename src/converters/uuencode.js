@@ -32,15 +32,27 @@ export default class UUencode extends BaseTemplate {
 
         // charsets
         this.charsets.default = [..."`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"];
+        Object.defineProperty(this.padChars, "default", {
+            get: () => [ this.charsets.default.at(0) ]
+        });
+
         this.charsets.original = [" ", ...this.charsets.default.slice(1)];
+        Object.defineProperty(this.padChars, "orginal", {
+            get: () => [ this.charsets.original.at(0) ]
+        });
+
         this.charsets.xx = [..."+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"];
+        Object.defineProperty(this.padChars, "xx", {
+            get: () => [ this.charsets.xx.at(0) ]
+        });
+
 
         // predefined settings
-        this.padCharAmount = 0;
         this.padding = true;
-        
-        // mutable extra args
-        this.isMutable.padding = false;
+        this.header = false;
+        this.utils.converterArgs.header = ["noheader", "header"];
+        this.isMutable.header = true;
+        this.isMutable.integrity = false;
 
         // apply user settings
         this.utils.validateArgs(args, true);
@@ -61,7 +73,9 @@ export default class UUencode extends BaseTemplate {
 
             const charset = this.charsets[settings.version];
             const outArray = [...output];
-            output = "";
+            output = (settings.header)
+                ? "begin 644 base-ex uuencode\n"
+                : "";
 
             for (;;) {
                 const lArray = outArray.splice(0, 60)
@@ -79,6 +93,11 @@ export default class UUencode extends BaseTemplate {
             }
 
             output += `${charset.at(0)}\n`;
+
+            if (settings.header) {
+                output += "end\n";
+            }
+
 
             return output;
         }
