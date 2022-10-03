@@ -214,10 +214,10 @@ class Utils {
         const loopConverterArgs = () => Object.keys(this.converterArgs).map(
             key => this.converterArgs[key].map(
                 keyword => `'${keyword}'`
-            ).
-            join(" and ")
-        ).
-        join("\n   - ");
+            )
+            .join(" and ")
+        )
+        .join("\n   - ");
 
         const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
         const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
