@@ -1,7 +1,8 @@
-import { readFile, stat, writeFile } from "fs/promises";
+import { readFile, stat } from "fs/promises";
+import { BaseEx } from "base-ex";
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
-import { BaseEx } from "base-ex";
+
 
 // config values
 const VERSION = await (async () => {
@@ -51,20 +52,41 @@ const { argv } = yargs(hideBin(process.argv))
     .example("$0 file.txt -d")
 
 
-const baseEx = new BaseEx();
+const baseEx = new BaseEx("str");
 
-const encode = (converter, input) => {
-    process.stdout.write(baseEx[converter].encode(input));
+const convert = (converter, mode, input) => {
+    process.stdout.write(baseEx[converter][mode](input));
     process.stdout.write("\n");
     process.exit(0);
 }
 
 if (argv.CONVERTER in baseEx) {
+
+    const mode = ("decode" in argv) ? "decode" : "encode";
     
     if (!argv.FILE || argv.FILE === "-") {
         process.stdin.on("data", input => {
-            encode(argv.CONVERTER, input);
+            convert(argv.CONVERTER, mode, input.toString().trim());
         })
+    }
+
+    else {
+        let file;
+        try { 
+            file = await stat(argv.FILE);
+        } catch (err) {
+            process.stderr.write(`base-ex: ${argv.FILE}: `);
+
+            if (err.code === 'ENOENT') {
+                process.stderr.write("No such file or directory.\n");
+            } else {
+                process.stderr.write("Cannot stat file\n");
+            }
+
+            process.exit(1);
+        }
+        console.log(file);
+
     }
 
     
