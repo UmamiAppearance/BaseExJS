@@ -76,6 +76,6 @@ export default class Base16 extends BaseTemplate {
             return normInput;
         }
         
-        return super.decode(input, normalizeInput, null, ...args);
+        return super.decode(input, normalizeInput, null, false, ...args);
     }
 }

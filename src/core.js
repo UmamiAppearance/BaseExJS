@@ -382,6 +382,9 @@ class BaseTemplate {
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
         this.version = "default";
+        this.options = {
+            lineWrap: 0
+        }
         
         // list of allowed/disallowed args to change
         this.isMutable = {
@@ -433,7 +436,7 @@ class BaseTemplate {
             output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
 
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
@@ -445,13 +448,13 @@ class BaseTemplate {
      * @param  {...any} args - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(input, preDecodeFN, postDecodeFN, ...args) {
+    decode(input, preDecodeFN, postDecodeFN, keepNL, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        input = String(input);
+        input = this.utils.normalizeInput(input, keepNL);
 
         // set negative to false for starters
         let negative = false;

@@ -140,7 +140,7 @@ export default class Base91 extends BaseTemplate {
             }
         }
         
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
@@ -156,7 +156,7 @@ export default class Base91 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
-        input = String(input);
+        input = this.utils.normalizeInput(input);
         const inArray = [...input];
 
         let l = inArray.length;

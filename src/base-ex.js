@@ -59,7 +59,7 @@ class BaseEx {
         this.base58_flickr = new Base58("flickr", outputType);
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
-        this.uuencode = new UUencode();
+        this.uuencode = new UUencode("default", outputType);
         this.base85_adobe = new Base85("adobe", outputType);
         this.base85_ascii = new Base85("ascii85", outputType);
         this.base85_z85 = new Base85("z85", outputType);

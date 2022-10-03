@@ -101,6 +101,6 @@ export default class Base32 extends BaseTemplate {
      * @returns {*} - Output according to converter settings.
      */
     decode(input, ...args) {
-        return super.decode(input, null, null, ...args);
+        return super.decode(input, null, null, false, ...args);
     }
 }

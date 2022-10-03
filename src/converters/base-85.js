@@ -119,6 +119,6 @@ export default class Base85 extends BaseTemplate {
             return input
         }
 
-        return super.decode(input, prepareInput, null, ...args);
+        return super.decode(input, prepareInput, null, false, ...args);
     }
 }

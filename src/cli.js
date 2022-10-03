@@ -21,19 +21,38 @@ const FLAGS = {
         alias: "d",
         coerce: coerceLastValue,
         description: "Decode data.",
-        type: "string",
+        type: "string"
     },
     "ignore-garbage": {
         alias: "i",
         coerce: coerceLastValue,
         description: "When decoding, ignore non-alphabet characters.",
-        type: "boolean",
+        type: "boolean"
+    },
+    "upper": {
+        alias: "u",
+        coerce: coerceLastValue,
+        description: "When decoding, return upper case character (if the encoder is case insensitive).",
+        type: "boolean"
+    },
+    "lower": {
+        alias: "l",
+        coerce: coerceLastValue,
+        description: "When decoding, return lower case character (if the encoder is case insensitive).",
+        type: "boolean"
+    },
+    "wrap": {
+        alias: "w",
+        coerce: coerceLastValue,
+        description: "Wrap encoded lines after COLS character (default 76). Use 0 to disable line wrapping.",
+        type: "number",
+        default: 76
     }
 };
 
 const { argv } = yargs(hideBin(process.argv))
     .version(VERSION)
-    .usage("$0 <CONVERTER> [FILE]")
+    .usage("$0 <CONVERTER> [OPTIONS] [FILE]")
     .command("* <CONVERTER> [FILE]", "", yargs => yargs.options(FLAGS)
         .positional("CONVERTER", {
             array: false,
@@ -54,8 +73,16 @@ const { argv } = yargs(hideBin(process.argv))
 
 const baseEx = new BaseEx("str");
 
+const options = {
+    lineWrap: argv.wrap
+}
+const extraArgs = [ options ];
+if ("ignoreGarbage" in argv) extraArgs.push("nointegrity");
+if ("upper" in argv) extraArgs.push("upper");
+if ("lower" in argv) extraArgs.push("lower");
+
 const convert = (converter, mode, input) => {
-    process.stdout.write(baseEx[converter][mode](input));
+    process.stdout.write(baseEx[converter][mode](input, ...extraArgs));
     process.stdout.write("\n");
     process.exit(0);
 }
@@ -63,8 +90,14 @@ const convert = (converter, mode, input) => {
 if (argv.CONVERTER in baseEx) {
 
     const mode = ("decode" in argv) ? "decode" : "encode";
+
+    if (argv.CONVERTER === "uuencode") {
+        extraArgs.push("header");
+    }
     
     if (!argv.FILE || argv.FILE === "-") {
+        options.file = "/dev/stdin";
+        options.permissions = "777";
         process.stdin.on("data", input => {
             convert(argv.CONVERTER, mode, input.toString().trim());
         })
@@ -85,8 +118,25 @@ if (argv.CONVERTER in baseEx) {
 
             process.exit(1);
         }
-        console.log(file);
 
+        options.file = argv.FILE.replace(/.*\//, "");
+        options.permissions = (file.mode & 0x1ff).toString(8);
+        
+        let input;
+        try {
+            input = await readFile(argv.FILE);
+        } catch (err) {
+            process.stderr.write("base-ex: ");
+            process.stderr.write(err);
+            process.stderr.write("\n");
+            process.exit(2);
+        }
+
+        if (mode === "decode") {
+            convert(argv.CONVERTER, "decode", input.toString().trim());
+        } else {
+            convert(argv.CONVERTER, "encode", input);
+        }
     }
 
     

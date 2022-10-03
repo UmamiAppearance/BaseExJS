@@ -108,7 +108,7 @@ export default class Base2048 extends BaseTemplate {
             }
         }
 
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
     
@@ -124,7 +124,7 @@ export default class Base2048 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        input = String(input);
+        input = this.utils.normalizeInput(input);
         const inArray = [...input];
 
         const charset = this.charsets[settings.version];

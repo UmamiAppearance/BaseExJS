@@ -130,7 +130,7 @@ export default class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         if (settings.version === "hex") {
-            input = this.hexlify.decode(String(input).toLowerCase(), [..."0123456789abcdef"], [], settings.integrity, false);
+            input = this.hexlify.decode(this.utils.normalizeInput(input).toLowerCase(), [..."0123456789abcdef"], [], settings.integrity, false);
         } else if (typeof input.byteLength !== "undefined") {
             input = BytesInput.toBytes(input)[0];
         } else {

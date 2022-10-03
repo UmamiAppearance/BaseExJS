@@ -146,6 +146,6 @@ export default class Base58 extends BaseTemplate{
             return output;
         }
 
-        return super.decode(input, null, applyPadding, ...args);
+        return super.decode(input, null, applyPadding, false, ...args);
     }
 }

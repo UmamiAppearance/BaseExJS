@@ -248,12 +248,12 @@ class Utils {
             integrity: this.root.integrity,
             littleEndian: this.root.littleEndian,
             numberMode: this.root.numberMode,
+            options: this.root.options,
             outputType: this.root.outputType,
             padding: this.root.padding,
             signed: this.root.signed,
             upper: this.root.upper,
-            version: this.root.version,
-            options: {}
+            version: this.root.version
         }
 
         // add any existing converter specific args
@@ -319,7 +319,7 @@ class Utils {
             
             // additional/optional non boolean options
             if (typeof arg === "object") {
-                parameters.options = arg;
+                parameters.options = {...parameters.options, ...arg};
                 return;
             }
 
@@ -386,6 +386,27 @@ class Utils {
      */
     signError() {
         throw new SignError();
+    }
+
+    /**
+     * Wrap output to "cols" characters per line.
+     * @param {string} output - Output string. 
+     * @param {number} cols - Number of cols per line. 
+     * @returns {string} - Wrapped output.
+     */
+    wrapOutput(output, cols=0) {
+        if (!cols) {
+            return output;
+        }
+        const m = new RegExp(`.{1,${cols}}`, "gu");
+        return output.match(m).join("\n");
+    }
+
+    normalizeInput(input, keepNL=false) {
+        if (keepNL) {
+            return String(input);
+        }
+        return String(input).replace(/\n/g, "");
     }
 
 }

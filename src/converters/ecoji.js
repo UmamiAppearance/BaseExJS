@@ -189,7 +189,7 @@ export default class Ecoji extends BaseTemplate {
 
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
-        input = String(input);
+        input = this.utils.normalizeInput(input);
 
         let version = settings.version;
         let versionKey = null;
@@ -268,7 +268,6 @@ export default class Ecoji extends BaseTemplate {
 
             output = Uint8Array.from(preOutArray);
         }
-
 
         return this.utils.outputHandler.compile(output, settings.outputType);
     }

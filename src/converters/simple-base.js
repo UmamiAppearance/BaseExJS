@@ -90,7 +90,7 @@ export default class SimpleBase extends BaseTemplate {
             return input;
         }
         
-        return super.decode(rawInput, normalizeInput, null, ...args);
+        return super.decode(rawInput, normalizeInput, null, false, ...args);
 
     }
 }

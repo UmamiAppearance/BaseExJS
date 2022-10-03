@@ -5,7 +5,7 @@
   "main": "./cjs/base-ex.cjs",
   "module": "./src/base-ex.js",
   "bin": {
-    "base-ex": "./src/cli.js"
+    "bx": "./src/cli.js"
   },
   "exports": {
     "import": "./src/base-ex.js",

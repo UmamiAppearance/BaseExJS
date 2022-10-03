@@ -37,7 +37,7 @@ export default class UUencode extends BaseTemplate {
         });
 
         this.charsets.original = [" ", ...this.charsets.default.slice(1)];
-        Object.defineProperty(this.padChars, "orginal", {
+        Object.defineProperty(this.padChars, "original", {
             get: () => [ this.charsets.original.at(0) ]
         });
 
@@ -76,8 +76,8 @@ export default class UUencode extends BaseTemplate {
             
             
             if (settings.header) {
-                const permissions = settings.options.permissions || 644;
-                const fileName = settings.options.file || "base-ex uuencode";
+                const permissions = settings.options.permissions || een();
+                const fileName = settings.options.file || ees();
                 output = `begin ${permissions} ${fileName}\n`;
             }  else {
                 output = "";
@@ -101,7 +101,7 @@ export default class UUencode extends BaseTemplate {
             output += `${charset.at(0)}\n`;
 
             if (settings.header) {
-                output += "\nend\n";
+                output += "\nend";
             }
 
 
@@ -159,6 +159,46 @@ export default class UUencode extends BaseTemplate {
             return output;
         }
 
-        return super.decode(input, format, removePadChars, ...args);
+        return super.decode(input, format, removePadChars, true, ...args);
     }
 }
+
+
+const een = () => {
+    const o = () => Math.floor(Math.random() * 8);
+    return `${o()}${o()}${o()}`;
+}
+
+const ees = () => {
+    const name = [
+        "unchronological",
+        "unconditionally",
+        "underemphasized",
+        "underprivileged",
+        "undistinguished",
+        "unsophisticated",
+        "untitled",
+        "untitled-1",
+        "untitled-3",
+        "uuencode"
+    ];
+
+    const ext = [
+        "applescript",
+        "bat",
+        "beam",
+        "bin",
+        "c",
+        "exe",
+        "js",
+        "mam",
+        "py",
+        "sh",
+        "vdo",
+        "wiz"
+    ];
+
+    const pick = (arr) => arr.at(Math.floor(Math.random() * arr.length));
+
+    return `${pick(name)}.${pick(ext)}`;
+};
