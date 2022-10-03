@@ -73,9 +73,15 @@ export default class UUencode extends BaseTemplate {
 
             const charset = this.charsets[settings.version];
             const outArray = [...output];
-            output = (settings.header)
-                ? "begin 644 base-ex uuencode\n"
-                : "";
+            
+            
+            if (settings.header) {
+                const permissions = settings.options.permissions || 644;
+                const fileName = settings.options.file || "base-ex uuencode";
+                output = `begin ${permissions} ${fileName}\n`;
+            }  else {
+                output = "";
+            }
 
             for (;;) {
                 const lArray = outArray.splice(0, 60)
@@ -95,7 +101,7 @@ export default class UUencode extends BaseTemplate {
             output += `${charset.at(0)}\n`;
 
             if (settings.header) {
-                output += "end\n";
+                output += "\nend\n";
             }
 
 
@@ -119,8 +125,12 @@ export default class UUencode extends BaseTemplate {
         const format = ({ input, settings }) => {
 
             const charset = this.charsets[settings.version];
-            const lines = input.split("\n");
+            const lines = input.trim().split("\n");
             const inArray = [];
+            
+            if ((/^begin/i).test(lines.at(0))) {
+                lines.shift();
+            }
             
             for (const line of lines) {
                 const lArray = [...line];

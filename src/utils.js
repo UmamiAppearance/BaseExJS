@@ -226,11 +226,11 @@ class Utils {
         const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
         const outputHint = `\n * valid args for the output type are ${this.#makeArgList(outputTypes)}`;
         const versionHint = (versions) ? `\n * the option(s) for version/charset are: ${this.#makeArgList(versions)}` : "";
-        const integrityHint = "\n * valid args for integrity check are : 'integrity' and 'nointegrity'";
+        const integrityHint = "\n * valid args for integrity check are: 'integrity' and 'nointegrity'";
         const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
         const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
         
-        throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${integrityHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
+        throw new TypeError(`'${arg}'\n\nParameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${integrityHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
     }
 
 
@@ -252,7 +252,8 @@ class Utils {
             padding: this.root.padding,
             signed: this.root.signed,
             upper: this.root.upper,
-            version: this.root.version
+            version: this.root.version,
+            options: {}
         }
 
         // add any existing converter specific args
@@ -315,6 +316,13 @@ class Utils {
 
         // walk through the remaining arguments
         args.forEach((arg) => {
+            
+            // additional/optional non boolean options
+            if (typeof arg === "object") {
+                parameters.options = arg;
+                return;
+            }
+
             arg = String(arg).toLowerCase();
 
             if (versions.includes(arg)) {
