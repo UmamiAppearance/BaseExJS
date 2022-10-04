@@ -149,9 +149,8 @@ export default class Ecoji extends BaseTemplate {
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
+        const applyPadding = ({ output, settings, zeroPadding }) => {
 
-            let { output, settings, zeroPadding } = scope;
             const charset = this.charsets[settings.version];
             let outArray = [...output];
             

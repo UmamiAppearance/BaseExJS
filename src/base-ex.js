@@ -60,6 +60,7 @@ class BaseEx {
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
         this.uuencode = new UUencode("default", outputType);
+        this.xxencode = new UUencode("xx", outputType);
         this.base85_adobe = new Base85("adobe", outputType);
         this.base85_ascii = new Base85("ascii85", outputType);
         this.base85_z85 = new Base85("z85", outputType);
@@ -71,7 +72,7 @@ class BaseEx {
         this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};
-        for (let i=2; i<37; i++) {
+        for (let i=2; i<=62; i++) {
             this.simpleBase[`base${i}`] = new SimpleBase(i, outputType);
         }
     }

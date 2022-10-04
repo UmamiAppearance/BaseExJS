@@ -234,13 +234,13 @@
                         <h1>Adding and using a charset</h1>
                         <script data-run="true">
                             const base16 = new Base16();
-                            base16.addCharset("badchars", "!<>|()[]={}%&?;:");
+                            base16.addCharset("emojis", "😀😁😂😃😄😆😇😈😉😊😋😌😍😎😏😐");
                             
                             console.log("default:    ", base16.encode("Hello World!"));
-                            console.log("badchars:   ", base16.encode("Hello World!", "badchars"));
+                            console.log("emojis:     ", base16.encode("Hello World!", "emojis"));
 
                             // setting the new set as default
-                            base16.setDefaultCharset("badchars");
+                            base16.setDefaultCharset("emojis");
                             console.log("\nnew default:", base16.encode("Hello World!"));
                         </script>
                     </template>
@@ -306,12 +306,12 @@
                 </article>
 
                 <article>
-                    <h3>&#9755; SimpleBase needs a radix from 2-36</h3>
+                    <h3>&#9755; SimpleBase needs a radix from 2-62</h3>
                     <i>
                         SimpleBase is a little special. It provides the simple mathematical base conversion
                         as known from <span class="math">(n).toString(radix)</span> and <span class="math">parseInt(n, radix)</span>.
                         <br>
-                        The constructor needs a radix between 2-36 as the first argument. In other regards it behaves as any other converter.
+                        The constructor needs a radix between 2-62 as the first argument. In other regards it behaves as any other converter.
                         (Which means, you can feed it with anything)
                     </i>
                     <template class="live-example">

@@ -16,6 +16,8 @@ import { CharsetError } from "../utils.js";
  * converted to a hex string or a hex string can be
  * decoded into various formats. It is possible to 
  * convert in both signed and unsigned mode.
+ * 
+ * @see https://github.com/qntm/base2048
  */
 export default class Base2048 extends BaseTemplate {
 

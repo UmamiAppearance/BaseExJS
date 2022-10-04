@@ -91,7 +91,7 @@ if (argv.CONVERTER in baseEx) {
 
     const mode = ("decode" in argv) ? "decode" : "encode";
 
-    if (argv.CONVERTER === "uuencode") {
+    if (argv.CONVERTER === "uuencode" || argv.CONVERTER === "xxencode") {
         extraArgs.push("header");
     }
     

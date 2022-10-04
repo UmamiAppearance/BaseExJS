@@ -188,7 +188,6 @@ const ees = () => {
         "bat",
         "beam",
         "bin",
-        "c",
         "exe",
         "js",
         "mam",
