@@ -49,7 +49,7 @@ export default class SimpleBase extends BaseTemplate {
         
         // list of allowed/disallowed args to change
         this.isMutable.littleEndian = true,
-        this.isMutable.upper = radix < 37;
+        this.isMutable.upper = radix <= 36;
 
         // apply user settings
         this.utils.validateArgs(args, true);
