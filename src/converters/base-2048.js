@@ -160,9 +160,8 @@ export default class Base2048 extends BaseTemplate {
 
             // Take most significant bit first
             for (let j=numZBits-1; j>=0; j--) {
-                const bit = (z >> j) & 1
 
-                uint8 = (uint8 << 1) + bit
+                uint8 = (uint8 << 1) + ((z >> j) & 1);
                 numUint8Bits++
 
                 if (numUint8Bits === this.converter.bsDec) {

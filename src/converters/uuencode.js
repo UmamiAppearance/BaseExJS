@@ -67,9 +67,7 @@ export default class UUencode extends BaseTemplate {
      */
     encode(input, ...args) {
 
-        const format = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const format = ({ output, settings, zeroPadding }) => {
 
             const charset = this.charsets[settings.version];
             const outArray = [...output];
@@ -83,18 +81,22 @@ export default class UUencode extends BaseTemplate {
                 output = "";
             }
 
+            // repeatedly take 60 chars from the output until it is empty 
             for (;;) {
                 const lArray = outArray.splice(0, 60)
-
-                if (lArray.length !== 60) { 
+                
+                // if all chars are taken, remove eventually added pad zeros
+                if (!outArray.length) { 
                     const byteCount = this.converter.padChars(lArray.length) - zeroPadding;
-
-                    if (byteCount > 0) {
-                        output += `${charset.at(byteCount)}${lArray.join("")}\n`;
-                    }
+                    
+                    // add the the current chars plus the leading
+                    // count char
+                    output += `${charset.at(byteCount)}${lArray.join("")}\n`;
                     break;
                 }
                 
+                // add the the current chars plus the leading
+                // count char ("M" for default charsets) 
                 output += `${charset.at(45)}${lArray.join("")}\n`;
             }
 

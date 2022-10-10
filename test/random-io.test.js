@@ -96,7 +96,7 @@ const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
     });
 
 
-    for (let radix=2; radix<=36; radix++) {
+    for (let radix=2; radix<=62; radix++) {
 
         const bFn = new BaseEx.SimpleBase(radix);
         const inputs = randomInputs(bFn.littleEndian, (radix === 2 || radix === 16));
