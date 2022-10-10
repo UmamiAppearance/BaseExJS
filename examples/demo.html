@@ -47,6 +47,10 @@
             // modified leb128 converter with bytes as a comma separated string
             const leb128 = new LEB128();
             baseEx.leb128.encode = (...args) => leb128.encode(...args).join(", ");
+            baseEx.leb128.decode = (input, ...args) => leb128.decode(
+                byteConverter.toUint(input),
+                ...args
+            );
 
             // Takes the provided input and converts it to
             // the proper type. Unwanted characters are
@@ -87,8 +91,8 @@
                 return [input, modifiedStr];
             }
 
-            const showInvalid = () => {
-                console.error("unable to process value");
+            const showInvalid = (e) => {
+                console.error("unable to process value", e);
             }
 
 
@@ -304,7 +308,7 @@
                                     fieldVal = baseEx[this.curTypes.decode].decode(this[otherField], this.curTypes.encode);
                                 } catch(e) {
                                     fieldVal = this[this._type];
-                                    showInvalid();
+                                    showInvalid(e);
                                 }
 
                                 this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(fieldVal) : String(fieldVal);
@@ -331,7 +335,7 @@
                                    try { 
                                         this.input = baseEx[val].encode(input, this.curTypes.encode);
                                    } catch(e) {
-                                       showInvalid();
+                                       showInvalid(e);
                                    }
                                 }
                             }
@@ -406,7 +410,7 @@
                             try {
                                 output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
                             } catch(e) {
-                                showInvalid();
+                                showInvalid(e);
                             }
 
                             // As explained above.
