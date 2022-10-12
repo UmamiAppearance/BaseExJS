@@ -17,6 +17,7 @@ import UUencode      from "./converters/uuencode.js";
 import Base85        from "./converters/base-85.js";
 import Base91        from "./converters/base-91.js";
 import LEB128        from "./converters/leb-128.js";
+import Base512       from "./converters/base-512.js";
 import Ecoji         from "./converters/ecoji.js";
 import Base2048      from "./converters/base-2048.js";
 import SimpleBase    from "./converters/simple-base.js";
@@ -88,6 +89,7 @@ export {
     Base85,
     Base91,
     LEB128,
+    Base512,
     Ecoji,
     Base2048,
     SimpleBase,

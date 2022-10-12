@@ -76,7 +76,6 @@ export default class Base91 extends BaseTemplate {
         let n = 0;
         let output = "";
 
-        // Shortcut
         const charset = this.charsets[settings.version];
 
         inputBytes.forEach(byte => {
