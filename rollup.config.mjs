@@ -1,6 +1,13 @@
+import { minify } from "terser";
 import { readdirSync } from 'fs';
-import replace from "@rollup/plugin-replace";
-import { terser } from "rollup-plugin-terser";
+import { yourFunction } from "rollup-plugin-your-function";
+
+//import { terser } from "rollup-plugin-terser";
+
+
+const terser = yourFunction({
+    fn: async source => minify(source, { sourceMap: true })
+});
 
 const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
 const converters = new Array();
@@ -40,16 +47,22 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir, t=terser()) => {
         };
         
         if (bytesOnly) {
-            converter.plugins = [
-                replace({
-                    values: {
-                        "SmartInput": " BytesInput",
-                        "SmartOutput": " BytesOutput",
-                    },
-                    preventAssignment: true,
-                    delimiters: [' ', ';'],
-                })
-            ]
+            yourFunction({
+                include: "**/utils.js",
+                fn: source => {
+                    const code = source
+                        .replace(
+                            /DEFAULT_INPUT_HANDLER ?= ?SmartInput/,
+                            "DEFAULT_INPUT_HANDLER = BytesInput"
+                        )
+                        .replace(
+                            /DEFAULT_OUTPUT_HANDLER ?= ?SmartOutput/,
+                            "DEFAULT_OUTPUT_HANDLER = BytesOutput"
+                        );
+                    
+                    return code;
+                }
+            })
         }
 
         converters.push(converter);
