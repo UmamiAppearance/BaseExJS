@@ -1,5 +1,3 @@
-/* eslint-disable sort-imports */
-
 /**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
@@ -7,6 +5,8 @@
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
+
+/* eslint-disable sort-imports */
 
 import Base1         from "./converters/base-1.js";
 import Base16        from "./converters/base-16.js";

@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Simple Input Handler.
  * --------------------
@@ -3465,7 +3463,13 @@ class ByteConverter {
     }
 }
 
-/* eslint-disable sort-imports */
+/**
+ * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
+ */
 
 /**
  * BaseEx Converter Collection.
@@ -3521,17 +3525,4 @@ class BaseEx {
     }
 }
 
-exports.Base1 = Base1;
-exports.Base16 = Base16;
-exports.Base2048 = Base2048;
-exports.Base32 = Base32;
-exports.Base58 = Base58;
-exports.Base64 = Base64;
-exports.Base85 = Base85;
-exports.Base91 = Base91;
-exports.BaseEx = BaseEx;
-exports.ByteConverter = ByteConverter;
-exports.Ecoji = Ecoji;
-exports.LEB128 = LEB128;
-exports.SimpleBase = SimpleBase;
-exports.UUencode = UUencode;
+export { Base1, Base16, Base2048, Base32, Base58, Base64, Base85, Base91, BaseEx, ByteConverter, Ecoji, LEB128, SimpleBase, UUencode };

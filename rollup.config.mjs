@@ -2,11 +2,19 @@ import { minify } from "terser";
 import { readdirSync } from 'fs';
 import { yourFunction } from "rollup-plugin-your-function";
 
-//import { terser } from "rollup-plugin-terser";
 
-
-const terser = yourFunction({
-    fn: async source => minify(source, { sourceMap: true })
+const terser = (extraOpts={}) => yourFunction({
+    output: true,
+    name: "terser",
+    fn: async (source, options) => minify(
+        source,
+        {
+            module: (/^esm?$/).test(options.outputOptions.format),
+            toplevel: options.outputOptions.format === "cjs",
+            sourceMap: true,
+            ...extraOpts
+        }
+    )
 });
 
 const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
@@ -47,22 +55,23 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir, t=terser()) => {
         };
         
         if (bytesOnly) {
-            yourFunction({
-                include: "**/utils.js",
-                fn: source => {
-                    const code = source
-                        .replace(
-                            /DEFAULT_INPUT_HANDLER ?= ?SmartInput/,
-                            "DEFAULT_INPUT_HANDLER = BytesInput"
-                        )
-                        .replace(
-                            /DEFAULT_OUTPUT_HANDLER ?= ?SmartOutput/,
-                            "DEFAULT_OUTPUT_HANDLER = BytesOutput"
-                        );
-                    
-                    return code;
-                }
-            })
+            converter.plugins = [
+                yourFunction({
+                    include: "**/utils.js",
+                    fn: source => {
+                        const code = source
+                            .replace(
+                                /DEFAULT_INPUT_HANDLER ?= ?SmartInput/,
+                                "DEFAULT_INPUT_HANDLER = BytesInput"
+                            )
+                            .replace(
+                                /DEFAULT_OUTPUT_HANDLER ?= ?SmartOutput/,
+                                "DEFAULT_OUTPUT_HANDLER = BytesOutput"
+                            );
+                        return code;
+                    }
+                })
+            ]
         }
 
         converters.push(converter);
@@ -70,23 +79,25 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir, t=terser()) => {
 
 // allow only the main license for base-ex class
 const selectiveTerser = terser({
-    output: {
-        // eslint-disable-next-line consistent-return
-        comments: (node, comment) => {
+    format: {
+
+        comments: (_, comment) => {
             const text = comment.value;
             const type = comment.type;
-            if (type === "comment2") {
-                return !(/BaseEx\|\w+/).test(text) && (/@license/i).test(text);
-            }
+            return (
+                type === "comment2" && 
+                !(/BaseEx\|\w+/).test(text) && 
+                (/@license/i).test(text)
+            );
         }
-    },
-})
+    }
+});
 
 makeConverter("base-ex.js", "src/", "dist/", false, selectiveTerser);
-
 
 readdirSync("./src/converters").forEach(inputFile => {
     makeConverter(inputFile, "src/converters/", "dist/converters/", true)
 });
+
 
 export default converters;

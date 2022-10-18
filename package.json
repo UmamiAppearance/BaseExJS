@@ -64,7 +64,7 @@
     "eslint": "^8.25.0",
     "http-server": "^14.1.1",
     "rollup": "^3.2.3",
-    "rollup-plugin-your-function": "^0.3.0",
+    "rollup-plugin-your-function": "^0.4.0",
     "terser": "^5.15.1"
   }
 }
