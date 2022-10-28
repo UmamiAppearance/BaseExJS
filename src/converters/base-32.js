@@ -35,7 +35,7 @@ export default class Base32 extends BaseTemplate {
         this.converter = new BaseConverter(32, 5, 8);
 
         // charsets
-        this.charsets.crockford = [..."0123456789abcdefghjkmnpqrstvwxyz"];
+        this.charsets.crockford = [ ..."0123456789abcdefghjkmnpqrstvwxyz" ];
         this.padChars.crockford = ["="],
 
         this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];

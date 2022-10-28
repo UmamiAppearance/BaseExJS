@@ -1,21 +1,6 @@
-import { minify } from "terser";
-import { readdirSync } from 'fs';
+import { readdirSync } from "fs";
+import { terser } from "rollup-plugin-minification";
 import { yourFunction } from "rollup-plugin-your-function";
-
-
-const terser = (extraOpts={}) => yourFunction({
-    output: true,
-    name: "terser",
-    fn: async (source, options) => minify(
-        source,
-        {
-            module: (/^esm?$/).test(options.outputOptions.format),
-            toplevel: options.outputOptions.format === "cjs",
-            sourceMap: true,
-            ...extraOpts
-        }
-    )
-});
 
 const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
 const converters = new Array();
@@ -80,7 +65,6 @@ const makeConverter = (inputFile, srcDir, distDir, useGroupDir, t=terser()) => {
 // allow only the main license for base-ex class
 const selectiveTerser = terser({
     format: {
-
         comments: (_, comment) => {
             const text = comment.value;
             const type = comment.type;

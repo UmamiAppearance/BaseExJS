@@ -65,10 +65,9 @@ export default class LEB128 extends BaseTemplate {
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);
         
-        let inputBytes, negative;
         const signed = settings.signed;
         settings.signed = true;
-        [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
+        const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
         let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];

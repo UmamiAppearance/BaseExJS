@@ -3465,7 +3465,13 @@ class ByteConverter {
     }
 }
 
-/* eslint-disable sort-imports */
+/**
+ * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
+ */
 
 /**
  * BaseEx Converter Collection.

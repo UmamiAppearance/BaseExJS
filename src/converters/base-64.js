@@ -32,10 +32,10 @@ export default class Base64 extends BaseTemplate {
 
         // charsets
         this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"];
-        this.padChars.default = "=";
+        this.padChars.default = ["="];
         
         this.charsets.urlsafe = this.charsets.default.slice(0, -2).concat(["-", "_"]);
-        this.padChars.urlsafe = "=";
+        this.padChars.urlsafe = ["="];
 
 
         // predefined settings

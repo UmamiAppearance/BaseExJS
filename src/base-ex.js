@@ -20,6 +20,8 @@ import LEB128        from "./converters/leb-128.js";
 import Ecoji         from "./converters/ecoji.js";
 import Base2048      from "./converters/base-2048.js";
 import SimpleBase    from "./converters/simple-base.js";
+import BasePhi       from "./converters/base-phi.js";
+//import Utf8          from "./converters/utf8.js";
 import ByteConverter from "./converters/byte-converter.js";
 
 import { DEFAULT_OUTPUT_HANDLER } from "./utils.js";
@@ -91,6 +93,7 @@ export {
     Ecoji,
     Base2048,
     SimpleBase,
+    BasePhi,
     ByteConverter,
     BaseEx
 };
