@@ -138,17 +138,23 @@ export default class BasePhi extends BaseTemplate {
             
             exponents.push(exp);
 
-            if (r < 2) {
-                console.log("done", n);
+            if (r <= 2) {
+                console.log("end", n);
                 let fr = Number(n) - Phi**exp;
-                if (fr >= 1) {
+                console.log(fr);
+                if (fr >= Phi) {
                     exponents.push(1);
+                    fr -= Phi;
+                } else if (fr >= 1) {
+                    exponents.push(0);
                     fr -= 1;
                 } 
-                return;
+                console.log(fr);
             }
             
-            getExpGTPhi(r);
+            else {
+                getExpGTPhi(r);
+            }
             
         }
         
@@ -162,9 +168,10 @@ export default class BasePhi extends BaseTemplate {
             console.log(exponents);
         }
 
-        //exponents.forEach(exp => fN += 2n**exp);
+        let fN = 0;
+        exponents.forEach(exp => fN += 2**exp);
 
     
-        //console.log(fN.toString(2));
+        console.log(fN.toString(2));
     }
 }
