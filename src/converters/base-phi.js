@@ -7,6 +7,7 @@
  */
 
 import { BaseConverter, BaseTemplate } from "../core.js";
+import Big from "../../node_modules/big.js/big.mjs";
 //import { CharsetError } from "../utils.js";
 
 /**
@@ -65,14 +66,20 @@ export default class BasePhi extends BaseTemplate {
 
         // Convert to BaseRadix string
         const base10 = this.b10.encode(inputBytes, null, settings.littleEndian)[0];
-        let n = BigInt(base10);
+        let n = Big(base10);
         const exponents = [];
+        const decExponents = [];
         
-        const approxNull = (n) => Math.abs(parseFloat(n.toFixed(9))) == 0;
+        const approxNull = n => !(
+            n.round(14)
+                .abs()
+                .toNumber()
+        );
         
         const Phi = (1+Math.sqrt(5))/2;
-        const PhiSquare = Phi**2;
-        const BigPhi = BigInt(Phi * 1e15);
+        const PrecisePhi = Big("1.6180339887498948482045868343656381177203091798057628621354486227052604628189024497072072018939113748475408807538689175");
+        //const PhiSquare = Phi**2;
+        //const BigPhi = BigInt(Phi * 1e15);
 
         const lucas = n => {
             let a=2n, b=1n, c, i;
@@ -88,46 +95,61 @@ export default class BasePhi extends BaseTemplate {
             return b;
         };
 
-        const log10 = n => {
+        const bigIntLog10 = n => {
             if (n < 0) return NaN;
             const str = String(n);
             return str.length + Math.log10(`0.${str.slice(0, 15)}`);
         };
-        const log = n => log10(n) * Math.log(10);
+        const bigIntLog = n => bigIntLog10(n) * Math.log(10);
 
-        const highestLucasFraction = n => Math.floor(log(n) / Math.log(Phi));
+        const highestLucasFraction = (n, isBig) => {
+            console.log("luInput", n);
+            const lg = isBig ? bigIntLog : Math.log;
+            return Math.floor(lg(n) / Math.log(Phi));
+        }
 
         const luMod = n => {
-            const luIndex = highestLucasFraction(n);
-            const r = n-lucas(luIndex);
+            let m, isBig;
+            if (n.gt(Number.MAX_SAFE_INTEGER)) {
+                m = BigInt(n.round().toFixed());
+                isBig = true;
+            } else {
+                m = n.toNumber();
+                isBig = false;
+            }
+            console.log("m", m, "isInt=", isBig);
+            const luIndex = highestLucasFraction(m, isBig);
+            console.log("luIndex", luIndex);
+            const r = n.minus(PrecisePhi.pow(luIndex));
             return [ luIndex, r ];
         }
 
         const getExpLTPhi = (n, exp=-1) => {
-            console.log("n", n, "exp", exp);
+            console.log("n", n.toFixed(), "exp", exp);
             if (approxNull(n)) {
                 console.warn(0);
                 return;
             }
             do {
-                console.log("exp", exp, "SmallPhi", Phi**exp);
-
-                let smallPhi = Phi**exp;
-                if (smallPhi < n) {
-                    exponents.push(exp);
-                    n -= smallPhi;
+                console.log("loop: exp", exp, "SmallPhi", PrecisePhi.pow(exp).toFixed());
+                const round = 15;
+                let smallPhi = PrecisePhi.pow(exp);
+                console.log("compN", n.round(round).toFixed(), "phi", smallPhi.toFixed());
+                if (smallPhi.round(round).lte(n.round(round))) {
+                    decExponents.push(exp);
+                    n = n.minus(smallPhi);
                     break;
                 }
 
-                if (exp < -16) {
-                    console.log(Infinity);
+                if (exp < -100) {
+                    console.error(Infinity);
                     return;
                 }
 
             } while (exp--);
 
             
-            if (exp < -16) return;
+            if (exp < -100) return;
             getExpLTPhi(n, exp);
         }
 
@@ -135,21 +157,23 @@ export default class BasePhi extends BaseTemplate {
 
             let exp, r;
             [ exp, r ] = luMod(n);
+            console.log(exp, r);
             
             exponents.push(exp);
 
             if (r <= 2) {
                 console.log("end", n);
-                let fr = Number(n) - Phi**exp;
+                let fr = n.minus(PrecisePhi.pow(exp));
                 console.log(fr);
-                if (fr >= Phi) {
+                if (fr.gte(PrecisePhi)) {
                     exponents.push(1);
-                    fr -= Phi;
-                } else if (fr >= 1) {
+                    fr = fr.minus(PrecisePhi);
+                } else if (fr.gt(1)) {
                     exponents.push(0);
-                    fr -= 1;
+                    fr = fr.minus(1);
                 } 
-                console.log(fr);
+                console.log(fr.toFixed());
+                getExpLTPhi(fr);
             }
             
             else {
@@ -170,8 +194,10 @@ export default class BasePhi extends BaseTemplate {
 
         let fN = 0;
         exponents.forEach(exp => fN += 2**exp);
-
-    
-        console.log(fN.toString(2));
+        let fN2 = 0;
+        decExponents.forEach(exp => fN2 += 2**exp);
+        
+        console.log(decExponents);
+        console.log(fN.toString(2) + fN2.toString(2).slice(1));
     }
 }
