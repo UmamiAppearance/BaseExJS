@@ -90,7 +90,11 @@ export default class BasePhi extends BaseTemplate {
             }
 
             while (cur.gt(n)) {
-                if (exp === 1) console.log(cur.toFixed());
+                if (exp === 1) {
+                    // TODO: Test this!
+                    cur = PrecisePhi;
+                    prev = PrecisePhi.plus(1);
+                }
                 [ cur, prev ] = prevPhiExp(cur, prev);
                 if (cur.lte(0)) {
                     console.warn("below 0");
@@ -98,7 +102,7 @@ export default class BasePhi extends BaseTemplate {
                 }
                 exp--;
                 //console.log("a", cur.toFixed(), prev.toFixed(), exp);
-                if (exp < -100) throw new Error("Infinity loop");
+                if (exp < -200) throw new Error("Infinity loop");
             }
 
             if (exp > -1) {
@@ -118,7 +122,7 @@ export default class BasePhi extends BaseTemplate {
             output = Number(n).toString(10);
             console.log(output);
         } else {
-            let [ last, cur ] = nextPhiExp(PrecisePhi.pow(-1), Big(1));
+            let [ last, cur ] = nextPhiExp(PrecisePhi.minus(1), Big(1));
             let exp = 0;
             while (cur.lt(n)) {
                 [ last, cur ] = nextPhiExp(last, cur);
@@ -128,12 +132,16 @@ export default class BasePhi extends BaseTemplate {
             reduceN(last, cur, exp);
         }
 
+        console.log(exponents, decExponents);
+
         let fN = 0;
         exponents.forEach(exp => fN += 2**exp);
         let fN2 = 0;
         decExponents.forEach(exp => fN2 += 2**exp);
+
+        console.log(fN, fN2);
         
-        console.log(exponents, decExponents);
+        
         console.log(fN.toString(2) + fN2.toString(2).slice(1));
     }
 }
