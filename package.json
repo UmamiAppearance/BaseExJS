@@ -63,7 +63,7 @@
     "ava": "^5.0.1",
     "eslint": "^8.26.0",
     "http-server": "^14.1.1",
-    "rollup": "^3.2.3",
+    "rollup": "^3.2.5",
     "rollup-plugin-minification": "^0.2.0",
     "rollup-plugin-your-function": "^0.4.2",
     "terser": "^5.15.1"

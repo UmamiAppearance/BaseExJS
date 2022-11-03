@@ -8,6 +8,8 @@
 
 import { BaseConverter, BaseTemplate } from "../core.js";
 import Big from "../../node_modules/big.js/big.mjs";
+Big.DP = 40
+
 //import { CharsetError } from "../utils.js";
 
 /**
@@ -20,6 +22,8 @@ import Big from "../../node_modules/big.js/big.mjs";
  * 
  */
 export default class BasePhi extends BaseTemplate {
+
+    #Phi = Big("1.61803398874989484820458683436563811772030917980576286213545");
     
     /**
      * BaseEx basE91 Constructor.
@@ -49,6 +53,20 @@ export default class BasePhi extends BaseTemplate {
         this.isMutable.integrity = false;
     }
 
+    #approxNull(n) { 
+        return !(n.round(39)
+            .abs()
+            .toNumber()
+        );
+    }
+    
+    #nextPhiExp(last, cur) {
+        return [ cur, last.plus(cur) ];
+    }
+
+    #prevPhiExp(cur, prev) {
+        return [ prev.minus(cur), cur ];
+    }
 
     /**
      * BaseEx LEB128 Encoder.
@@ -71,20 +89,9 @@ export default class BasePhi extends BaseTemplate {
         const exponents = [];
         const decExponents = [];
         
-        const approxNull = n => !(
-            n.round(14)
-                .abs()
-                .toNumber()
-        );
-        
-        const PrecisePhi = Big("1.61803398874989484820458683436563811772030917980576286213545");
-        
-        const nextPhiExp = (last, cur) => [ cur, last.plus(cur) ];
-        const prevPhiExp = (cur, prev) => [ prev.minus(cur), cur ];
-        
         const reduceN = (cur, prev, exp) => {
 
-            if (approxNull(n)) {
+            if (this.#approxNull(n)) {
                 console.warn(0);
                 return;
             }
@@ -92,10 +99,10 @@ export default class BasePhi extends BaseTemplate {
             while (cur.gt(n)) {
                 if (exp === 1) {
                     // TODO: Test this!
-                    cur = PrecisePhi;
-                    prev = PrecisePhi.plus(1);
+                    cur = this.#Phi;
+                    prev = this.#Phi.plus(1);
                 }
-                [ cur, prev ] = prevPhiExp(cur, prev);
+                [ cur, prev ] = this.#prevPhiExp(cur, prev);
                 if (cur.lte(0)) {
                     console.warn("below 0");
                     return;
@@ -122,10 +129,10 @@ export default class BasePhi extends BaseTemplate {
             output = Number(n).toString(10);
             console.log(output);
         } else {
-            let [ last, cur ] = nextPhiExp(PrecisePhi.minus(1), Big(1));
+            let [ last, cur ] = this.#nextPhiExp(this.#Phi.minus(1), Big(1));
             let exp = 0;
             while (cur.lt(n)) {
-                [ last, cur ] = nextPhiExp(last, cur);
+                [ last, cur ] = this.#nextPhiExp(last, cur);
                 exp++;
             }
 
@@ -176,5 +183,36 @@ export default class BasePhi extends BaseTemplate {
 
         console.log(exponents, decExponents);
 
-     }
+        let n = Big(0);
+
+        let exp = 0;
+        let cur = Big(1); 
+        let last = this.#Phi.minus(cur);
+        
+        for (const nExp of exponents) {
+            while (nExp > exp) {
+                [ last, cur ] = this.#nextPhiExp(last, cur);
+                exp++;
+            }
+            console.log(cur.toFixed(), exp);
+            n = n.plus(cur);
+        }
+
+
+        exp = -1;
+        let prev = Big(1); 
+        cur = this.#Phi.minus(prev);
+
+        for (const nExp of decExponents) {
+            while (exp > nExp) {
+                [ cur, prev ] = this.#prevPhiExp(cur, prev);
+                exp--;
+            }
+            console.log(cur.toFixed(), exp);
+            n = n.plus(cur);
+        }
+
+        console.log(n.toFixed());
+
+    }
 }
