@@ -142,6 +142,39 @@ export default class BasePhi extends BaseTemplate {
         console.log(fN, fN2);
         
         
-        console.log(fN.toString(2) + fN2.toString(2).slice(1));
+        return fN.toString(2) + fN2.toString(2).slice(1);
     }
+
+
+    /**
+     * BaseEx Base Phi Decoder.
+     * @param {string} input - Base Phi String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+     decode(input, ...args) {
+        
+        // Argument validation and output settings
+        const settings = this.utils.validateArgs(args);
+
+        const [ posExpStr, decExpStr ] = input.split(".");
+
+        const exponents = [];
+        const decExponents = [];
+
+        [...posExpStr].reverse().forEach((bit, i) => {
+            if (bit|0) {
+                exponents.push(i);
+            }
+        });
+
+        [...decExpStr].forEach((bit, i) => {
+            if (bit|0) {
+                decExponents.push(-i-1);
+            }
+        });
+
+        console.log(exponents, decExponents);
+
+     }
 }
