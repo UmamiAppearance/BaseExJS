@@ -65,16 +65,37 @@ export default class BasePhi extends BaseTemplate {
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);
         const charset = this.charsets[settings.version];
-        const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
-
-        // Convert to BaseRadix string
-        const base10 = this.b10.encode(inputBytes, null, settings.littleEndian)[0];
         
-        if (base10 === "0" || base10 === "1") {
-            return charset[base10|0];
+        let inputBytes;
+        let negative;
+        let n;
+        let output = "";
+        
+        if (Number.isFinite(input)) {
+            if (input < 0) {
+                negative = true;
+                n = Big(-input);
+            } else {
+                negative = false;
+                n = Big(input);
+            }
+            
+        } 
+
+        else {
+            [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
+            n = Big(
+                this.b10.encode(inputBytes, null, settings.littleEndian)[0]
+            );
         }
 
-        let n = Big(base10);
+        if (n.eq(0) || n.eq(1)) {
+            output = charset[n.toNumber()]; 
+            if (negative) {
+                output = `-${output}`;
+            }           
+            return output;
+        }
         
         const exponents = [];
         const decExponents = [];
@@ -88,9 +109,6 @@ export default class BasePhi extends BaseTemplate {
             exp++;
         }
         
-        let posExpStr = "";
-        let decExpStr = "";
-
         const reduceN = (cur, prev, exp) => {
 
             if (this.#approxNull(n)) {
@@ -100,13 +118,6 @@ export default class BasePhi extends BaseTemplate {
 
             while (cur.gt(n)) {
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
-                
-                if (exp > -1) {
-                    posExpStr += charset[0];
-                } else {
-                    decExpStr += charset[0];
-                }
-
                 if (cur.lte(0)) {
                     console.warn("below 0");
                     return;
@@ -115,10 +126,8 @@ export default class BasePhi extends BaseTemplate {
             }
 
             if (exp > -1) {
-                posExpStr += charset[1];
                 exponents.unshift(exp);
             } else {
-                decExpStr += charset[1];
                 decExponents.push(exp);
             }
             n = n.minus(cur);
@@ -126,13 +135,9 @@ export default class BasePhi extends BaseTemplate {
             reduceN(cur, prev, exp);
         }
 
-
         reduceN(last, cur, exp);
-        console.log(posExpStr, decExpStr);
-        console.log(exponents, decExponents);
 
         exp = 0; 
-        let output = "";
         exponents.forEach(nExp => {
             while (exp < nExp) {
                 output = `${charset[0]}${output}`;
@@ -220,7 +225,7 @@ export default class BasePhi extends BaseTemplate {
     }
 
     #approxNull(n) { 
-        return !(n.round(50)
+        return !(n.round(14)
             .abs()
             .toNumber()
         );
