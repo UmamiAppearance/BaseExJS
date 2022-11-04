@@ -71,6 +71,7 @@ export default class BasePhi extends BaseTemplate {
         let n;
         let output = "";
         
+        // TODO: and type decimal (invent this type)
         if (Number.isFinite(input)) {
             if (input < 0) {
                 negative = true;
