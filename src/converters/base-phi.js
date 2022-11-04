@@ -8,9 +8,8 @@
 
 import { BaseConverter, BaseTemplate } from "../core.js";
 import Big from "../../node_modules/big.js/big.mjs";
-Big.DP = 40
+import { CharsetError } from "../utils.js";
 
-//import { CharsetError } from "../utils.js";
 
 /**
  * BaseEx Base Phi Converter.
@@ -23,7 +22,7 @@ Big.DP = 40
  */
 export default class BasePhi extends BaseTemplate {
 
-    #Phi = Big("1.61803398874989484820458683436563811772030917980576286213545");
+    #Phi = Big("1.618033988749894848204586834365638117720309179805762862135448622705260462818902449707207204189391137484754088075386891752");
     
     /**
      * BaseEx basE91 Constructor.
@@ -45,6 +44,7 @@ export default class BasePhi extends BaseTemplate {
         this.charsets.default = ["0", "1"];
 
         this.version = "default";
+        this.signed = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);
@@ -53,20 +53,6 @@ export default class BasePhi extends BaseTemplate {
         this.isMutable.integrity = false;
     }
 
-    #approxNull(n) { 
-        return !(n.round(39)
-            .abs()
-            .toNumber()
-        );
-    }
-    
-    #nextPhiExp(last, cur) {
-        return [ cur, last.plus(cur) ];
-    }
-
-    #prevPhiExp(cur, prev) {
-        return [ prev.minus(cur), cur ];
-    }
 
     /**
      * BaseEx LEB128 Encoder.
@@ -78,17 +64,33 @@ export default class BasePhi extends BaseTemplate {
         
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);
-        const signed = settings.signed;
-        settings.signed = true;
+        const charset = this.charsets[settings.version];
         const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
         const base10 = this.b10.encode(inputBytes, null, settings.littleEndian)[0];
-        let n = Big(base10);
+        
+        if (base10 === "0" || base10 === "1") {
+            return charset[base10|0];
+        }
 
+        let n = Big(base10);
+        
         const exponents = [];
         const decExponents = [];
+
+        let last = Big(1);
+        let cur = this.#Phi;
+        let exp = 0;
         
+        while (cur.lt(n)) {
+            [ last, cur ] = this.#nextPhiExp(last, cur);
+            exp++;
+        }
+        
+        let posExpStr = "";
+        let decExpStr = "";
+
         const reduceN = (cur, prev, exp) => {
 
             if (this.#approxNull(n)) {
@@ -97,59 +99,66 @@ export default class BasePhi extends BaseTemplate {
             }
 
             while (cur.gt(n)) {
-                if (exp === 1) {
-                    // TODO: Test this!
-                    cur = this.#Phi;
-                    prev = this.#Phi.plus(1);
-                }
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
+                
+                if (exp > -1) {
+                    posExpStr += charset[0];
+                } else {
+                    decExpStr += charset[0];
+                }
+
                 if (cur.lte(0)) {
                     console.warn("below 0");
                     return;
                 }
                 exp--;
-                //console.log("a", cur.toFixed(), prev.toFixed(), exp);
-                if (exp < -200) throw new Error("Infinity loop");
             }
 
             if (exp > -1) {
-                exponents.push(exp);
+                posExpStr += charset[1];
+                exponents.unshift(exp);
             } else {
+                decExpStr += charset[1];
                 decExponents.push(exp);
             }
             n = n.minus(cur);
-            //console.log("end", n.toFixed(), exp, cur.toFixed());
 
             reduceN(cur, prev, exp);
         }
 
-        let output;
 
-        if (n === 0 || n == 1) {
-            output = Number(n).toString(10);
-            console.log(output);
-        } else {
-            let [ last, cur ] = this.#nextPhiExp(this.#Phi.minus(1), Big(1));
-            let exp = 0;
-            while (cur.lt(n)) {
-                [ last, cur ] = this.#nextPhiExp(last, cur);
-                exp++;
-            }
-
-            reduceN(last, cur, exp);
-        }
-
+        reduceN(last, cur, exp);
+        console.log(posExpStr, decExpStr);
         console.log(exponents, decExponents);
 
-        let fN = 0;
-        exponents.forEach(exp => fN += 2**exp);
-        let fN2 = 0;
-        decExponents.forEach(exp => fN2 += 2**exp);
+        exp = 0; 
+        let output = "";
+        exponents.forEach(nExp => {
+            while (exp < nExp) {
+                output = `${charset[0]}${output}`;
+                exp++;
+            }
+            output = `${charset[1]}${output}`;
+            exp++;
+        });
 
-        console.log(fN, fN2);
+        output += ".";
         
-        
-        return fN.toString(2) + fN2.toString(2).slice(1);
+        exp = -1;
+        decExponents.forEach(nExp => {
+            while (exp > nExp) {
+                output += charset[0];
+                exp--;
+            }
+            output += charset[1];
+            exp--;
+        });
+
+        if (negative) {
+            output = `-${output}`;
+        }
+ 
+        return output;
     }
 
 
@@ -163,56 +172,65 @@ export default class BasePhi extends BaseTemplate {
         
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
+        const charset = this.charsets[settings.version];
 
+        let negative;
+        [ input, negative ] = this.utils.extractSign(
+            this.utils.normalizeInput(input)
+        );
+        
         const [ posExpStr, decExpStr ] = input.split(".");
-
-        const exponents = [];
-        const decExponents = [];
-
-        [...posExpStr].reverse().forEach((bit, i) => {
-            if (bit|0) {
-                exponents.push(i);
-            }
-        });
-
-        [...decExpStr].forEach((bit, i) => {
-            if (bit|0) {
-                decExponents.push(-i-1);
-            }
-        });
-
-        console.log(exponents, decExponents);
-
         let n = Big(0);
 
-        let exp = 0;
+        let last = this.#Phi.minus(1);
         let cur = Big(1); 
-        let last = this.#Phi.minus(cur);
         
-        for (const nExp of exponents) {
-            while (nExp > exp) {
-                [ last, cur ] = this.#nextPhiExp(last, cur);
-                exp++;
+        [...posExpStr].reverse().forEach((char) => {
+            const charIndex = charset.indexOf(char);
+            if (charIndex === 1) {
+                n = n.plus(cur);
+            } else if (charIndex !== 0) {
+                throw new CharsetError(char);
             }
-            console.log(cur.toFixed(), exp);
-            n = n.plus(cur);
-        }
+            [ last, cur ] = this.#nextPhiExp(last, cur);
+        });
 
 
-        exp = -1;
-        let prev = Big(1); 
-        cur = this.#Phi.minus(prev);
-
-        for (const nExp of decExponents) {
-            while (exp > nExp) {
+        if (decExpStr) {      
+            let prev = Big(1); 
+            cur = this.#Phi.minus(prev);
+            
+            [...decExpStr].forEach((char) => {
+                const charIndex = charset.indexOf(char);
+                if (charIndex === 1) {
+                    n = n.plus(cur);
+                } else if (charIndex !== 0) {
+                    throw new CharsetError(char);
+                }
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
-                exp--;
-            }
-            console.log(cur.toFixed(), exp);
-            n = n.plus(cur);
+            });
         }
 
-        console.log(n.toFixed());
+        n = n.round().toFixed();
 
+        const output = this.b10.decode(n, [..."0123456789"], [], settings.integrity, settings.littleEndian);
+ 
+        // Return the output
+        return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
+    }
+
+    #approxNull(n) { 
+        return !(n.round(50)
+            .abs()
+            .toNumber()
+        );
+    }
+    
+    #nextPhiExp(last, cur) {
+        return [ cur, last.plus(cur) ];
+    }
+
+    #prevPhiExp(cur, prev) {
+        return [ prev.minus(cur), cur ];
     }
 }

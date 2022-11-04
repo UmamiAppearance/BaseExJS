@@ -402,6 +402,12 @@ class Utils {
         return output.match(m).join("\n");
     }
 
+    /**
+     * Ensures a string input.
+     * @param {*} input - Input.
+     * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+     * @returns {string} - Normalized input.
+     */
     normalizeInput(input, keepNL=false) {
         if (keepNL) {
             return String(input);
