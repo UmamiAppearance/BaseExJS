@@ -70,18 +70,23 @@ export default class BasePhi extends BaseTemplate {
         let negative;
         let n;
         let output = "";
-        
+        console.log(settings);
         // TODO: and type decimal (invent this type)
-        if (Number.isFinite(input)) {
-            if (input < 0) {
-                negative = true;
-                n = Big(-input);
-            } else {
-                negative = false;
-                n = Big(input);
+        if (settings.decimalMode) {
+            if (Number.isFinite(input)) {
+                if (input < 0) {
+                    negative = true;
+                    n = Big(-input);
+                } else {
+                    negative = false;
+                    n = Big(input);
+                }       
             }
-            
-        } 
+
+            else {
+                throw new TypeError("When running the converter in 'decimalMode' only input of type Number is allowed.")
+            }
+        }
 
         else {
             [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
@@ -215,6 +220,10 @@ export default class BasePhi extends BaseTemplate {
                 }
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
             });
+        }
+
+        if (settings.decimalMode) {
+            return n.toNumber();
         }
 
         n = n.round().toFixed();

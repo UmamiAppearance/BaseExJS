@@ -369,6 +369,7 @@ class BaseTemplate {
 
         // predefined settings
         this.charsets = {};
+        this.decimalMode = false;
         this.frozenCharsets = false;
         this.hasSignedMode = false;
         this.integrity = true;

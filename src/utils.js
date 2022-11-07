@@ -312,6 +312,12 @@ class Utils {
         if (extractArg("number")) {
             parameters.numberMode = true;
             parameters.outputType = "float_n";
+        } 
+        
+        // test for the special "decimal" keyword
+        else if (extractArg("decimal")) {
+            parameters.decimalMode = true;
+            parameters.outputType = "decimal";
         }
 
         // walk through the remaining arguments
