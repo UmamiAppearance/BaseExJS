@@ -1,5 +1,5 @@
 import { readdirSync } from "fs";
-import { terser } from "rollup-plugin-minification";
+import terser from "@rollup/plugin-terser";
 import { yourFunction } from "rollup-plugin-your-function";
 
 const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
