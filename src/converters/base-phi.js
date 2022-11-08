@@ -33,7 +33,7 @@ export default class BasePhi extends BaseTemplate {
 
         // converter (properties only)
         this.converter = {
-            radix: 2, // radix is Phi, but the normalized representation allow two chars
+            radix: 2, // radix is Phi, but the normalized representation allows two chars
             bsEnc: 0,
             bsDec: 0
         }
@@ -70,8 +70,7 @@ export default class BasePhi extends BaseTemplate {
         let negative;
         let n;
         let output = "";
-        console.log(settings);
-        // TODO: and type decimal (invent this type)
+
         if (settings.decimalMode) {
             if (Number.isFinite(input)) {
                 if (input < 0) {
@@ -153,7 +152,11 @@ export default class BasePhi extends BaseTemplate {
             exp++;
         });
 
-        output += ".";
+        if (!output) {
+            output = "0.";
+        } else {
+            output += ".";
+        }
         
         exp = -1;
         decExponents.forEach(nExp => {
@@ -235,7 +238,7 @@ export default class BasePhi extends BaseTemplate {
     }
 
     #approxNull(n) { 
-        return !(n.round(14)
+        return !(n.round(50)
             .abs()
             .toNumber()
         );

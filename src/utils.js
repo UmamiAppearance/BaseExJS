@@ -245,6 +245,7 @@ class Utils {
         
         // default settings
         const parameters = {
+            decimalMode: this.root.decimalMode,
             integrity: this.root.integrity,
             littleEndian: this.root.littleEndian,
             numberMode: this.root.numberMode,
