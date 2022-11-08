@@ -759,6 +759,7 @@ var Leb128 = (function () {
             
             // default settings
             const parameters = {
+                decimalMode: this.root.decimalMode,
                 integrity: this.root.integrity,
                 littleEndian: this.root.littleEndian,
                 numberMode: this.root.numberMode,
@@ -826,6 +827,12 @@ var Leb128 = (function () {
             if (extractArg("number")) {
                 parameters.numberMode = true;
                 parameters.outputType = "float_n";
+            } 
+            
+            // test for the special "decimal" keyword
+            else if (extractArg("decimal")) {
+                parameters.decimalMode = true;
+                parameters.outputType = "decimal";
             }
 
             // walk through the remaining arguments
@@ -916,6 +923,12 @@ var Leb128 = (function () {
             return output.match(m).join("\n");
         }
 
+        /**
+         * Ensures a string input.
+         * @param {*} input - Input.
+         * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+         * @returns {string} - Normalized input.
+         */
         normalizeInput(input, keepNL=false) {
             if (keepNL) {
                 return String(input);
@@ -1293,6 +1306,7 @@ var Leb128 = (function () {
 
             // predefined settings
             this.charsets = {};
+            this.decimalMode = false;
             this.frozenCharsets = false;
             this.hasSignedMode = false;
             this.integrity = true;
@@ -1486,10 +1500,9 @@ var Leb128 = (function () {
             // argument validation and input settings
             const settings = this.utils.validateArgs(args);
             
-            let inputBytes, negative;
             const signed = settings.signed;
             settings.signed = true;
-            [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
+            const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
 
             // Convert to BaseRadix string
             let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];

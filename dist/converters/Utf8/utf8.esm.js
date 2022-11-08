@@ -1434,108 +1434,79 @@ class BaseTemplate {
 }
 
 /**
- * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
+ * [BaseEx|UTF8 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
  * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
-
-/**
- * BaseEx Base 32 Converter.
- * ------------------------
- * 
- * This is a base32 converter. Various input can be 
- * converted to a base32 string or a base32 string
- * can be decoded into various formats. It is possible
- * to convert in both signed and unsigned mode in little
- * and big endian byte order.
- * 
- * Available charsets are:
- *  - RFC 3548
- *  - RFC 4648
- *  - crockford
- *  - zbase32
- */
-class Base32 extends BaseTemplate {
-    
-    /**
-     * BaseEx Base32 Constructor.
-     * @param {...string} [args] - Converter settings.
-     */
+ 
+ /**
+  * BaseEx Little Endian Base 128 Converter.
+  * ---------------------------------------
+  * 
+  * This is a utf8 converter. Various input can be 
+  * converted to a utf8 string or a utf8 string
+  * can be decoded into various formats.
+  * 
+  * There is no real charset available as the input is
+  * getting converted to bytes. For having the chance 
+  * to store these bytes, there is a hexadecimal output
+  * available.
+  */
+ class Utf8 extends BaseTemplate {
+     
+     /**
+      * BaseEx UTF8 Constructor.
+      * @param {...string} [args] - Converter settings.
+      */
     constructor(...args) {
+        // initialize base template without utils
         super();
-        this.converter = new BaseConverter(32, 5, 8);
 
+        // converters
+        this.converter = new BaseConverter(10, 0, 0);
+        
         // charsets
-        this.charsets.crockford = [ ..."0123456789abcdefghjkmnpqrstvwxyz" ];
-        this.padChars.crockford = ["="],
-
-        this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
-        this.padChars.rfc3548 =   ["="];
-
-        this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
-        this.padChars.rfc4648 =   ["="];
-
-        this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
-        this.padChars.zbase32 =   ["="];
+        this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"];
         
         // predefined settings
-        this.padCharAmount = 1;
-        this.hasSignedMode = true;
-        this.version = "rfc4648";
-        
-        // mutable extra args
-        this.isMutable.littleEndian = true;
-        this.isMutable.padding = true;
-        this.isMutable.signed = true;
-        this.isMutable.upper = true;
+        this.version = "default";
+        this.frozenCharsets = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);
-        this.padding = (/rfc3548|rfc4648/).test(this.version);
-        this.upper = this.version === "crockford";
     }
-    
-
+ 
+ 
     /**
-     * BaseEx Base32 Encoder.
+     * BaseEx UTF8 Encoder.
      * @param {*} input - Input according to the used byte converter.
      * @param  {...str} [args] - Converter settings.
-     * @returns {string} - Base32 encoded string.
+     * @returns { sting } - UTF8 encoded Unit8Array (or hex string of it).
      */
     encode(input, ...args) {
+         
+         // argument validation and input settings
+         const settings = this.utils.validateArgs(args);
+         
+         const inputBytes = this.utils.inputHandler.toBytes(input, settings)[0]; 
+         
+         let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
+ 
+         let n = BigInt(base10);
 
-        const applyPadding = ({ output, settings, zeroPadding }) => {
+         return n;
+    }
 
-            if (!settings.littleEndian) {
-                // Cut of redundant chars and append padding if set
-                if (zeroPadding) {
-                    const padValue = this.converter.padBytes(zeroPadding);
-                    const padChar = this.padChars[settings.version].at(0);
-                    output = output.slice(0, -padValue);
-                    if (settings.padding) { 
-                        output = output.concat(padChar.repeat(padValue));
-                    }
-                }
-            }
-
-            return output;
-        };
-        
-        return super.encode(input, null, applyPadding, ...args);
+    show() {
+        //
     }
 
 
-    /**
-     * BaseEx Base32 Decoder.
-     * @param {string} input - Base32 String.
-     * @param  {...any} [args] - Converter settings.
-     * @returns {*} - Output according to converter settings.
-     */
-    decode(input, ...args) {
-        return super.decode(input, null, null, false, ...args);
+    #ranges = {
+        a: 1
     }
 }
 
-export { Base32 as default };
+export { Utf8 as default };
