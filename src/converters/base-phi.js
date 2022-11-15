@@ -55,10 +55,10 @@ export default class BasePhi extends BaseTemplate {
 
 
     /**
-     * BaseEx LEB128 Encoder.
+     * BaseEx BasePhi Encoder.
      * @param {*} input - Input according to the used byte converter.
-     * @param  {...str} [args] - Converter settings.
-     * @returns {{ buffer: ArrayBufferLike; }} - LEB128 encoded Unit8Array (or hex string of it).
+     * @param  {...string} [args] - Converter settings.
+     * @returns {string} - BasePhi encoded string.
      */
     encode(input, ...args) {
         
