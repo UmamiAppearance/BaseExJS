@@ -531,6 +531,7 @@ var Base85 = (function () {
         }
     }
 
+
     /**
      * Utilities for every BaseEx class.
      * --------------------------------
@@ -731,19 +732,22 @@ var Base85 = (function () {
                 .join(" and ")
             )
             .join("\n   - ");
-
-            const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
-            const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
-            const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
-            const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
-            const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
-            const outputHint = `\n * valid args for the output type are ${this.#makeArgList(outputTypes)}`;
-            const versionHint = (versions) ? `\n * the option(s) for version/charset are: ${this.#makeArgList(versions)}` : "";
-            const integrityHint = "\n * valid args for integrity check are: 'integrity' and 'nointegrity'";
-            const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
-            const converterArgsHint = Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "";
             
-            throw new TypeError(`'${arg}'\n\nParameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${integrityHint}${numModeHint}${converterArgsHint}\n\nTraceback:`);
+            throw new TypeError([
+                `'${arg}'\n\nParameters:`,
+                initial ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : "",
+                this.root.isMutable.signed ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "",
+                this.root.isMutable.littleEndian ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "",
+                this.root.isMutable.padding ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "",
+                this.root.isMutable.upper ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "",
+                `\n * valid args for the output type are ${this.#makeArgList(outputTypes)}`,
+                versions ? `\n * the option(s) for version/charset are: ${this.#makeArgList(versions)}` : "",
+                "\n * valid args for integrity check are: 'integrity' and 'nointegrity'",
+                this.root.hasDecimalMode ? "\n * 'decimal' for decimal-mode (directly converts Numbers including decimal values, without byte-conversion)" : "",
+                "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)",
+                Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "",
+                "\n\nTraceback:"
+            ].join(""));
         }
 
 
@@ -829,9 +833,17 @@ var Base85 = (function () {
             } 
             
             // test for the special "decimal" keyword
-            else if (extractArg("decimal")) {
+            if (extractArg("decimal")) {
+                if (!this.root.hasDecimalMode) {
+                    throw TypeError(`Argument 'decimal' is only allowed for converters with a non-integer base.`);
+                }
                 parameters.decimalMode = true;
                 parameters.outputType = "decimal";
+
+                if (parameters.numberMode) {
+                    parameters.numberMode = false;
+                    console.warn("-> number-mode was disabled due to the decimal-mode");
+                }
             }
 
             // walk through the remaining arguments
@@ -888,7 +900,7 @@ var Base85 = (function () {
             // displayed.
             if (parameters.padding && parameters.signed) {
                 parameters.padding = false;
-                console.warn("Padding was set to false due to the signed conversion.");
+                console.warn("-> padding was set to false due to the signed conversion");
             }
             
             // overwrite the default parameters for the initial call
@@ -1307,6 +1319,7 @@ var Base85 = (function () {
             this.charsets = {};
             this.decimalMode = false;
             this.frozenCharsets = false;
+            this.hasDecimalMode = false;
             this.hasSignedMode = false;
             this.integrity = true;
             this.littleEndian = false;
