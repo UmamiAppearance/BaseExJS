@@ -531,7 +531,6 @@ var Utf8 = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

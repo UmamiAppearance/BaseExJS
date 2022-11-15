@@ -531,7 +531,6 @@ var Ecoji = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

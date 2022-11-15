@@ -7,9 +7,8 @@
  */
 
 import { BaseConverter, BaseTemplate } from "../core.js";
-import Big from "../../node_modules/big.js/big.mjs";
+import Big from "../../lib/big.js/big.min.js";
 import { CharsetError } from "../utils.js";
-
 
 /**
  * BaseEx Base Phi Converter.
@@ -38,6 +37,7 @@ export default class BasePhi extends BaseTemplate {
             bsDec: 0
         }
 
+        // base10 converter to have always have a numerical input 
         this.b10 = new BaseConverter(10, 0, 0);
 
         // charsets
@@ -71,6 +71,9 @@ export default class BasePhi extends BaseTemplate {
         let n;
         let output = "";
 
+        // Base Phi allows direct encoding of rational 
+        // and irrational numbers, which can be enabled
+        // by using the special type "decimal"
         if (settings.decimalMode) {
             if (Number.isFinite(input)) {
                 if (input < 0) {
@@ -83,10 +86,11 @@ export default class BasePhi extends BaseTemplate {
             }
 
             else {
-                throw new TypeError("When running the converter in 'decimalMode' only input of type Number is allowed.")
+                throw new TypeError("When running the converter in 'decimal' mode, only input of type Number is allowed.")
             }
         }
 
+        // every other type first converts the input to base 10
         else {
             [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
             n = Big(
@@ -94,6 +98,7 @@ export default class BasePhi extends BaseTemplate {
             );
         }
 
+        // if "n" if 0 or 1 stop and return 0 or 1
         if (n.eq(0) || n.eq(1)) {
             output = charset[n.toNumber()]; 
             if (negative) {
@@ -102,13 +107,23 @@ export default class BasePhi extends BaseTemplate {
             return output;
         }
         
+        // create two arrays to store all exponents
         const exponents = [];
         const decExponents = [];
+
+
+        // The very first step is to find the highest exponent
+        // of Phi which fits into "n" (the rounded highest exponent
+        // is also the highest Lucas number which fits into "n")
+        // To find the highest fitting exponent start with 
+        // Phi^0 (1) and Phi^1 (Phi).
 
         let last = Big(1);
         let cur = this.#Phi;
         let exp = 0;
         
+        // Now add the result with the last higher value "cur",
+        // util "cur" is bigger than "n"
         while (cur.lt(n)) {
             [ last, cur ] = this.#nextPhiExp(last, cur);
             exp++;
@@ -116,15 +131,15 @@ export default class BasePhi extends BaseTemplate {
         
         const reduceN = (cur, prev, exp) => {
 
-            if (this.#approxNull(n)) {
-                console.warn(0);
-                return;
-            }
+            if (this.#approxNull(n)) return;
 
             while (cur.gt(n)) {
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
+                
+                // if "cur" gets negative return immediately
+                // prevent an infinite loop
                 if (cur.lte(0)) {
-                    console.warn("below 0");
+                    console.warn("Could not find an exact base-phi representation. Value is approximated.");
                     return;
                 }
                 exp--;

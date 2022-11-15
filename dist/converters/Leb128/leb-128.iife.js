@@ -531,7 +531,6 @@ var Leb128 = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

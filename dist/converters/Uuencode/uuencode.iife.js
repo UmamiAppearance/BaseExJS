@@ -531,7 +531,6 @@ var Uuencode = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

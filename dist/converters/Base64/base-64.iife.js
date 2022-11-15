@@ -531,7 +531,6 @@ var Base64 = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

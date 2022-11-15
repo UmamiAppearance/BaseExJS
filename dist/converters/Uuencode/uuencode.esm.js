@@ -528,7 +528,6 @@ class CharsetError extends TypeError {
     }
 }
 
-
 /**
  * Utilities for every BaseEx class.
  * --------------------------------

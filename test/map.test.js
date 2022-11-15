@@ -26,6 +26,8 @@ for (const base in encodingMap) {
             } else if (type === "float") {
                 input = Number(input);
                 type = "float_n";
+            } else if (type === "decimal") {
+                input = Number(input);
             }
             
             test(title, baseTest, input, expected, bFn, type);

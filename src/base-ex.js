@@ -71,6 +71,7 @@ class BaseEx {
         this.ecoji_v1 = new Ecoji("emojis_v1", outputType);
         this.ecoji_v2 = new Ecoji("emojis_v2", outputType);
         this.base2048 = new Base2048("default", outputType);
+        this.basePhi = new BasePhi("default", outputType);
         this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};

@@ -531,7 +531,6 @@ var Base1 = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

@@ -531,7 +531,6 @@ var Base32 = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

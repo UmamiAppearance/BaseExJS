@@ -531,7 +531,6 @@ var Base2048 = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

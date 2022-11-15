@@ -531,7 +531,6 @@ var SimpleBase = (function () {
         }
     }
 
-
     /**
      * Utilities for every BaseEx class.
      * --------------------------------

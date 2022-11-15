@@ -17,6 +17,12 @@ class CharsetError extends TypeError {
     }
 }
 
+class ImportError extends Error {
+    constructor(msg) {
+        super(msg);
+        this.name = "ImportError";
+    }
+}
 
 /**
  * Utilities for every BaseEx class.

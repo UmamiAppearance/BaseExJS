@@ -71,7 +71,10 @@ const randomInputs = (ignoreNullEnd, ignoreNullStart=false) => {
         if (base !== "Base1" && base !== "BaseEx" && base !== "SimpleBase") {
 
             const bFn = new BaseEx[base]();
-            const inputs = randomInputs(bFn.littleEndian || base === "ByteConverter");
+            const inputs = randomInputs(
+                bFn.littleEndian || base === "ByteConverter",
+                base === "BasePhi"
+            );
             
             for (const input in inputs.bytes) {
                 test(
