@@ -73,7 +73,8 @@ export default class BasePhi extends BaseTemplate {
 
         // Base Phi allows direct encoding of rational 
         // and irrational numbers, which can be enabled
-        // by using the special type "decimal"
+        // by using the special type "decimal". Input 
+        // type must be "Number" for this mode. 
         if (settings.decimalMode) {
             if (Number.isFinite(input)) {
                 if (input < 0) {
@@ -90,7 +91,8 @@ export default class BasePhi extends BaseTemplate {
             }
         }
 
-        // every other type first converts the input to base 10
+        // Every other type first converts the byte representation
+        // of the input to base 10.
         else {
             [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
             n = Big(
@@ -98,7 +100,7 @@ export default class BasePhi extends BaseTemplate {
             );
         }
 
-        // if "n" if 0 or 1 stop and return 0 or 1
+        // if "n" if 0 or 1 stop here and return 0 or 1 (according to the charset)
         if (n.eq(0) || n.eq(1)) {
             output = charset[n.toNumber()]; 
             if (negative) {
@@ -129,10 +131,24 @@ export default class BasePhi extends BaseTemplate {
             exp++;
         }
         
+        /**
+         * Recursive reduction function for "n". Finds the largest
+         * fitting exponent of Phi (Lucas index), stores that index
+         * in the exponent arrays and reduces "n" by the current exponents
+         * power.
+         * Once started, it calls itself until "n" is zero.  
+         * @param {Object} cur - Current result of Phi^exp as a Big.js object. 
+         * @param {Object} prev - Previous result of Phi^exp as a Big.js object. 
+         * @param {number} exp - Exponent of Phi/Lucas index. 
+         */
         const reduceN = (cur, prev, exp) => {
 
+            // Due to the high floating point precision "n" should
+            // be exactly zero, but if not, an approximation is 
+            // sufficient.
             if (this.#approxNull(n)) return;
 
+            // Reduce the exponents of Phi until it power fits into "n" 
             while (cur.gt(n)) {
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
                 
@@ -145,16 +161,20 @@ export default class BasePhi extends BaseTemplate {
                 exp--;
             }
 
+            // Store the exponents
             if (exp > -1) {
                 exponents.unshift(exp);
             } else {
                 decExponents.push(exp);
             }
+
+            // Reduce "n"
             n = n.minus(cur);
 
             reduceN(cur, prev, exp);
         }
 
+        // Initial call of the reduction function
         reduceN(last, cur, exp);
 
         exp = 0; 
@@ -252,6 +272,11 @@ export default class BasePhi extends BaseTemplate {
         return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 
+    /**
+     * Test if n is approximately zero.
+     * @param {Object} n - Big.js Object. 
+     * @returns {Boolean}
+     */
     #approxNull(n) { 
         return !(n.round(50)
             .abs()
@@ -259,6 +284,13 @@ export default class BasePhi extends BaseTemplate {
         );
     }
     
+    /**
+     * Get the results of of the following exponents of Phi
+     * from the predecessors.
+     * @param {Object} last - Phi^exp-1 as a 
+     * @param {*} cur 
+     * @returns 
+     */
     #nextPhiExp(last, cur) {
         return [ cur, last.plus(cur) ];
     }

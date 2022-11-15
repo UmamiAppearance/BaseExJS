@@ -44,13 +44,16 @@
     "Base32",
     "Base36",
     "Base58",
+    "Base62",
     "Base64",
     "UUencode",
     "Base85",
     "Base91",
     "LEB128",
     "Ecoji",
-    "Base2048"
+    "Base2048",
+    "BasePhi",
+    "Golden Ratio Base"
   ],
   "author": "UmamiAppearance",
   "license": "GPL-3.0",
@@ -61,14 +64,12 @@
   "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.1.0",
-    "ava": "^5.0.1",
+    "ava": "^5.1.0",
+    "big.js": "^6.2.1",
     "eslint": "^8.27.0",
     "http-server": "^14.1.1",
-    "rollup": "^3.2.5",
-    "rollup-plugin-your-function": "^0.4.2",
+    "rollup": "^3.3.0",
+    "rollup-plugin-your-function": "^0.4.3",
     "terser": "^5.15.1"
-  },
-  "dependencies": {
-    "big.js": "^6.2.1"
   }
 }
