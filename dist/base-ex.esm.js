@@ -3537,6 +3537,10 @@ class BasePhi extends BaseTemplate {
         // Initial call of the reduction function
         reduceN(last, cur, exp);
 
+
+        // Create a BasePhi string by setting a "1" at every
+        // index stored in the "exponent" array. for every
+        // number between two indices a zero is added. 
         exp = 0; 
         exponents.forEach(nExp => {
             while (exp < nExp) {
@@ -3547,12 +3551,14 @@ class BasePhi extends BaseTemplate {
             exp++;
         });
 
+        // Add a decimal point
         if (!output) {
             output = "0.";
         } else {
             output += ".";
         }
         
+        // Proceed with the decimal exponents
         exp = -1;
         decExponents.forEach(nExp => {
             while (exp > nExp) {
@@ -3563,6 +3569,7 @@ class BasePhi extends BaseTemplate {
             exp--;
         });
 
+        // Add a "-" if the input is negative.
         if (negative) {
             output = `-${output}`;
         }
@@ -3588,12 +3595,23 @@ class BasePhi extends BaseTemplate {
             this.utils.normalizeInput(input)
         );
         
+        // Split the input String at the decimal sign
+        // and initialize a big.js-object with value 0
         const [ posExpStr, decExpStr ] = input.split(".");
         let n = Big(0);
 
+        // Initialize two variables "last" and "cur"
+        // for Phi^exp-1 and Phi^exp
         let last = this.#Phi.minus(1);
         let cur = Big(1); 
         
+        // Convert the left side of the input string
+        // to an array of chars and reverse it. Raise
+        // the exponent of Phi and its values until a
+        // one is found in the array, if a "1" was found
+        // add the value "cur" to number "n" (one can
+        // also be another corresponding char of the set
+        // which represents 1).
         [...posExpStr].reverse().forEach((char) => {
             const charIndex = charset.indexOf(char);
             if (charIndex === 1) {
@@ -3604,7 +3622,7 @@ class BasePhi extends BaseTemplate {
             [ last, cur ] = this.#nextPhiExp(last, cur);
         });
 
-
+        // Now also add the values for the decimal places.
         if (decExpStr) {      
             let prev = Big(1); 
             cur = this.#Phi.minus(prev);
@@ -3620,15 +3638,20 @@ class BasePhi extends BaseTemplate {
             });
         }
 
+        // If running in decimal mode return n as a Number
         if (settings.decimalMode) {
             return n.toNumber();
         }
 
+        // For every other case round "n" and turn it
+        // into a string of an integer. 
         n = n.round().toFixed();
 
+        // Use the base 10 decoder to get the byte
+        // representation of "n".
         const output = this.b10.decode(n, [..."0123456789"], [], settings.integrity, settings.littleEndian);
  
-        // Return the output
+        // Return the output according to the settings.
         return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
     }
 
@@ -3647,14 +3670,21 @@ class BasePhi extends BaseTemplate {
     /**
      * Get the results of of the following exponents of Phi
      * from the predecessors.
-     * @param {Object} last - Phi^exp-1 as a 
-     * @param {*} cur 
-     * @returns 
+     * @param {Object} last - Phi^exp-1 as a big.js-object 
+     * @param {Object} cur - Phi^exp as a big.js-object
+     * @returns {Object[]} - Array with Phi^exp and Phi^exp+1
      */
     #nextPhiExp(last, cur) {
         return [ cur, last.plus(cur) ];
     }
 
+    /**
+     * Get the results of of the previous exponents of Phi
+     * from the predecessors.
+     * @param {Object} cur - Phi^exp as a big.js-object 
+     * @param {Object} prev - Phi^exp-1 as a big.js-object
+     * @returns {Object[]} - Array with Phi^exp-1 and Phi^exp
+     */
     #prevPhiExp(cur, prev) {
         return [ prev.minus(cur), cur ];
     }
