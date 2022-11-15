@@ -371,6 +371,7 @@ class BaseTemplate {
         this.charsets = {};
         this.decimalMode = false;
         this.frozenCharsets = false;
+        this.hasDecimalMode = false;
         this.hasSignedMode = false;
         this.integrity = true;
         this.littleEndian = false;

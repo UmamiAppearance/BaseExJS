@@ -45,6 +45,7 @@ export default class BasePhi extends BaseTemplate {
 
         this.version = "default";
         this.signed = true;
+        this.hasDecimalMode = true;
 
         // apply user settings
         this.utils.validateArgs(args, true);
@@ -87,7 +88,7 @@ export default class BasePhi extends BaseTemplate {
             }
 
             else {
-                throw new TypeError("When running the converter in 'decimal' mode, only input of type Number is allowed.")
+                throw new TypeError("When running the converter in decimal-mode, only input of type 'Number' is allowed.")
             }
         }
 
