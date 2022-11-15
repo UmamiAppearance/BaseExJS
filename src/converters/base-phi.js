@@ -177,6 +177,10 @@ export default class BasePhi extends BaseTemplate {
         // Initial call of the reduction function
         reduceN(last, cur, exp);
 
+
+        // Create a BasePhi string by setting a "1" at every
+        // index stored in the "exponent" array. for every
+        // number between two indices a zero is added. 
         exp = 0; 
         exponents.forEach(nExp => {
             while (exp < nExp) {
@@ -187,12 +191,14 @@ export default class BasePhi extends BaseTemplate {
             exp++;
         });
 
+        // Add a decimal point
         if (!output) {
             output = "0.";
         } else {
             output += ".";
         }
         
+        // Proceed with the decimal exponents
         exp = -1;
         decExponents.forEach(nExp => {
             while (exp > nExp) {
@@ -203,6 +209,7 @@ export default class BasePhi extends BaseTemplate {
             exp--;
         });
 
+        // Add a "-" if the input is negative.
         if (negative) {
             output = `-${output}`;
         }
