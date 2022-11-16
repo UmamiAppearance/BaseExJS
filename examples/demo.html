@@ -108,7 +108,10 @@
                 importType: "esm",
                 importTypes: ["esm", "node-esm", "node-cjs", "iife"],
                 isInvalid: false,
-                errorMsg: "",
+                error: {
+                    name: null,
+                    message: null
+                },
             };
 
             // Set the initial output
@@ -147,6 +150,10 @@
 
                         // escape double quotes and escape char 
                         let max56Inpt = preIn.replace(/[\"\\]/g, '\\$&');
+
+                        // remove whitespace for decoding
+                        if (isDecoding) max56Inpt = max56Inpt.replace(/\s/g, "");
+
                         let copyPasteInfo = "You can copy this code as it is to your environment";
                         
                         // trim output after 56 characters
@@ -451,7 +458,8 @@
                     showInvalid: function(e) {
                         //console.error("unable to process value", e);
                         this.isInvalid = true;
-                        this.errorMsg = e.message;
+                        this.error.name = e.name;
+                        this.error.message = e.message;
                     }
                 },
 
@@ -586,11 +594,6 @@
                     font-size: 1rem;
                 }
             }
-            @media screen and (max-width: 580px) {
-                #code-section h3 label {
-                    display: none;
-                }
-            }
             .copy {
                 float: right;
                 margin-top: -26px;
@@ -692,7 +695,10 @@
                         placeholder="Input goes here..."
                         v-bind:readonly="false"
                     ></in-out-form>
-                    <div id="error-message">{{ errorMsg }}</div>
+                    <div id="error-message">
+                        <u>{{ error.name }}:</u>
+                        {{ error.message }}
+                    </div>
                 </article>
                 
                 <article id="control">
@@ -726,7 +732,6 @@
                 <article>
                     <h3>
                         <span>possible implementations</span>
-                        <label for="import">as import type</label>
                         <select id="import" v-model="importType">
                             <option v-for="option in importTypes">{{ option }}</option>
                         </select>

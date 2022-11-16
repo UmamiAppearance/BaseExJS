@@ -12,7 +12,7 @@ class SignError extends TypeError {
 
 class CharsetError extends TypeError {
     constructor(char) {
-        super(`Invalid input. Character: '${char}' is not part of the charset.`);
+        super(`Character '${char}' is not part of the charset.`);
         this.name = "CharsetError";
     }
 }
@@ -423,14 +423,14 @@ class Utils {
     /**
      * Ensures a string input.
      * @param {*} input - Input.
-     * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+     * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
      * @returns {string} - Normalized input.
      */
-    normalizeInput(input, keepNL=false) {
-        if (keepNL) {
+    normalizeInput(input, keepWS=false) {
+        if (keepWS) {
             return String(input);
         }
-        return String(input).replace(/\n/g, "");
+        return String(input).replace(/\s/g, "");
     }
 
 }
