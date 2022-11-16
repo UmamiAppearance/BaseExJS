@@ -143,7 +143,7 @@
                         const simpleBase = (this.curTypes.decode.slice(0,10) === "simpleBase");
                         
                         // generate a cleaned byte string, that is separated by commas
-                        const preIn = (isBytes) ? this.input.split(",").map(b => b.trim()).filter(b => b !== "").join(", ") : this.input;
+                        const preIn = (isBytes) ? String(this.input).split(",").map(b => b.trim()).filter(b => b !== "").join(", ") : String(this.input);
 
                         // escape double quotes and escape char 
                         let max56Inpt = preIn.replace(/[\"\\]/g, '\\$&');
@@ -216,7 +216,7 @@
                             ${importStatement}
 
                             // input assignment
-                            const input = ${input.replace("<", "&lt;").replace(">", "&gt;")};
+                            const input = ${input};
 
                             // Main class BaseEx
                             const baseEx = new ${scopeVar}BaseEx();
@@ -496,10 +496,17 @@
                 margin: 6px 0 8px 0;
                 resize: none;
             }
-            #input.invalid textarea {
+            .invalid #input textarea {
                 box-shadow: 0 0 10px #ea1212;
                 color: #9b2f2f;
                 outline-color: transparent;
+            }
+            .invalid #output textarea, .invalid #output select, .invalid .radio-wrapper {
+                opacity: 0.7;
+                pointer-events: none;
+            }
+            .invalid #output form, .invalid #control form {
+                cursor: not-allowed;
             }
             #input #error-message {
                 display: block;
@@ -516,11 +523,12 @@
                 pointer-events: none;
                 max-height: 0;
             }
-            #input.invalid #error-message {
+            .invalid #input #error-message {
                 opacity: 1;
                 transform: rotate3d(1, 0, 0, 0deg) translateY(0);
                 transition: all 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
-                max-height: 400px;
+                max-height: 200px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
             select {
                 cursor: pointer;
@@ -676,8 +684,8 @@
 
     <!-- Input/Output section -->
 
-            <section>
-                <article id="input" :class="{ invalid: isInvalid }">
+            <section :class="{ invalid: isInvalid }">
+                <article id="input">
                     <h3>input</h3>
                     <in-out-form
                         _type="input"
