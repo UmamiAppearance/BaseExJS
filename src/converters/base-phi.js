@@ -8,7 +8,7 @@
 
 import { BaseConverter, BaseTemplate } from "../core.js";
 import Big from "../../lib/big.js/big.min.js";
-import { CharsetError } from "../utils.js";
+import { DecodingError } from "../utils.js";
 
 /**
  * BaseEx Base Phi Converter.
@@ -258,7 +258,7 @@ export default class BasePhi extends BaseTemplate {
             if (charIndex === 1) {
                 n = n.plus(cur);
             } else if (charIndex !== 0) {
-                throw new CharsetError(char);
+                throw new DecodingError(char);
             }
             [ last, cur ] = this.#nextPhiExp(last, cur);
         });
@@ -273,7 +273,7 @@ export default class BasePhi extends BaseTemplate {
                 if (charIndex === 1) {
                     n = n.plus(cur);
                 } else if (charIndex !== 0) {
-                    throw new CharsetError(char);
+                    throw new DecodingError(char);
                 }
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
             });

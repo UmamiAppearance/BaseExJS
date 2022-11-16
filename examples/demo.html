@@ -116,6 +116,18 @@
 
             // Set the initial output
             Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
+
+
+            function _toClipboard(input) {
+                window.navigator.clipboard.writeText(input);
+
+                const copied = document.querySelector("#copied");
+                copied.classList.add("show");
+                
+                setTimeout(() => {
+                    copied.classList.remove("show");
+                }, 1500);
+            }
                 
             const app = createApp({
                 data() {
@@ -125,15 +137,9 @@
                 methods: {
                     toClipboard: function(e) {
                         const code = e.target.previousSibling.textContent;
-                        window.navigator.clipboard.writeText(code);
-
-                        const copied = document.querySelector("#copied");
-                        copied.classList.add("show");
-                        
-                        setTimeout(() => {
-                            copied.classList.remove("show");
-                        }, 1500);
+                        _toClipboard(code);
                     },
+
                     switchInOut: function() {
                         [this.input, this.output] = [this.output, this.input];
                     },
@@ -455,6 +461,12 @@
                 },
 
                 methods: {
+
+                    toClipboard: function(e) {
+                        const code = e.target.previousSibling.value;
+                        _toClipboard(code);
+                    },
+
                     showInvalid: function(e) {
                         //console.error("unable to process value", e);
                         this.isInvalid = true;
@@ -596,7 +608,17 @@
             }
             .copy {
                 float: right;
+                position: relative;
+                z-index: 1;
+                border-radius: 20px;
+            }
+            #converter .copy {
+                margin-top: -34px;
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+            #codeblock .copy {
                 margin-top: -26px;
+                background-color: rgba(240, 248, 255, 0.7);
             }
             section#copied {
                 position: fixed;
@@ -659,6 +681,7 @@
                         rows="8"
                         spellcheck="false"
                     ></textarea>
+                    <span v-on:click="toClipboard" title="copy to clipboard" class="copy"></span>
                 </p>
             </form>
         </template>
@@ -687,7 +710,7 @@
 
     <!-- Input/Output section -->
 
-            <section :class="{ invalid: isInvalid }">
+            <section :class="{ invalid: isInvalid }" id="converter">
                 <article id="input">
                     <h3>input</h3>
                     <in-out-form

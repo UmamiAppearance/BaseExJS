@@ -8,7 +8,7 @@
  */
 
 import { BaseConverter, BaseTemplate } from "../core.js";
-import { CharsetError } from "../utils.js";
+import { DecodingError } from "../utils.js";
 
 /**
  * BaseEx Ecoji (a Base 1024) Converter.
@@ -325,7 +325,7 @@ export default class Ecoji extends BaseTemplate {
                 }
 
             } else {
-                throw new CharsetError(char);
+                throw new DecodingError(char);
             }
         });
 

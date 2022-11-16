@@ -7,7 +7,7 @@
  */
 
 import { BaseTemplate } from "../core.js";
-import { CharsetError } from "../utils.js";
+import { DecodingError } from "../utils.js";
 
 /**
  * BaseEx Base 2048 Converter.
@@ -147,14 +147,14 @@ export default class Base2048 extends BaseTemplate {
 
                 if (z > -1) {
                     if (i+1 !== inArray.length) {
-                        throw new Error(`Secondary character found before end of input, index: ${i}`);    
+                        throw new DecodingError(null, `Secondary character found before end of input, index: ${i}`);    
                     }
 
                     numZBits = this.converter.bsEncPad;
                 }
                 
                 else if (settings.integrity) {
-                    throw new CharsetError(c);
+                    throw new DecodingError(c);
                 }
             }
 
@@ -171,14 +171,6 @@ export default class Base2048 extends BaseTemplate {
                 }
             }
         });
-
-        // TODO: required?
-        // Final padding bits! Requires special consideration!
-        // Remember how we always pad with 1s?
-        // Note: there could be 0 such bits, check still works though
-        if (uint8 !== (1 << numUint8Bits) - 1) {
-            throw new TypeError("Padding mismatch");
-        }
 
         return this.utils.outputHandler.compile(
             Uint8Array.from(byteArray),

@@ -10,10 +10,13 @@ class SignError extends TypeError {
     }
 }
 
-class CharsetError extends TypeError {
-    constructor(char) {
-        super(`Character '${char}' is not part of the charset.`);
-        this.name = "CharsetError";
+class DecodingError extends TypeError {
+    constructor(char, msg=null) {
+        if (msg === null) {
+            msg = `Character '${char}' is not part of the charset.`;
+        }
+        super(msg);
+        this.name = "DecodingError";
     }
 }
 
@@ -438,6 +441,6 @@ class Utils {
 export {
     DEFAULT_INPUT_HANDLER,
     DEFAULT_OUTPUT_HANDLER,
-    CharsetError,
+    DecodingError,
     Utils
 };

@@ -1,4 +1,4 @@
-import { CharsetError, Utils } from "./utils.js";
+import { DecodingError, Utils } from "./utils.js";
 
 
 /**
@@ -210,7 +210,7 @@ class BaseConverter {
             if (index > -1) { 
                 byteArray.push(index);
             } else if (integrity && padSet.indexOf(c) === -1) {
-                throw new CharsetError(c);
+                throw new DecodingError(c);
             }
         });
         

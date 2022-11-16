@@ -7,7 +7,7 @@
  */
 
 import { BaseTemplate } from "../core.js";
-import { CharsetError } from "../utils.js";
+import { DecodingError } from "../utils.js";
 
 /**
  * BaseEx Base 91 Converter.
@@ -187,10 +187,10 @@ export default class Base91 extends BaseTemplate {
             const c1 =  charset.indexOf(inArray[i+1]);
             
             if (c0 < 0) {
-                throw new CharsetError(inArray[i]);
+                throw new DecodingError(inArray[i]);
             }
             if (c1 < 0) {
-                throw new CharsetError(inArray[i+1]);
+                throw new DecodingError(inArray[i+1]);
             }
 
             // Calculate back the remainder of the integer "n"
