@@ -118,13 +118,21 @@
             Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
 
 
-            function _toClipboard(input) {
-                window.navigator.clipboard.writeText(input);
+            const _toClipboard = input => {
 
+                window.navigator.clipboard.writeText(input);
                 const copied = document.querySelector("#copied");
-                copied.classList.add("show");
                 
-                setTimeout(() => {
+                // reset animation in case it is running 
+                clearTimeout(window.copyTimer);
+                copied.getAnimations().forEach(anim => {
+                    anim.cancel();
+                    anim.play();
+                });
+
+                // start animation
+                copied.classList.add("show");
+                window.copyTimer = setTimeout(() => {
                     copied.classList.remove("show");
                 }, 1500);
             }
