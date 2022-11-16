@@ -15,8 +15,8 @@
         <script type="module">
             import { BaseEx, ByteConverter, LEB128 } from "../src/base-ex.js";
 
-            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.39/dist/vue.esm-browser.prod.js";
-            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.39/dist/vue.esm-browser.js";
+            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.prod.js";
+            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.js";
 
             // Initialize main BaseEx class
             const baseEx = new BaseEx();
@@ -91,10 +91,6 @@
                 return [input, modifiedStr];
             }
 
-            const showInvalid = (e) => {
-                console.error("unable to process value", e);
-            }
-
 
             // Global data object (source of truth) for Vue
             const Data = {
@@ -111,6 +107,8 @@
                 },
                 importType: "esm",
                 importTypes: ["esm", "node-esm", "node-cjs", "iife"],
+                isInvalid: false,
+                errorMsg: "",
             };
 
             // Set the initial output
@@ -290,6 +288,10 @@
                         },
 
                         set: function(val) {
+
+                            // remove invalid state
+                            if (this.isInvalid) this.isInvalid = false;
+
                             // If the user changes the selection, the
                             // first decision is wether it is a base
                             // change or str/bytes switches. The latter
@@ -307,8 +309,9 @@
                                 try {
                                     fieldVal = baseEx[this.curTypes.decode].decode(this[otherField], this.curTypes.encode);
                                 } catch(e) {
-                                    fieldVal = this[this._type];
-                                    showInvalid(e);
+                                    //fieldVal = this[this._type];
+                                    this.showInvalid(e);
+                                    return;
                                 }
 
                                 this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(fieldVal) : String(fieldVal);
@@ -334,9 +337,9 @@
                                     
                                    try { 
                                         this.input = baseEx[val].encode(input, this.curTypes.encode);
-                                   } catch(e) {
-                                       showInvalid(e);
-                                   }
+                                    } catch(e) {
+                                        this.showInvalid(e);
+                                    }
                                 }
                             }
                         },
@@ -354,6 +357,10 @@
                         },
 
                         set: function(val) {
+                            
+                            // remove invalid state
+                            if (this.isInvalid) this.isInvalid = false;
+
                             // Gets called if the user changes the input
                             // (also after a select field changes)
 
@@ -410,7 +417,7 @@
                             try {
                                 output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
                             } catch(e) {
-                                showInvalid(e);
+                                this.showInvalid(e);
                             }
 
                             // As explained above.
@@ -437,7 +444,15 @@
                         // true for input, false for output
                         type: Boolean,
                         required: true,
-                    },
+                    }
+                },
+
+                methods: {
+                    showInvalid: function(e) {
+                        //console.error("unable to process value", e);
+                        this.isInvalid = true;
+                        this.errorMsg = e.message;
+                    }
                 },
 
                 template: document.querySelector("#in-out-form").innerHTML,
@@ -480,6 +495,32 @@
             textarea {
                 margin: 6px 0 8px 0;
                 resize: none;
+            }
+            #input.invalid textarea {
+                box-shadow: 0 0 10px #ea1212;
+                color: #9b2f2f;
+                outline-color: transparent;
+            }
+            #input #error-message {
+                display: block;
+                padding: 5px 40px;
+                background: rgba(223, 16, 16, 0.8);
+                color: white;
+                font-weight: 500;
+                width: 280px;
+                margin: 10px auto 0 auto;
+                opacity: 0;
+                transform: rotate3d(1, 0, 0, -90deg) translateY(-60px);
+                transform-origin: 5% center;
+                transition: none;
+                pointer-events: none;
+                max-height: 0;
+            }
+            #input.invalid #error-message {
+                opacity: 1;
+                transform: rotate3d(1, 0, 0, 0deg) translateY(0);
+                transition: all 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
+                max-height: 400px;
             }
             select {
                 cursor: pointer;
@@ -636,13 +677,14 @@
     <!-- Input/Output section -->
 
             <section>
-                <article id="input">
+                <article id="input" :class="{ invalid: isInvalid }">
                     <h3>input</h3>
                     <in-out-form
                         _type="input"
                         placeholder="Input goes here..."
                         v-bind:readonly="false"
                     ></in-out-form>
+                    <div id="error-message">{{ errorMsg }}</div>
                 </article>
                 
                 <article id="control">
