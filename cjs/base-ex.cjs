@@ -523,10 +523,13 @@ class SignError extends TypeError {
     }
 }
 
-class CharsetError extends TypeError {
-    constructor(char) {
-        super(`Invalid input. Character: '${char}' is not part of the charset.`);
-        this.name = "CharsetError";
+class DecodingError extends TypeError {
+    constructor(char, msg=null) {
+        if (msg === null) {
+            msg = `Character '${char}' is not part of the charset.`;
+        }
+        super(msg);
+        this.name = "DecodingError";
     }
 }
 
@@ -841,7 +844,7 @@ class Utils {
 
             if (parameters.numberMode) {
                 parameters.numberMode = false;
-                console.warn("number-mode was disabled due to the decimal-mode.");
+                console.warn("-> number-mode was disabled due to the decimal-mode");
             }
         }
 
@@ -899,7 +902,7 @@ class Utils {
         // displayed.
         if (parameters.padding && parameters.signed) {
             parameters.padding = false;
-            console.warn("Padding was set to false due to the signed conversion.");
+            console.warn("-> padding was set to false due to the signed conversion");
         }
         
         // overwrite the default parameters for the initial call
@@ -936,14 +939,14 @@ class Utils {
     /**
      * Ensures a string input.
      * @param {*} input - Input.
-     * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+     * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
      * @returns {string} - Normalized input.
      */
-    normalizeInput(input, keepNL=false) {
-        if (keepNL) {
+    normalizeInput(input, keepWS=false) {
+        if (keepWS) {
             return String(input);
         }
-        return String(input).replace(/\n/g, "");
+        return String(input).replace(/\s/g, "");
     }
 
 }
@@ -1157,7 +1160,7 @@ class BaseConverter {
             if (index > -1) { 
                 byteArray.push(index);
             } else if (integrity && padSet.indexOf(c) === -1) {
-                throw new CharsetError(c);
+                throw new DecodingError(c);
             }
         });
         
@@ -2539,10 +2542,10 @@ class Base91 extends BaseTemplate {
             const c1 =  charset.indexOf(inArray[i+1]);
             
             if (c0 < 0) {
-                throw new CharsetError(inArray[i]);
+                throw new DecodingError(inArray[i]);
             }
             if (c1 < 0) {
-                throw new CharsetError(inArray[i+1]);
+                throw new DecodingError(inArray[i+1]);
             }
 
             // Calculate back the remainder of the integer "n"
@@ -3073,7 +3076,7 @@ class Ecoji extends BaseTemplate {
                 }
 
             } else {
-                throw new CharsetError(char);
+                throw new DecodingError(char);
             }
         });
 
@@ -3237,14 +3240,14 @@ class Base2048 extends BaseTemplate {
 
                 if (z > -1) {
                     if (i+1 !== inArray.length) {
-                        throw new Error(`Secondary character found before end of input, index: ${i}`);    
+                        throw new DecodingError(null, `Secondary character found before end of input, index: ${i}`);    
                     }
 
                     numZBits = this.converter.bsEncPad;
                 }
                 
                 else if (settings.integrity) {
-                    throw new CharsetError(c);
+                    throw new DecodingError(c);
                 }
             }
 
@@ -3261,14 +3264,6 @@ class Base2048 extends BaseTemplate {
                 }
             }
         });
-
-        // TODO: required?
-        // Final padding bits! Requires special consideration!
-        // Remember how we always pad with 1s?
-        // Note: there could be 0 such bits, check still works though
-        if (uint8 !== (1 << numUint8Bits) - 1) {
-            throw new TypeError("Padding mismatch");
-        }
 
         return this.utils.outputHandler.compile(
             Uint8Array.from(byteArray),
@@ -3463,7 +3458,7 @@ class BasePhi extends BaseTemplate {
             }
 
             else {
-                throw new TypeError("When running the converter in 'decimal' mode, only input of type Number is allowed.")
+                throw new TypeError("When running the converter in decimal-mode, only input of type 'Number' is allowed.")
             }
         }
 
@@ -3633,7 +3628,7 @@ class BasePhi extends BaseTemplate {
             if (charIndex === 1) {
                 n = n.plus(cur);
             } else if (charIndex !== 0) {
-                throw new CharsetError(char);
+                throw new DecodingError(char);
             }
             [ last, cur ] = this.#nextPhiExp(last, cur);
         });
@@ -3648,7 +3643,7 @@ class BasePhi extends BaseTemplate {
                 if (charIndex === 1) {
                     n = n.plus(cur);
                 } else if (charIndex !== 0) {
-                    throw new CharsetError(char);
+                    throw new DecodingError(char);
                 }
                 [ cur, prev ] = this.#prevPhiExp(cur, prev);
             });

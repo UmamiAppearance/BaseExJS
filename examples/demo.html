@@ -57,44 +57,48 @@
             // also getting removed.
             const handleInput = (strInput) => {
 
-                let input;
-                let modifiedStr = null;
+                let byteRepresentation;
+                let modifiedStr = strInput;
                 
                 if (Data.curTypes.encode === "bytes") {
                     
-                    // Replace everything but digits.
+                    // Replace everything but digits and commas.
                     const cleanedStr = strInput = strInput.replace(/[^\d, ]/g, "");
-                    if (cleanedStr !== "strInput") {
+                    if (cleanedStr !== strInput) {
                         modifiedStr = cleanedStr;
                     }
-                    input = byteConverter.toUint(cleanedStr.trim());
-                }   
+                    byteRepresentation = byteConverter.toUint(cleanedStr.trim());
+                }
+
                 else if (Data.curTypes.encode === "int_n") {
 
                     // Replace everything but digits, but allow
                     // negative sign at the beginning.
                     const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d]/g, "");
                     if (cleanedStr === "-") {
-                        return [0, modifiedStr];
-                    } else if (cleanedStr !== "strInput") {
+                        return [new Uint8Array([0]), modifiedStr];
+                    } else if (cleanedStr !== strInput) {
                         modifiedStr = cleanedStr;
                     }
-                    input = BigInt(strInput);
-                    if (input > -Number.MAX_SAFE_INTEGER && input < Number.MAX_SAFE_INTEGER) {
-                        input = Number(input);
-                    }
+                    
+                    let n = Math.abs(modifiedStr) <= Number.MAX_SAFE_INTEGER
+                        ? Number(modifiedStr)
+                        : BigInt(modifiedStr);
+                                        
+                    byteRepresentation = bc.encode(n);
                 } 
                 else if (Data.curTypes.encode === "str") {
-                    input = strInput;
+                    byteRepresentation = bc.encode(strInput);
                 }
 
-                return [input, modifiedStr];
+                return [byteRepresentation, modifiedStr];
             }
 
 
             // Global data object (source of truth) for Vue
             const Data = {
                 input: "Hello World!",
+                byteRepresentation: null,
                 output: null,
                 mode: "encode",
                 curTypes: { 
@@ -115,7 +119,8 @@
             };
 
             // Set the initial output
-            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
+            Data.byteRepresentation = bc.encode(Data.input);
+            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.byteRepresentation, Data.curTypes.encode);
 
 
             const _toClipboard = input => {
@@ -325,17 +330,15 @@
 
                                 // Convert this.input or this.output to bytes/str
                                 // according to the select field from in- or output
-                                const otherField = (this._type === "input") ? "output" : "input";
                                 let fieldVal;
                                 try {
-                                    fieldVal = baseEx[this.curTypes.decode].decode(this[otherField], this.curTypes.encode);
+                                    fieldVal = bc.decode(this.byteRepresentation, this.curTypes.encode, "be");
                                 } catch(e) {
-                                    //fieldVal = this[this._type];
                                     this.showInvalid(e);
                                     return;
                                 }
 
-                                this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(fieldVal) : String(fieldVal);
+                                this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(this.byteRepresentation) : String(fieldVal);
 
                             } else {
                                 // Change the current base type on the 
@@ -351,13 +354,11 @@
                                     // If the base change appearers on input
                                     // the current mode is "decode". In this
                                     // case the input field needs to change its 
-                                    // base. To achieve this, the output value
-                                    // gets encoded back and refreshes on input. 
+                                    // base. The byteRepresentation can be used
+                                    // to encode the fresh base. 
 
-                                    const input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.output) : this.output;
-                                    
-                                   try { 
-                                        this.input = baseEx[val].encode(input, this.curTypes.encode);
+                                    try { 
+                                        this.input = baseEx[val].encode(this.byteRepresentation, this.curTypes.encode);
                                     } catch(e) {
                                         this.showInvalid(e);
                                     }
@@ -378,72 +379,58 @@
                         },
 
                         set: function(val) {
-                            
-                            // remove invalid state
-                            if (this.isInvalid) this.isInvalid = false;
-
                             // Gets called if the user changes the input
                             // (also after a select field changes)
-
-                            // The actual input, that feedArrayBuffer.isViews the BaseEx
-                            // class can vary. Therefore a local var "input"
-                            // gets initialized.
-                            let input;
+     
+                            // Remove invalid state if present
+                            if (this.isInvalid) this.isInvalid = false;
 
                             // If the output type is set to bytes it gets
                             // converted to a string where each byte value
-                            // is separated by a space. To activate this case
-                            // "toStrBytes" needs to be set to true.
+                            // is separated by with a comma. To activate this
+                            // case "toStrBytes" needs to be set to true later.
                             let toStrBytes = false;
 
                             // First determine if the textarea was changed
                             // on in- or output. (As output is set to 
                             // readonly it can not get changed directly,
                             // but it can switch by changing the base or
-                            // str/bytes)
+                            // str/bytes).
 
                             if (this._type === "input") {
-                                // Store the current value of the textarea
-                                // on the Data object.
-                                this.input = val;
 
-                                // Also set "input" to this value for starters
-                                input = val;
 
                                 // If mode is encode, run some tests on the input,
                                 // convert it to the desired type and clean the it
-                                // from unwanted characters. For decode only set
-                                // the bytes switch if dealing with bytes.
-                                if (this.mode === "encode") {
-                                    let modifiedStr;
-                                    [input, modifiedStr] = handleInput(val);
-                                    if (modifiedStr) {
-                                        this.input = modifiedStr;
+                                // from unwanted characters. For decode do nothing
+                                // but setting the bytes switch if dealing with bytes.
+
+                                if (this.mode === "encode") { 
+                                    
+                                    // Handle input
+                                    [ this.byteRepresentation, this.input ] = handleInput(val);
+                                    this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
+                                    
+                                } else {
+
+                                    try {
+                                        this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
+                                    } catch(e) {
+                                        this.showInvalid(e);
                                     }
-                                } else if (this.curTypes.encode === "bytes") {
-                                    toStrBytes = true;
-                                } 
+
+                                    this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
+                                    this.output = this.curTypes.encode === "bytes"
+                                        ? byteConverter.toStrBytes(this.byteRepresentation)
+                                        : bc.decode(this.byteRepresentation, this.curTypes.encode);
+                                }
 
                             } else {
                                 // If the type of the textarea is output
-                                // use "this.input" directly or convert
-                                // to bytes if necessary.
+                                // use the "byteRepresentation" directly.
 
-                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
-                            }
-                            
-                            // Generate output by running the
-                            // specified conversion.
-                            let output; 
-                            try {
-                                output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
-                            } catch(e) {
-                                this.showInvalid(e);
-                            }
+                                this.output = baseEx[this.curTypes.decode][this.mode](this.byteRepresentation, this.curTypes.encode);
 
-                            // As explained above.
-                            if (output) {
-                                this.output = (toStrBytes) ? byteConverter.toStrBytes(output) : output;
                             }
                         },
                     },
