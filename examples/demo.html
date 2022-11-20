@@ -52,49 +52,6 @@
                 ...args
             );
 
-            // Takes the provided input and converts it to
-            // the proper type. Unwanted characters are
-            // also getting removed.
-            const handleInput = (strInput) => {
-
-                let byteRepresentation;
-                let modifiedStr = strInput;
-                
-                if (Data.curTypes.encode === "bytes") {
-                    
-                    // Replace everything but digits and commas.
-                    const cleanedStr = strInput = strInput.replace(/[^\d, ]/g, "");
-                    if (cleanedStr !== strInput) {
-                        modifiedStr = cleanedStr;
-                    }
-                    byteRepresentation = byteConverter.toUint(cleanedStr.trim());
-                }
-
-                else if (Data.curTypes.encode === "int_n") {
-
-                    // Replace everything but digits, but allow
-                    // negative sign at the beginning.
-                    const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d]/g, "");
-                    if (cleanedStr === "-") {
-                        return [new Uint8Array([0]), modifiedStr];
-                    } else if (cleanedStr !== strInput) {
-                        modifiedStr = cleanedStr;
-                    }
-                    
-                    let n = Math.abs(modifiedStr) <= Number.MAX_SAFE_INTEGER
-                        ? Number(modifiedStr)
-                        : BigInt(modifiedStr);
-                                        
-                    byteRepresentation = bc.encode(n);
-                } 
-                else if (Data.curTypes.encode === "str") {
-                    byteRepresentation = bc.encode(strInput);
-                }
-
-                return [byteRepresentation, modifiedStr];
-            }
-
-
             // Global data object (source of truth) for Vue
             const Data = {
                 input: "Hello World!",
@@ -406,12 +363,56 @@
                                 // but setting the bytes switch if dealing with bytes.
 
                                 if (this.mode === "encode") { 
-                                    
+
                                     // Handle input
-                                    [ this.byteRepresentation, this.input ] = handleInput(val);
+                                    const endianness = baseEx[this.curTypes.decode].littleEndian
+                                        ? "le"
+                                        : "be";
+
+                                    let byteRepresentation;
+                                    let cleanedStr = val;
+                                    
+                                    if (Data.curTypes.encode === "bytes") {
+                                        
+                                        // Replace everything but digits and commas.
+                                        cleanedStr = cleanedStr.replace(/[^\d, ]/g, "");
+                                        byteRepresentation = byteConverter.toUint(cleanedStr.trim());
+                                    }
+
+                                    else if (Data.curTypes.encode === "int_n") {
+
+                                        // Replace everything but digits, but allow
+                                        // negative sign at the beginning.
+                                        cleanedStr = cleanedStr.replace(/(?!^-)[^\d]/g, "");
+                                        if (cleanedStr === "-") {
+                                            cleanedStr = "";
+                                        }
+
+                                        let n = Math.abs(cleanedStr) <= Number.MAX_SAFE_INTEGER
+                                            ? Number(cleanedStr)
+                                            : BigInt(cleanedStr);
+                                                            
+                                        byteRepresentation = bc.encode(n, endianness);
+                                    } 
+                                    else if (Data.curTypes.encode === "str") {
+                                        byteRepresentation = bc.encode(cleanedStr);
+                                    }
+
+                                    this.byteRepresentation = byteRepresentation;
+
+                                    if (cleanedStr !== val) {
+                                        this.input = "";
+                                        this.input = cleanedStr;
+                                    }
+                                    console.log(this.input);
+                                    
                                     this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
                                     
                                 } else {
+
+                                    const endianness = baseEx[this.curTypes.decode].littleEndian
+                                        ? "le"
+                                        : "be";
 
                                     try {
                                         this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
@@ -422,7 +423,7 @@
                                     this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
                                     this.output = this.curTypes.encode === "bytes"
                                         ? byteConverter.toStrBytes(this.byteRepresentation)
-                                        : bc.decode(this.byteRepresentation, this.curTypes.encode);
+                                        : bc.decode(this.byteRepresentation, this.curTypes.encode, endianness);
                                 }
 
                             } else {
