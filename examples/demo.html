@@ -281,21 +281,34 @@
                             // is the first route below.
 
                             if (this.dataTypes.encode.includes(val)) {
-                                // Change the current value (str/bytes)
+                                // Change the current value (str/bytes/int_n)
                                 // on the Data object 
                                 this.curTypes.encode = val;
 
-                                // Convert this.input or this.output to bytes/str
+                                const endianness = baseEx[this.curTypes.decode].littleEndian
+                                    ? "le"
+                                    : "be";
+
+
+                                // Convert this.input or this.output to bytes/str/int_n
                                 // according to the select field from in- or output
                                 let fieldVal;
                                 try {
-                                    fieldVal = bc.decode(this.byteRepresentation, this.curTypes.encode, "be");
+                                    fieldVal = bc.decode(this.byteRepresentation, this.curTypes.encode, endianness);
                                 } catch(e) {
                                     this.showInvalid(e);
                                     return;
                                 }
-
-                                this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(this.byteRepresentation) : String(fieldVal);
+                                
+                                if (val === "bytes") {
+                                    this[this._type] = byteConverter.toStrBytes(this.byteRepresentation);
+                                } else {
+                                    this[this._type] = fieldVal;
+                                    if (val === "int_n" && this.mode === "encode") {
+                                        this.message = this.input;
+                                    }
+                                }
+                                
 
                             } else {
                                 // Change the current base type on the 
@@ -355,7 +368,10 @@
                             // str/bytes).
 
                             if (this._type === "input") {
-
+                                
+                                const endianness = baseEx[this.curTypes.decode].littleEndian
+                                        ? "le"
+                                        : "be";
 
                                 // If mode is encode, run some tests on the input,
                                 // convert it to the desired type and clean the it
@@ -365,12 +381,8 @@
                                 if (this.mode === "encode") { 
 
                                     // Handle input
-                                    const endianness = baseEx[this.curTypes.decode].littleEndian
-                                        ? "le"
-                                        : "be";
-
                                     let byteRepresentation;
-                                    let cleanedStr = val;
+                                    let cleanedStr = String(val);
                                     
                                     if (Data.curTypes.encode === "bytes") {
                                         
@@ -399,20 +411,13 @@
                                     }
 
                                     this.byteRepresentation = byteRepresentation;
-
-                                    if (cleanedStr !== val) {
-                                        this.input = "";
-                                        this.input = cleanedStr;
-                                    }
-                                    console.log(this.input);
                                     
+                                    this.input = "";
+                                    this.input = cleanedStr;
+
                                     this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
                                     
-                                } else {
-
-                                    const endianness = baseEx[this.curTypes.decode].littleEndian
-                                        ? "le"
-                                        : "be";
+                                } else {   
 
                                     try {
                                         this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
@@ -420,7 +425,6 @@
                                         this.showInvalid(e);
                                     }
 
-                                    this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
                                     this.output = this.curTypes.encode === "bytes"
                                         ? byteConverter.toStrBytes(this.byteRepresentation)
                                         : bc.decode(this.byteRepresentation, this.curTypes.encode, endianness);
@@ -430,6 +434,7 @@
                                 // If the type of the textarea is output
                                 // use the "byteRepresentation" directly.
 
+                                console.log(this.mode);
                                 this.output = baseEx[this.curTypes.decode][this.mode](this.byteRepresentation, this.curTypes.encode);
 
                             }
