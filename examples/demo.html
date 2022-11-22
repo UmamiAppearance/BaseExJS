@@ -69,6 +69,7 @@
                 importType: "esm",
                 importTypes: ["esm", "node-esm", "node-cjs", "iife"],
                 isInvalid: false,
+                isNumber: false,
                 error: {
                     name: null,
                     message: null
@@ -111,7 +112,9 @@
                     },
 
                     switchInOut: function() {
-                        [this.input, this.output] = [this.output, this.input];
+                        const input = this.output;
+                        this.input = input;
+                        this.$refs.inputRef.message = input;
                     },
                 },
 
@@ -138,13 +141,13 @@
                             copyPasteInfo = "Your input was shortened for this demonstration purpose.\n// You can either use shorter input if you want to copy and\n// test it or you need to adjust it in your environment.";
                         }
                         
-                        // generate code for bytes (needs some work) or string (as is)
+                        // generate code for the input
                         let input;
                         if (!isDecoding && isBytes) {
                             input = `new Uint8Array([${max56Inpt}])`
                         } else if (!isDecoding && this.curTypes.encode === "int_n") {
                             input = max56Inpt;
-                            if (input < -Number.MAX_SAFE_INTEGER || input > Number.MAX_SAFE_INTEGER) {
+                            if (Math.abs(input) > Number.MAX_SAFE_INTEGER) {
                                 input += "n";
                             }
                         } else {
@@ -304,9 +307,11 @@
                                     this[this._type] = byteConverter.toStrBytes(this.byteRepresentation);
                                 } else {
                                     this[this._type] = fieldVal;
-                                    if (val === "int_n" && this.mode === "encode") {
-                                        this.message = this.input;
-                                    }
+                                }
+
+                                // refresh the input for mode encode
+                                if (this.mode === "encode") {
+                                    this.message = this.input;
                                 }
                                 
 
@@ -367,12 +372,12 @@
                             // but it can switch by changing the base or
                             // str/bytes).
 
-                            if (this._type === "input") {
-                                
-                                const endianness = baseEx[this.curTypes.decode].littleEndian
+                            const endianness = baseEx[this.curTypes.decode].littleEndian
                                         ? "le"
                                         : "be";
 
+                            if (this._type === "input") {
+                                
                                 // If mode is encode, run some tests on the input,
                                 // convert it to the desired type and clean the it
                                 // from unwanted characters. For decode do nothing
@@ -380,9 +385,13 @@
 
                                 if (this.mode === "encode") { 
 
+                                    // reset the "isNumber" indicator
+                                    this.isNumber = false;
+
                                     // Handle input
                                     let byteRepresentation;
                                     let cleanedStr = String(val);
+                                    let n = null;
                                     
                                     if (Data.curTypes.encode === "bytes") {
                                         
@@ -392,6 +401,9 @@
                                     }
 
                                     else if (Data.curTypes.encode === "int_n") {
+                                        
+                                        // set the "isNumber" indicator
+                                        this.isNumber = true;
 
                                         // Replace everything but digits, but allow
                                         // negative sign at the beginning.
@@ -400,12 +412,13 @@
                                             cleanedStr = "";
                                         }
 
-                                        let n = Math.abs(cleanedStr) <= Number.MAX_SAFE_INTEGER
-                                            ? Number(cleanedStr)
-                                            : BigInt(cleanedStr);
+                                        n = Math.abs(cleanedStr) > Number.MAX_SAFE_INTEGER
+                                            ? BigInt(cleanedStr)
+                                            : Number(cleanedStr);
                                                             
                                         byteRepresentation = bc.encode(n, endianness);
                                     } 
+
                                     else if (Data.curTypes.encode === "str") {
                                         byteRepresentation = bc.encode(cleanedStr);
                                     }
@@ -415,7 +428,11 @@
                                     this.input = "";
                                     this.input = cleanedStr;
 
-                                    this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
+                                    if (this.isNumber) {
+                                        this.output = baseEx[this.curTypes.decode].encode(n, this.curTypes.encode);
+                                    } else {
+                                        this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
+                                    }
                                     
                                 } else {   
 
@@ -431,12 +448,16 @@
                                 }
 
                             } else {
-                                // If the type of the textarea is output
-                                // use the "byteRepresentation" directly.
+                                // If the type of the textarea is output use 
+                                // the "byteRepresentation" or the according
+                                // number directly.
 
-                                console.log(this.mode);
-                                this.output = baseEx[this.curTypes.decode][this.mode](this.byteRepresentation, this.curTypes.encode);
-
+                                if (this.isNumber) {
+                                    const n = bc.decode(this.byteRepresentation, "int_n", endianness);
+                                    this.output = baseEx[this.curTypes.decode].encode(n, this.curTypes.encode);
+                                } else {
+                                    this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
+                                }
                             }
                         },
                     },
@@ -469,7 +490,6 @@
                     },
 
                     showInvalid: function(e) {
-                        //console.error("unable to process value", e);
                         this.isInvalid = true;
                         this.error.name = e.name;
                         this.error.message = e.message;
@@ -715,6 +735,7 @@
                 <article id="input">
                     <h3>input</h3>
                     <in-out-form
+                        ref="inputRef"
                         _type="input"
                         placeholder="Input goes here..."
                         v-bind:readonly="false"
@@ -741,6 +762,7 @@
                 <article id="output">
                     <h3>output</h3>
                     <in-out-form
+                        ref="outputRef"
                         _type="output"
                         placeholder="...output will show up automatically."
                         v-bind:readonly="true"
