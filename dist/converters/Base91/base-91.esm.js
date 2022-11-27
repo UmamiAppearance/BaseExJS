@@ -521,10 +521,13 @@ class SignError extends TypeError {
     }
 }
 
-class CharsetError extends TypeError {
-    constructor(char) {
-        super(`Invalid input. Character: '${char}' is not part of the charset.`);
-        this.name = "CharsetError";
+class DecodingError extends TypeError {
+    constructor(char, msg=null) {
+        if (msg === null) {
+            msg = `Character '${char}' is not part of the charset.`;
+        }
+        super(msg);
+        this.name = "DecodingError";
     }
 }
 
@@ -934,14 +937,14 @@ class Utils {
     /**
      * Ensures a string input.
      * @param {*} input - Input.
-     * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+     * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
      * @returns {string} - Normalized input.
      */
-    normalizeInput(input, keepNL=false) {
-        if (keepNL) {
+    normalizeInput(input, keepWS=false) {
+        if (keepWS) {
             return String(input);
         }
-        return String(input).replace(/\n/g, "");
+        return String(input).replace(/\s/g, "");
     }
 
 }
@@ -1281,10 +1284,10 @@ class Base91 extends BaseTemplate {
             const c1 =  charset.indexOf(inArray[i+1]);
             
             if (c0 < 0) {
-                throw new CharsetError(inArray[i]);
+                throw new DecodingError(inArray[i]);
             }
             if (c1 < 0) {
-                throw new CharsetError(inArray[i+1]);
+                throw new DecodingError(inArray[i+1]);
             }
 
             // Calculate back the remainder of the integer "n"

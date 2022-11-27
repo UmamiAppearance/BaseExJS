@@ -524,10 +524,13 @@ var Base2048 = (function () {
         }
     }
 
-    class CharsetError extends TypeError {
-        constructor(char) {
-            super(`Invalid input. Character: '${char}' is not part of the charset.`);
-            this.name = "CharsetError";
+    class DecodingError extends TypeError {
+        constructor(char, msg=null) {
+            if (msg === null) {
+                msg = `Character '${char}' is not part of the charset.`;
+            }
+            super(msg);
+            this.name = "DecodingError";
         }
     }
 
@@ -937,14 +940,14 @@ var Base2048 = (function () {
         /**
          * Ensures a string input.
          * @param {*} input - Input.
-         * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+         * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
          * @returns {string} - Normalized input.
          */
-        normalizeInput(input, keepNL=false) {
-            if (keepNL) {
+        normalizeInput(input, keepWS=false) {
+            if (keepWS) {
                 return String(input);
             }
-            return String(input).replace(/\n/g, "");
+            return String(input).replace(/\s/g, "");
         }
 
     }
@@ -1244,14 +1247,14 @@ var Base2048 = (function () {
 
                     if (z > -1) {
                         if (i+1 !== inArray.length) {
-                            throw new Error(`Secondary character found before end of input, index: ${i}`);    
+                            throw new DecodingError(null, `Secondary character found before end of input, index: ${i}`);    
                         }
 
                         numZBits = this.converter.bsEncPad;
                     }
                     
                     else if (settings.integrity) {
-                        throw new CharsetError(c);
+                        throw new DecodingError(c);
                     }
                 }
 
@@ -1268,14 +1271,6 @@ var Base2048 = (function () {
                     }
                 }
             });
-
-            // TODO: required?
-            // Final padding bits! Requires special consideration!
-            // Remember how we always pad with 1s?
-            // Note: there could be 0 such bits, check still works though
-            if (uint8 !== (1 << numUint8Bits) - 1) {
-                throw new TypeError("Padding mismatch");
-            }
 
             return this.utils.outputHandler.compile(
                 Uint8Array.from(byteArray),

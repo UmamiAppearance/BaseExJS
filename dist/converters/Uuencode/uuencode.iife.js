@@ -524,10 +524,13 @@ var Uuencode = (function () {
         }
     }
 
-    class CharsetError extends TypeError {
-        constructor(char) {
-            super(`Invalid input. Character: '${char}' is not part of the charset.`);
-            this.name = "CharsetError";
+    class DecodingError extends TypeError {
+        constructor(char, msg=null) {
+            if (msg === null) {
+                msg = `Character '${char}' is not part of the charset.`;
+            }
+            super(msg);
+            this.name = "DecodingError";
         }
     }
 
@@ -937,14 +940,14 @@ var Uuencode = (function () {
         /**
          * Ensures a string input.
          * @param {*} input - Input.
-         * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+         * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
          * @returns {string} - Normalized input.
          */
-        normalizeInput(input, keepNL=false) {
-            if (keepNL) {
+        normalizeInput(input, keepWS=false) {
+            if (keepWS) {
                 return String(input);
             }
-            return String(input).replace(/\n/g, "");
+            return String(input).replace(/\s/g, "");
         }
 
     }
@@ -1158,7 +1161,7 @@ var Uuencode = (function () {
                 if (index > -1) { 
                     byteArray.push(index);
                 } else if (integrity && padSet.indexOf(c) === -1) {
-                    throw new CharsetError(c);
+                    throw new DecodingError(c);
                 }
             });
             
@@ -1449,7 +1452,7 @@ var Uuencode = (function () {
     }
 
     /**
-     * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
+     * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
      *
      * @version 0.5.0
      * @author UmamiAppearance [mail@umamiappearance.eu]

@@ -524,10 +524,13 @@ var BaseEx = (function (exports) {
         }
     }
 
-    class CharsetError extends TypeError {
-        constructor(char) {
-            super(`Invalid input. Character: '${char}' is not part of the charset.`);
-            this.name = "CharsetError";
+    class DecodingError extends TypeError {
+        constructor(char, msg=null) {
+            if (msg === null) {
+                msg = `Character '${char}' is not part of the charset.`;
+            }
+            super(msg);
+            this.name = "DecodingError";
         }
     }
 
@@ -937,14 +940,14 @@ var BaseEx = (function (exports) {
         /**
          * Ensures a string input.
          * @param {*} input - Input.
-         * @param {boolean} [keepNL=false] - If set to false, the newline character is getting removed from the input if present.
+         * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
          * @returns {string} - Normalized input.
          */
-        normalizeInput(input, keepNL=false) {
-            if (keepNL) {
+        normalizeInput(input, keepWS=false) {
+            if (keepWS) {
                 return String(input);
             }
-            return String(input).replace(/\n/g, "");
+            return String(input).replace(/\s/g, "");
         }
 
     }
@@ -1158,7 +1161,7 @@ var BaseEx = (function (exports) {
                 if (index > -1) { 
                     byteArray.push(index);
                 } else if (integrity && padSet.indexOf(c) === -1) {
-                    throw new CharsetError(c);
+                    throw new DecodingError(c);
                 }
             });
             
@@ -2028,7 +2031,7 @@ var BaseEx = (function (exports) {
     }
 
     /**
-     * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
+     * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
      *
      * @version 0.5.0
      * @author UmamiAppearance [mail@umamiappearance.eu]
@@ -2540,10 +2543,10 @@ var BaseEx = (function (exports) {
                 const c1 =  charset.indexOf(inArray[i+1]);
                 
                 if (c0 < 0) {
-                    throw new CharsetError(inArray[i]);
+                    throw new DecodingError(inArray[i]);
                 }
                 if (c1 < 0) {
-                    throw new CharsetError(inArray[i+1]);
+                    throw new DecodingError(inArray[i+1]);
                 }
 
                 // Calculate back the remainder of the integer "n"
@@ -3074,7 +3077,7 @@ var BaseEx = (function (exports) {
                     }
 
                 } else {
-                    throw new CharsetError(char);
+                    throw new DecodingError(char);
                 }
             });
 
@@ -3238,14 +3241,14 @@ var BaseEx = (function (exports) {
 
                     if (z > -1) {
                         if (i+1 !== inArray.length) {
-                            throw new Error(`Secondary character found before end of input, index: ${i}`);    
+                            throw new DecodingError(null, `Secondary character found before end of input, index: ${i}`);    
                         }
 
                         numZBits = this.converter.bsEncPad;
                     }
                     
                     else if (settings.integrity) {
-                        throw new CharsetError(c);
+                        throw new DecodingError(c);
                     }
                 }
 
@@ -3262,14 +3265,6 @@ var BaseEx = (function (exports) {
                     }
                 }
             });
-
-            // TODO: required?
-            // Final padding bits! Requires special consideration!
-            // Remember how we always pad with 1s?
-            // Note: there could be 0 such bits, check still works though
-            if (uint8 !== (1 << numUint8Bits) - 1) {
-                throw new TypeError("Padding mismatch");
-            }
 
             return this.utils.outputHandler.compile(
                 Uint8Array.from(byteArray),
@@ -3634,7 +3629,7 @@ var BaseEx = (function (exports) {
                 if (charIndex === 1) {
                     n = n.plus(cur);
                 } else if (charIndex !== 0) {
-                    throw new CharsetError(char);
+                    throw new DecodingError(char);
                 }
                 [ last, cur ] = this.#nextPhiExp(last, cur);
             });
@@ -3649,7 +3644,7 @@ var BaseEx = (function (exports) {
                     if (charIndex === 1) {
                         n = n.plus(cur);
                     } else if (charIndex !== 0) {
-                        throw new CharsetError(char);
+                        throw new DecodingError(char);
                     }
                     [ cur, prev ] = this.#prevPhiExp(cur, prev);
                 });

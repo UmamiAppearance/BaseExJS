@@ -2030,7 +2030,7 @@ class Base64 extends BaseTemplate {
 }
 
 /**
- * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
+ * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
  * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
