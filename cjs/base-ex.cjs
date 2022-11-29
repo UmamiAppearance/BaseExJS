@@ -1453,7 +1453,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1609,7 +1609,7 @@ class Base1 extends BaseTemplate {
 /**
  * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1689,7 +1689,7 @@ class Base16 extends BaseTemplate {
 /**
  * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1794,7 +1794,7 @@ class Base32 extends BaseTemplate {
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1944,7 +1944,7 @@ class Base58 extends BaseTemplate{
 /**
  * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2032,7 +2032,7 @@ class Base64 extends BaseTemplate {
 /**
  * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2236,7 +2236,7 @@ const ees = () => {
 /**
  * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2359,7 +2359,7 @@ class Base85 extends BaseTemplate {
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
@@ -2590,7 +2590,7 @@ class Base91 extends BaseTemplate {
 /**
  * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -2755,7 +2755,7 @@ class LEB128 extends BaseTemplate {
 /**
  * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/ecoji.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 OR Apache-2.0
  * @see https://github.com/keith-turner/ecoji
@@ -3097,7 +3097,7 @@ class Ecoji extends BaseTemplate {
 /**
  * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -3275,7 +3275,7 @@ class Base2048 extends BaseTemplate {
 /**
  * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -3375,7 +3375,7 @@ let DP=20,RM=1,MAX_DP=1e6,NE=-7,PE=21,STRICT=!1,NAME="[big.js] ",INVALID=NAME+"I
 /**
  * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -3704,7 +3704,7 @@ class BasePhi extends BaseTemplate {
 /**
  * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -3822,7 +3822,7 @@ class ByteConverter {
 /**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
  */

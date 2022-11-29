@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.5.0
+ * @version 0.5.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
