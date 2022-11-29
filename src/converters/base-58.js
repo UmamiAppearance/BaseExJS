@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -28,15 +28,25 @@ export default class Base58 extends BaseTemplate{
      * @param {...string} [args] - Converter settings.
      */
     constructor(...args) {
-        super(); 
+        super();
+        this.converter = new BaseConverter(58, 0, 0);
 
         // charsets
-        this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
-        this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-        this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+        this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "default", {
+            get: () => [ this.charsets.default.at(0) ]
+        });
 
-        // converter
-        this.converter = new BaseConverter(58, 0, 0);
+        this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
+        Object.defineProperty(this.padChars, "bitcoin", {
+            get: () => [ this.charsets.bitcoin.at(0) ]
+        });
+        
+        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "flickr", {
+            get: () => [ this.charsets.flickr.at(0) ]
+        });
+        
 
         // predefined settings
         this.padding = true;
@@ -59,9 +69,7 @@ export default class Base58 extends BaseTemplate{
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
-
-            let { inputBytes, output, settings, type } = scope;
+        const applyPadding = ({ inputBytes, output, settings, type }) => {
 
             if (settings.padding && type !== "int") { 
                 
@@ -70,6 +78,9 @@ export default class Base58 extends BaseTemplate{
                 // all the way through it, reset index and stop.
                 let i = 0;
                 const end = inputBytes.length;
+
+                // pad char is always! the first char in the set
+                const padChar = this.charsets[settings.version].at(0);
 
                 // only proceed if input has a length at all
                 if (end) {
@@ -87,7 +98,7 @@ export default class Base58 extends BaseTemplate{
 
                     // Set a one for every leading null byte
                     if (zeroPadding) {
-                        output = ("1".repeat(zeroPadding)).concat(output);
+                        output = (padChar.repeat(zeroPadding)).concat(output);
                     }
                 }
             }
@@ -108,15 +119,16 @@ export default class Base58 extends BaseTemplate{
     decode(input, ...args) {
         
         // post decoding function
-        const applyPadding = (scope) => {
+        const applyPadding = ({ input, output, settings }) => {
 
-            let { input, output, settings } = scope;
+            // pad char is always! the first char in the set
+            const padChar = this.charsets[settings.version].at(0);
 
             if (settings.padding && input.length > 1) {
                 
-                // Count leading ones 
+                // Count leading padding (char should be 1)
                 let i = 0;
-                while (input[i] === "1") {
+                while (input[i] === padChar) {
                     i++;
                 }
     
@@ -134,6 +146,6 @@ export default class Base58 extends BaseTemplate{
             return output;
         }
 
-        return super.decode(input, null, applyPadding, ...args);
+        return super.decode(input, null, applyPadding, false, ...args);
     }
 }

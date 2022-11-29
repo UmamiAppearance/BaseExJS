@@ -1,19 +1,20 @@
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
 
-import {  BaseTemplate } from "../core.js";
+import { BaseTemplate } from "../core.js";
+import { DecodingError } from "../utils.js";
 
 /**
  * BaseEx Base 91 Converter.
  * ------------------------
  * 
  * This is a base91 converter. Various input can be 
- * converted to a base85 string or a base91 string
+ * converted to a base91 string or a base91 string
  * can be decoded into various formats.
  * 
  * It is an  implementation of Joachim Henkes method
@@ -33,11 +34,23 @@ export default class Base91 extends BaseTemplate {
     constructor(...args) {
         super();
 
+        // converter (properties only)
+        this.converter = {
+            radix: 91,
+            bsEnc: 0,
+            bsDec: 0
+        }
+
         // charsets
-        this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
+        this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
+
+        this.version = "default";
 
         // apply user settings
         this.utils.validateArgs(args, true);
+
+        // mutable extra args
+        this.isMutable.integrity = false;
     }
 
 
@@ -63,8 +76,7 @@ export default class Base91 extends BaseTemplate {
         let n = 0;
         let output = "";
 
-        // Shortcut
-        const chars = this.charsets[settings.version];
+        const charset = this.charsets[settings.version];
 
         inputBytes.forEach(byte => {
             //n = n + byte * 2^bitcount;
@@ -100,12 +112,12 @@ export default class Base91 extends BaseTemplate {
                 // the before calculated remainder of n 
                 // -> "rN"
                 let q, r;
-                [q, r] = this.divmod(rN, 91);
+                [q, r] = this.#divmod(rN, 91);
 
                 // Lookup the corresponding characters for
                 // "r" and "q" in the set, append it to the 
                 // output string.
-                output = `${output}${chars[r]}${chars[q]}`;
+                output = `${output}${charset[r]}${charset[q]}`;
             }
         });
         
@@ -114,20 +126,20 @@ export default class Base91 extends BaseTemplate {
         // once more.
         if (bitCount) {
             let q, r;
-            [q, r] = this.divmod(n, 91);
+            [q, r] = this.#divmod(n, 91);
 
             // The remainder is concatenated in any case
-            output = output.concat(chars[r]);
+            output = output.concat(charset[r]);
 
             // The quotient is also appended, but only
             // if the bitCount still has the size of a byte
             // or n can still represent 91 conditions.
             if (bitCount > 7 || n > 90) {
-                output = output.concat(chars[q]);
+                output = output.concat(charset[q]);
             }
         }
         
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
@@ -143,9 +155,10 @@ export default class Base91 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
-        input = String(input);
+        input = this.utils.normalizeInput(input);
+        const inArray = [...input];
 
-        let l = input.length;
+        let l = inArray.length;
 
         // For starters leave the last char behind
         // if the length of the input string is odd.
@@ -161,7 +174,7 @@ export default class Base91 extends BaseTemplate {
 
         let n = 0;
         let bitCount = 0;
-        const chars = this.charsets[settings.version];
+        const charset = this.charsets[settings.version];
         
         // Initialize an ordinary array
         const b256Array = new Array();
@@ -170,8 +183,18 @@ export default class Base91 extends BaseTemplate {
         // (aka collect remainder- and quotient-pairs)
         for (let i=0; i<l; i+=2) {
 
+            const c0 = charset.indexOf(inArray[i]);
+            const c1 =  charset.indexOf(inArray[i+1]);
+            
+            if (c0 < 0) {
+                throw new DecodingError(inArray[i]);
+            }
+            if (c1 < 0) {
+                throw new DecodingError(inArray[i+1]);
+            }
+
             // Calculate back the remainder of the integer "n"
-            const rN = chars.indexOf(input[i]) + chars.indexOf(input[i+1]) * 91;
+            const rN = c0 + c1 * 91;
             n = (rN << bitCount) + n;
             bitCount += (rN % 8192 > 88) ? 13 : 14;
 
@@ -186,8 +209,8 @@ export default class Base91 extends BaseTemplate {
         // Calculate the last byte if the input is odd
         // and add it
         if (odd) {
-            const lastChar = input.charAt(l);
-            const rN = chars.indexOf(lastChar);
+            const lastChar = inArray.at(l);
+            const rN = charset.indexOf(lastChar);
             b256Array.push(((rN << bitCount) + n) % 256);
         }
 
@@ -204,7 +227,7 @@ export default class Base91 extends BaseTemplate {
      * @param {*} y - number 2
      * @returns {number} Modulo y of x
      */
-    divmod (x, y) {
+    #divmod (x, y) {
         return [Math.floor(x/y), x%y];
     }
 }

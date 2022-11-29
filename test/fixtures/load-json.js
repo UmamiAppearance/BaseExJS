@@ -1,19 +1,4 @@
-import { readFile } from "fs"; 
-
-const readFileNode = async (filename) => {
-    const readFileAsync = (filename) => new Promise((resolve, reject) => {
-        readFile(filename, (err, data) => {
-            if (err) { 
-                reject(err); 
-            } else { 
-                resolve(JSON.parse(data));
-            }
-        });
-    });
-
-    const json = await readFileAsync(filename); 
-    return json;
-};
+import { readFile } from "fs/promises";
 
 const loadEncodingMap = async () => {
     
@@ -24,7 +9,7 @@ const loadEncodingMap = async () => {
                     concat("encoding-map.json").
                     join("/");
 
-    const encodingMap = await readFileNode(absPath);
+    const encodingMap = JSON.parse(await readFile(absPath));
 
     return encodingMap;
 };

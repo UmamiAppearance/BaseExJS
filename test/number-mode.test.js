@@ -42,6 +42,11 @@ for (const base in BaseEx) {
             bFn = new BaseEx[base]("number", "signed");
             num = numbersNoMIN;
         }
+
+        else if (base === "BasePhi") {
+            bFn = new BaseEx.BasePhi("number"); 
+            num = numbersNoMIN;
+        }
         
         else {
             bFn = new BaseEx[base]("number");
@@ -61,7 +66,7 @@ for (const base in BaseEx) {
 }
 
 
-for (let radix=2; radix<=36; radix++) {
+for (let radix=2; radix<=62; radix++) {
     const bFn = new BaseEx.SimpleBase(radix, "number");
     
     for (const n of numbersNoMIN) {   

@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -41,15 +41,13 @@ export default class Base85 extends BaseTemplate {
      */
     constructor(...args) {
         super();
+        this.converter = new BaseConverter(85, 4, 5, 84);
 
         // charsets
-        this.charsets.adobe   =  "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
-        this.charsets.ascii85 =  this.charsets.adobe;
-        this.charsets.rfc1924 =  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
-        this.charsets.z85     =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
-
-        // converter
-        this.converter = new BaseConverter(85, 4, 5, 84);
+        this.charsets.adobe   =  [..."!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu"];
+        this.charsets.ascii85 =  this.charsets.adobe.slice();
+        this.charsets.rfc1924 =  [..."0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~"];
+        this.charsets.z85     =  [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"];
 
         // predefined settings
         this.version = "ascii85";
@@ -79,14 +77,12 @@ export default class Base85 extends BaseTemplate {
                     
         // Remove padded values and add a frame for the
         // adobe variant
-        const framesAndPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const framesAndPadding = ({ output, settings, zeroPadding }) => {
 
             // Cut of redundant chars
             if (zeroPadding) {
                 const padValue = this.converter.padBytes(zeroPadding);
-                output = output.slice(0, output.length-padValue);
+                output = output.slice(0, -padValue);
             }
 
             // Adobes variant gets its <~framing~>
@@ -109,9 +105,7 @@ export default class Base85 extends BaseTemplate {
      */
     decode(input, ...args) {
 
-        const prepareInput = (scope) => {
-
-            let { input, settings } = scope;
+        const prepareInput = ({ input, settings }) => {
 
             // For default ascii85 convert "z" back to "!!!!!"
             // Remove the adobe <~frame~>
@@ -125,6 +119,6 @@ export default class Base85 extends BaseTemplate {
             return input
         }
 
-        return super.decode(input, prepareInput, null, ...args);
+        return super.decode(input, prepareInput, null, false, ...args);
     }
 }

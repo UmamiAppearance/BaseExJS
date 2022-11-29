@@ -1,4 +1,5 @@
-import { Utils } from "./utils.js";
+import { DecodingError, Utils } from "./utils.js";
+
 
 /**
  * BaseEx Base Converter.
@@ -69,7 +70,7 @@ class BaseConverter {
      * @param {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} inputBytes - Input as Uint8Array.
      * @param {string} charset - The charset used for conversion.
      * @param {boolean} littleEndian - Byte order, little endian bool.
-     * @param {*} replacer - Replacer function can replace groups of characters during encoding.
+     * @param {function} replacer - Replacer function can replace groups of characters during encoding.
      * @returns {number[]} - Output string and padding amount. 
      */
     encode(inputBytes, charset, littleEndian=false, replacer=null) {
@@ -181,16 +182,16 @@ class BaseConverter {
 
     /**
      * BaseEx Universal Base Decoding.
+     * Decodes to a string of the given radix to a byte array.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
-     * @param {string} charset - The charset used for conversion.
-     * @param {*} littleEndian - Byte order, little endian bool.
+     * @param {string[]} charset - The charset used for conversion.
+     * @param {string[]} padSet - Padding characters for integrity check.
+     * @param {boolean} integrity - If set to false invalid character will be ignored.
+     * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
-    decode(inputBaseStr, charset, littleEndian=false) {
-        /*
-            Decodes to a string of the given radix to a byte array
-        */
-        
+    decode(inputBaseStr, charset, padSet=[], integrity=true, littleEndian=false) {
+
         // Convert each char of the input to the radix-integer
         // (this becomes the corresponding index of the char
         // from the charset). Every char, that is not found in
@@ -204,13 +205,14 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        inputBaseStr.split('').forEach((c) => {
+        [...inputBaseStr].forEach(c => {
             const index = charset.indexOf(c);
             if (index > -1) { 
-               byteArray.push(index);
+                byteArray.push(index);
+            } else if (integrity && padSet.indexOf(c) === -1) {
+                throw new DecodingError(c);
             }
         });
-
         
         let padChars;
 
@@ -367,18 +369,28 @@ class BaseTemplate {
 
         // predefined settings
         this.charsets = {};
+        this.decimalMode = false;
+        this.frozenCharsets = false;
+        this.hasDecimalMode = false;
         this.hasSignedMode = false;
+        this.integrity = true;
         this.littleEndian = false;
         this.numberMode = false;
         this.outputType = "buffer";
         this.padding = false;
+        this.padCharAmount = 0;
+        this.padChars = {} 
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
         this.version = "default";
+        this.options = {
+            lineWrap: 0
+        }
         
         // list of allowed/disallowed args to change
         this.isMutable = {
+            integrity: true,
             littleEndian: false,
             padding: false,
             signed: false,
@@ -389,8 +401,8 @@ class BaseTemplate {
     /**
      * BaseEx Generic Encoder.
      * @param {*} input - Any input the used byte converter allows.
-     * @param {*} [replacerFN] - Replacer function, which is passed to the encoder. 
-     * @param {*} [postEncodeFN] - Function, which is executed after encoding.
+     * @param {function} [replacerFN] - Replacer function, which is passed to the encoder. 
+     * @param {function} [postEncodeFN] - Function, which is executed after encoding.
      * @param  {...any} args - Converter settings.
      * @returns {string} - Base encoded string.
      */
@@ -400,8 +412,7 @@ class BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         // handle input
-        let inputBytes, negative, type;
-        [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
+        let [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
 
         // generate replacer function if given
         let replacer = null;
@@ -410,8 +421,7 @@ class BaseTemplate {
         }
         
         // Convert to base string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
+        let [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
         // set sign if requested
         if (settings.signed) {
@@ -428,32 +438,32 @@ class BaseTemplate {
             output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
 
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
     /**
      * BaseEx Generic Decoder.
-     * @param {string} rawInput - Base String.
-     * @param {*} [preDecodeFN] - Function, which gets executed before decoding. 
-     * @param {*} [postDecodeFN] - Function, which gets executed after decoding
+     * @param {string} input - Base String.
+     * @param {function} [preDecodeFN] - Function, which gets executed before decoding. 
+     * @param {function} [postDecodeFN] - Function, which gets executed after decoding
      * @param  {...any} args - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
+    decode(input, preDecodeFN, postDecodeFN, keepNL, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        let input = String(rawInput);
+        input = this.utils.normalizeInput(input, keepNL);
 
         // set negative to false for starters
         let negative = false;
         
         // Test for a negative sign if converter supports it
         if (this.hasSignedMode) {
-            [input, negative] = this.utils.extractSign(input);   
+            [ input, negative ] = this.utils.extractSign(input);   
             
             // But don't allow a sign if the decoder is not configured to use it
             if (negative && !settings.signed) {
@@ -473,7 +483,13 @@ class BaseTemplate {
         }
 
         // Run the decoder
-        let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+        let output = this.converter.decode(
+            input,
+            this.charsets[settings.version],
+            this.padChars[settings.version],
+            settings.integrity,
+            settings.littleEndian
+        );
 
         // Run post decode function if provided
         if (postDecodeFN) {

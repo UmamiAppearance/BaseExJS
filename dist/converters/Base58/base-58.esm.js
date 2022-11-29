@@ -514,6 +514,23 @@ class SmartOutput {
 const DEFAULT_INPUT_HANDLER = SmartInput;
 const DEFAULT_OUTPUT_HANDLER = SmartOutput;
 
+class SignError extends TypeError {
+    constructor() {
+        super("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        this.name = "SignError";
+    }
+}
+
+class DecodingError extends TypeError {
+    constructor(char, msg=null) {
+        if (msg === null) {
+            msg = `Character '${char}' is not part of the charset.`;
+        }
+        super(msg);
+        this.name = "DecodingError";
+    }
+}
+
 
 /**
  * Utilities for every BaseEx class.
@@ -522,16 +539,19 @@ const DEFAULT_OUTPUT_HANDLER = SmartOutput;
  */
 class Utils {
 
-    constructor(main, addCharsetTools=true) {
+    constructor(main) {
 
         // Store the calling class in this.root
         // for accessability.
         this.root = main;
+        
+        // set specific args object for converters
+        this.converterArgs = {};
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
 
-        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
+        this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -539,73 +559,135 @@ class Utils {
         this.outputHandler = outputHandler;
     }
 
+
+    /**
+     * Constructor for the ability to add a charset and 
+     * change the default version.
+     */
     #charsetUserToolsConstructor() {
-        /*
-            Constructor for the ability to add a charset and 
-            change the default version.
-        */
 
-        this.root.addCharset = (name, charset) => {
-            /*
-                Save method to add a charset.
-                ----------------------------
+        /**
+         * Save method to add a charset.
+         * @param {string} name - "Charset name."
+         * @param {[string|set|array]} - "Charset"
+         */
+        this.root.addCharset = (name, _charset, _padChars=[], info=true) => {
 
-                @name: string that represents the key for the new charset
-                @charset: string, array or Set of chars - the length must fit to the according class 
-            */
+            const normalize = (typeName, set, setLen) => {
+
+                if (setLen === 0 && set.length) {
+                    console.warn(`This converter has no ${typeName}. The following argument was ignored:\n'${set}'`);
+                    return [];
+                }
+
+                let inputLen = setLen;
+
+                if (typeof set === "string") {
+                    set = [...set];
+                }
                 
+                if (Array.isArray(set)) {
+                    
+                    // Store the input length of the input
+                    inputLen = set.length;
+                    
+                    // Convert to "Set" -> eliminate duplicates
+                    // If duplicates are found the length of the
+                    // Set and the length of the initial input
+                    // differ.
+
+                    set = new Set(set);
+
+                } else if (!(set instanceof Set)) {
+                    throw new TypeError(`The ${typeName} must be one of the types:\n'str', 'set', 'array'."`);
+                }
+                
+                if (set.size === setLen) {
+                    return [...set];
+                }
+                
+                if (inputLen !== setLen) {
+                    throw new Error(`Your ${typeName} has a length of ${inputLen}. The converter requires a length of ${setLen}.`);
+                } else {
+                    const charAmounts = {};
+                    _charset = [..._charset];
+                    _charset.forEach(c => {
+                        if (c in charAmounts) {
+                            charAmounts[c]++;
+                        } else {
+                            charAmounts[c] = 1;
+                        }
+                    });
+                    
+                    let infoStr = "";
+                    if (setLen < 100) {
+                        infoStr = `${_charset.join("")}\n`;
+                        _charset.forEach(c => {
+                            if (charAmounts[c] > 1) {
+                                infoStr += "^";
+                            } else {
+                                infoStr += " ";
+                            }
+                        });
+                    }
+                    const rChars = Object.keys(charAmounts).filter(c => charAmounts[c] > 1);
+                    throw new Error(`You have repetitive char(s) [ ${rChars.join(" | ")} ] in your ${typeName}. Make sure each character is unique.\n${infoStr}`);
+                }
+            };
+
+            if (this.root.frozenCharsets) {
+                throw new Error("The charsets of this converter cannot be changed.");
+            }
+
             if (typeof name !== "string") {
                 throw new TypeError("The charset name must be a string.");
             }
 
-            // Get the appropriate length for the charset
-            // from the according converter
-            
-            const setLen = this.root.converter.radix;
-            let inputLen = setLen;
-            
-            if (typeof charset === "string" || Array.isArray(charset)) {
-                
-                // Store the input length of the input
-                inputLen = charset.length;
-                
-                // Convert to "Set" -> eliminate duplicates
-                // If duplicates are found the length of the
-                // Set and the length of the initial input
-                // differ.
-
-                charset = new Set(charset);
-
-            } else if (!(charset instanceof Set)) {
-                throw new TypeError("The charset must be one of the types:\n'str', 'set', 'array'.");
+            if (info && name in this.root.charsets) {
+                console.warn(`An existing charset with name ${name} will get replaced.`);
             }
-            
-            if (charset.size === setLen) {
-                charset = [...charset].join("");
-                this.root.charsets[name] = charset;
+
+            const charset = normalize("charset", _charset, this.root.converter.radix);
+            const padChars = normalize("padding set", _padChars, this.root.padCharAmount);
+
+            this.root.charsets[name] = charset;
+            if (padChars.length) {
+                this.root.padChars[name] = padChars;
+            }
+
+            if (info) {
                 console.info(`New charset '${name}' was added and is ready to use`);
-            } else if (inputLen === setLen) {
-                throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
-            } else {
-                throw new Error(`The length of the charset must be ${setLen}.`);
             }
         };
 
         // Save method (argument gets validated) to 
         // change the default version.
         this.root.setDefaultCharset = (version) => {
-            ({version } = this.validateArgs([version]));
+            if (!(version in this.root.charsets)) {
+                const sets = Object.keys(this.root.charsets).join("\n   * ");
+                const msg = `Charset ${version} was not found. Available charsets are:\n   * ${sets}`;
+                throw new TypeError(msg);
+            }
             this.root.version = version;
         };
     }
 
-    makeArgList(args) {
-        /*
-            Returns argument lists for error messages.
-        */
+    /**
+     * Argument lists for error messages.
+     * @param {string[]} args 
+     * @returns string - Arguments joined as a string. 
+     */
+    #makeArgList(args) {
         return args.map(s => `'${s}'`).join(", ");
     }
 
+    /**
+     * Removes all padded zeros a the start of the string,
+     * adds a "-" if value is negative.
+     * @param {string} output - Former output.
+     * @param {boolean} negative - Indicates a negative value if true.
+     * @returns {string} - Output without zero padding and a sign if negative.
+     */
     toSignedStr(output, negative) {
 
         output = output.replace(/^0+(?!$)/, "");
@@ -617,8 +699,14 @@ class Utils {
         return output;
     }
 
+    /**
+     * Analyzes the input for a negative sign.
+     * If a sign is found, it gets removed but
+     * negative bool gets true;
+     * @param {string} input - Input number as a string. 
+     * @returns {array} - Number without sign and negativity indication bool.
+     */
     extractSign(input) {
-        // Test for a negative sign
         let negative = false;
         if (input[0] === "-") {
             negative = true;
@@ -628,35 +716,68 @@ class Utils {
         return [input, negative];
     }
 
-    invalidArgument(arg, versions, outputTypes, initial) {
-        const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
-        const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
-        const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
-        const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
-        const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
-        const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
-        const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
-        const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
+    /**
+     * All possible error messages for invalid arguments,
+     * gets adjusted according to the converter settings.
+     * @param {string} arg - Argument. 
+     * @param {string[]} versions - Charset array. 
+     * @param {string[]} outputTypes - Array of output types. 
+     * @param {boolean} initial - Indicates if the arguments where passed during construction. 
+     */
+    #invalidArgument(arg, versions, outputTypes, initial) {
+        const loopConverterArgs = () => Object.keys(this.converterArgs).map(
+            key => this.converterArgs[key].map(
+                keyword => `'${keyword}'`
+            )
+            .join(" and ")
+        )
+        .join("\n   - ");
         
-        throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
+        throw new TypeError([
+            `'${arg}'\n\nParameters:`,
+            initial ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : "",
+            this.root.isMutable.signed ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "",
+            this.root.isMutable.littleEndian ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "",
+            this.root.isMutable.padding ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "",
+            this.root.isMutable.upper ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "",
+            `\n * valid args for the output type are ${this.#makeArgList(outputTypes)}`,
+            versions ? `\n * the option(s) for version/charset are: ${this.#makeArgList(versions)}` : "",
+            "\n * valid args for integrity check are: 'integrity' and 'nointegrity'",
+            this.root.hasDecimalMode ? "\n * 'decimal' for decimal-mode (directly converts Numbers including decimal values, without byte-conversion)" : "",
+            "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)",
+            Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "",
+            "\n\nTraceback:"
+        ].join(""));
     }
 
+
+    /**
+     * Test if provided arguments are in the argument list.
+     * Everything gets converted to lowercase and returned.
+     * @param {string[]} args - Passed arguments. 
+     * @param {boolean} initial - Indicates if the arguments where passed during construction.  
+     * @returns {Object} - Converter settings object.
+     */
     validateArgs(args, initial=false) {
-        /* 
-            Test if provided arguments are in the argument list.
-            Everything gets converted to lowercase and returned
-        */
         
         // default settings
         const parameters = {
+            decimalMode: this.root.decimalMode,
+            integrity: this.root.integrity,
             littleEndian: this.root.littleEndian,
             numberMode: this.root.numberMode,
+            options: this.root.options,
             outputType: this.root.outputType,
             padding: this.root.padding,
             signed: this.root.signed,
             upper: this.root.upper,
             version: this.root.version
         };
+
+        // add any existing converter specific args
+        for (const param in this.converterArgs) {
+            parameters[param] = this.root[param];
+        }
 
         // if no args are provided return the default settings immediately
         if (!args.length) {
@@ -681,12 +802,14 @@ class Utils {
         };
 
         // set available versions and extra arguments
-        const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
+        const versions = Object.keys(this.root.charsets);
         const extraArgList = {
+            integrity: ["nointegrity", "integrity"],
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],
             signed: ["unsigned", "signed"],
             upper: ["lower", "upper"],
+            ...this.converterArgs
         };
 
         // if initial, look for IO specifications
@@ -707,10 +830,31 @@ class Utils {
         if (extractArg("number")) {
             parameters.numberMode = true;
             parameters.outputType = "float_n";
+        } 
+        
+        // test for the special "decimal" keyword
+        if (extractArg("decimal")) {
+            if (!this.root.hasDecimalMode) {
+                throw TypeError(`Argument 'decimal' is only allowed for converters with a non-integer base.`);
+            }
+            parameters.decimalMode = true;
+            parameters.outputType = "decimal";
+
+            if (parameters.numberMode) {
+                parameters.numberMode = false;
+                console.warn("-> number-mode was disabled due to the decimal-mode");
+            }
         }
 
         // walk through the remaining arguments
         args.forEach((arg) => {
+            
+            // additional/optional non boolean options
+            if (typeof arg === "object") {
+                parameters.options = {...parameters.options, ...arg};
+                return;
+            }
+
             arg = String(arg).toLowerCase();
 
             if (versions.includes(arg)) {
@@ -746,7 +890,7 @@ class Utils {
                 }
 
                 if (invalidArg) {
-                    this.invalidArgument(arg, versions, outputTypes, initial);
+                    this.#invalidArgument(arg, versions, outputTypes, initial);
                 }
             }
         });
@@ -756,7 +900,7 @@ class Utils {
         // displayed.
         if (parameters.padding && parameters.signed) {
             parameters.padding = false;
-            this.constructor.warning("Padding was set to false due to the signed conversion.");
+            console.warn("-> padding was set to false due to the signed conversion");
         }
         
         // overwrite the default parameters for the initial call
@@ -769,17 +913,40 @@ class Utils {
         return parameters;
     }
 
+    /**
+     * A TypeError specifically for sign errors.
+     */
     signError() {
-        throw new TypeError("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        throw new SignError();
     }
 
-    static warning(message) {
-        if (Object.prototype.hasOwnProperty.call(console, "warn")) {
-            console.warn(message);
-        } else {
-            console.log(`___\n${message}\n`);
+    /**
+     * Wrap output to "cols" characters per line.
+     * @param {string} output - Output string. 
+     * @param {number} cols - Number of cols per line. 
+     * @returns {string} - Wrapped output.
+     */
+    wrapOutput(output, cols=0) {
+        if (!cols) {
+            return output;
         }
+        const m = new RegExp(`.{1,${cols}}`, "gu");
+        return output.match(m).join("\n");
     }
+
+    /**
+     * Ensures a string input.
+     * @param {*} input - Input.
+     * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
+     * @returns {string} - Normalized input.
+     */
+    normalizeInput(input, keepWS=false) {
+        if (keepWS) {
+            return String(input);
+        }
+        return String(input).replace(/\s/g, "");
+    }
+
 }
 
 /**
@@ -851,7 +1018,7 @@ class BaseConverter {
      * @param {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} inputBytes - Input as Uint8Array.
      * @param {string} charset - The charset used for conversion.
      * @param {boolean} littleEndian - Byte order, little endian bool.
-     * @param {*} replacer - Replacer function can replace groups of characters during encoding.
+     * @param {function} replacer - Replacer function can replace groups of characters during encoding.
      * @returns {number[]} - Output string and padding amount. 
      */
     encode(inputBytes, charset, littleEndian=false, replacer=null) {
@@ -963,16 +1130,16 @@ class BaseConverter {
 
     /**
      * BaseEx Universal Base Decoding.
+     * Decodes to a string of the given radix to a byte array.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
-     * @param {string} charset - The charset used for conversion.
-     * @param {*} littleEndian - Byte order, little endian bool.
+     * @param {string[]} charset - The charset used for conversion.
+     * @param {string[]} padSet - Padding characters for integrity check.
+     * @param {boolean} integrity - If set to false invalid character will be ignored.
+     * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
-    decode(inputBaseStr, charset, littleEndian=false) {
-        /*
-            Decodes to a string of the given radix to a byte array
-        */
-        
+    decode(inputBaseStr, charset, padSet=[], integrity=true, littleEndian=false) {
+
         // Convert each char of the input to the radix-integer
         // (this becomes the corresponding index of the char
         // from the charset). Every char, that is not found in
@@ -986,13 +1153,14 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        inputBaseStr.split('').forEach((c) => {
+        [...inputBaseStr].forEach(c => {
             const index = charset.indexOf(c);
             if (index > -1) { 
-               byteArray.push(index);
+                byteArray.push(index);
+            } else if (integrity && padSet.indexOf(c) === -1) {
+                throw new DecodingError(c);
             }
         });
-
         
         let padChars;
 
@@ -1149,18 +1317,28 @@ class BaseTemplate {
 
         // predefined settings
         this.charsets = {};
+        this.decimalMode = false;
+        this.frozenCharsets = false;
+        this.hasDecimalMode = false;
         this.hasSignedMode = false;
+        this.integrity = true;
         this.littleEndian = false;
         this.numberMode = false;
         this.outputType = "buffer";
         this.padding = false;
+        this.padCharAmount = 0;
+        this.padChars = {}; 
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
         this.version = "default";
+        this.options = {
+            lineWrap: 0
+        };
         
         // list of allowed/disallowed args to change
         this.isMutable = {
+            integrity: true,
             littleEndian: false,
             padding: false,
             signed: false,
@@ -1171,8 +1349,8 @@ class BaseTemplate {
     /**
      * BaseEx Generic Encoder.
      * @param {*} input - Any input the used byte converter allows.
-     * @param {*} [replacerFN] - Replacer function, which is passed to the encoder. 
-     * @param {*} [postEncodeFN] - Function, which is executed after encoding.
+     * @param {function} [replacerFN] - Replacer function, which is passed to the encoder. 
+     * @param {function} [postEncodeFN] - Function, which is executed after encoding.
      * @param  {...any} args - Converter settings.
      * @returns {string} - Base encoded string.
      */
@@ -1182,8 +1360,7 @@ class BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         // handle input
-        let inputBytes, negative, type;
-        [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
+        let [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
 
         // generate replacer function if given
         let replacer = null;
@@ -1192,8 +1369,7 @@ class BaseTemplate {
         }
         
         // Convert to base string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
+        let [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
         // set sign if requested
         if (settings.signed) {
@@ -1210,32 +1386,32 @@ class BaseTemplate {
             output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
 
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
     /**
      * BaseEx Generic Decoder.
-     * @param {string} rawInput - Base String.
-     * @param {*} [preDecodeFN] - Function, which gets executed before decoding. 
-     * @param {*} [postDecodeFN] - Function, which gets executed after decoding
+     * @param {string} input - Base String.
+     * @param {function} [preDecodeFN] - Function, which gets executed before decoding. 
+     * @param {function} [postDecodeFN] - Function, which gets executed after decoding
      * @param  {...any} args - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
+    decode(input, preDecodeFN, postDecodeFN, keepNL, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        let input = String(rawInput);
+        input = this.utils.normalizeInput(input, keepNL);
 
         // set negative to false for starters
         let negative = false;
         
         // Test for a negative sign if converter supports it
         if (this.hasSignedMode) {
-            [input, negative] = this.utils.extractSign(input);   
+            [ input, negative ] = this.utils.extractSign(input);   
             
             // But don't allow a sign if the decoder is not configured to use it
             if (negative && !settings.signed) {
@@ -1255,7 +1431,13 @@ class BaseTemplate {
         }
 
         // Run the decoder
-        let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+        let output = this.converter.decode(
+            input,
+            this.charsets[settings.version],
+            this.padChars[settings.version],
+            settings.integrity,
+            settings.littleEndian
+        );
 
         // Run post decode function if provided
         if (postDecodeFN) {
@@ -1269,7 +1451,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1294,15 +1476,25 @@ class Base58 extends BaseTemplate{
      * @param {...string} [args] - Converter settings.
      */
     constructor(...args) {
-        super(); 
+        super();
+        this.converter = new BaseConverter(58, 0, 0);
 
         // charsets
-        this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
-        this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-        this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+        this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "default", {
+            get: () => [ this.charsets.default.at(0) ]
+        });
 
-        // converter
-        this.converter = new BaseConverter(58, 0, 0);
+        this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
+        Object.defineProperty(this.padChars, "bitcoin", {
+            get: () => [ this.charsets.bitcoin.at(0) ]
+        });
+        
+        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "flickr", {
+            get: () => [ this.charsets.flickr.at(0) ]
+        });
+        
 
         // predefined settings
         this.padding = true;
@@ -1325,9 +1517,7 @@ class Base58 extends BaseTemplate{
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
-
-            let { inputBytes, output, settings, type } = scope;
+        const applyPadding = ({ inputBytes, output, settings, type }) => {
 
             if (settings.padding && type !== "int") { 
                 
@@ -1336,6 +1526,9 @@ class Base58 extends BaseTemplate{
                 // all the way through it, reset index and stop.
                 let i = 0;
                 const end = inputBytes.length;
+
+                // pad char is always! the first char in the set
+                const padChar = this.charsets[settings.version].at(0);
 
                 // only proceed if input has a length at all
                 if (end) {
@@ -1353,7 +1546,7 @@ class Base58 extends BaseTemplate{
 
                     // Set a one for every leading null byte
                     if (zeroPadding) {
-                        output = ("1".repeat(zeroPadding)).concat(output);
+                        output = (padChar.repeat(zeroPadding)).concat(output);
                     }
                 }
             }
@@ -1374,15 +1567,16 @@ class Base58 extends BaseTemplate{
     decode(input, ...args) {
         
         // post decoding function
-        const applyPadding = (scope) => {
+        const applyPadding = ({ input, output, settings }) => {
 
-            let { input, output, settings } = scope;
+            // pad char is always! the first char in the set
+            const padChar = this.charsets[settings.version].at(0);
 
             if (settings.padding && input.length > 1) {
                 
-                // Count leading ones 
+                // Count leading padding (char should be 1)
                 let i = 0;
-                while (input[i] === "1") {
+                while (input[i] === padChar) {
                     i++;
                 }
     
@@ -1400,7 +1594,7 @@ class Base58 extends BaseTemplate{
             return output;
         };
 
-        return super.decode(input, null, applyPadding, ...args);
+        return super.decode(input, null, applyPadding, false, ...args);
     }
 }
 

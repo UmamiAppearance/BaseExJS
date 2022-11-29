@@ -1,16 +1,23 @@
 {
   "name": "base-ex",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "A collection of classes for data representation written in JavaScript.",
   "main": "./cjs/base-ex.cjs",
   "module": "./src/base-ex.js",
+  "bin": {
+    "bx": "./src/cli.js"
+  },
   "exports": {
     "import": "./src/base-ex.js",
     "require": "./cjs/base-ex.cjs"
   },
   "type": "module",
   "directories": {
-    "test": "test"
+    "examples": "examples",
+    "cjs": "cjs",
+    "dist": "dist",
+    "test": "test",
+    "src": "src"
   },
   "scripts": {
     "build": "rollup -c",
@@ -18,6 +25,7 @@
     "build:cjs": "rollup src/base-ex.js --file cjs/base-ex.cjs --format cjs",
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
+    "start": "http-server -a localhost -o ./examples/demo.html",
     "test": "ava"
   },
   "repository": {
@@ -36,10 +44,16 @@
     "Base32",
     "Base36",
     "Base58",
+    "Base62",
     "Base64",
+    "UUencode",
     "Base85",
     "Base91",
-    "LEB128"
+    "LEB128",
+    "Ecoji",
+    "Base2048",
+    "BasePhi",
+    "Golden Ratio Base"
   ],
   "author": "UmamiAppearance",
   "license": "GPL-3.0",
@@ -49,10 +63,12 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme",
   "devDependencies": {
-    "@rollup/plugin-replace": "^4.0.0",
-    "ava": "^4.3.3",
-    "eslint": "^8.23.1",
-    "rollup": "^2.79.0",
-    "rollup-plugin-terser": "^7.0.2"
+    "@rollup/plugin-terser": "^0.1.0",
+    "ava": "^5.1.0",
+    "big.js": "^6.2.1",
+    "eslint": "^8.28.0",
+    "http-server": "^14.1.1",
+    "rollup": "^3.5.0",
+    "rollup-plugin-your-function": "^0.4.3"
   }
 }

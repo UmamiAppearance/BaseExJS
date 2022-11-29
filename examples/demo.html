@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -12,10 +13,10 @@
         <script src="./assets/prism.js"></script>
 
         <script type="module">
-            import { BaseEx } from "../src/base-ex.js";
+            import { BaseEx, ByteConverter, LEB128 } from "../src/base-ex.js";
 
-            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.39/dist/vue.esm-browser.prod.js";
-            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.39/dist/vue.esm-browser.js";
+            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.prod.js";
+            import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.js";
 
             // Initialize main BaseEx class
             const baseEx = new BaseEx();
@@ -28,57 +29,33 @@
 
             // Provide some functions to convert bytes
             const byteConverter = {
-                toStrBytes: input => input.join(" "),
-                toUint: input => new Uint8Array(input.split(" ")),
+                toStrBytes: input => input.join(", "),
+                toUint: input => new Uint8Array(
+                    input.split(",").filter(b => b.trim() !== "")
+                ),
             }
 
-            // Takes the provided input and converts it to
-            // the proper type. Unwanted characters are
-            // also getting removed.
-            const handleInput = (strInput) => {
+            // modified byte converter with bytes as a comma separated string
+            const bc = new ByteConverter();
+            baseEx.byteConverter.charsets = [];
+            baseEx.byteConverter.encode = (...args) => bc.encode(...args).join(", ");
+            baseEx.byteConverter.decode = (input, ...args) => bc.decode(
+                byteConverter.toUint(input),
+                ...args
+            );
 
-                let input;
-                let modifiedStr = null;
-                
-                if (Data.curTypes.encode === "bytes") {
-                    
-                    // Replace everything but digits.
-                    const cleanedStr = strInput = strInput.replace(/[^\d ]/g, "").replace(/\s\s+/g, " ");
-                    if (cleanedStr !== "strInput") {
-                        modifiedStr = cleanedStr;
-                    }
-                    input = byteConverter.toUint(cleanedStr.trim());
-                }   
-                else if (Data.curTypes.encode === "int_n") {
-
-                    // Replace everything but digits, but allow
-                    // negative sign at the beginning.
-                    const cleanedStr = strInput = strInput.replace(/(?!^-)[^\d]/g, "");
-                    if (cleanedStr === "-") {
-                        return [0, modifiedStr];
-                    } else if (cleanedStr !== "strInput") {
-                        modifiedStr = cleanedStr;
-                    }
-                    input = BigInt(strInput);
-                    if (input > -Number.MAX_SAFE_INTEGER && input < Number.MAX_SAFE_INTEGER) {
-                        input = Number(input);
-                    }
-                } 
-                else if (Data.curTypes.encode === "str") {
-                    input = strInput;
-                }
-
-                return [input, modifiedStr];
-            }
-
-            const showInvalid = () => {
-                console.error("unable to process value");
-            }
-
+            // modified leb128 converter with bytes as a comma separated string
+            const leb128 = new LEB128();
+            baseEx.leb128.encode = (...args) => leb128.encode(...args).join(", ");
+            baseEx.leb128.decode = (input, ...args) => leb128.decode(
+                byteConverter.toUint(input),
+                ...args
+            );
 
             // Global data object (source of truth) for Vue
             const Data = {
                 input: "Hello World!",
+                byteRepresentation: null,
                 output: null,
                 mode: "encode",
                 curTypes: { 
@@ -91,10 +68,37 @@
                 },
                 importType: "esm",
                 importTypes: ["esm", "node-esm", "node-cjs", "iife"],
+                isInvalid: false,
+                isNumber: false,
+                error: {
+                    name: null,
+                    message: null
+                },
             };
 
             // Set the initial output
-            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.input, Data.curTypes.encode);
+            Data.byteRepresentation = bc.encode(Data.input);
+            Data.output = baseEx[Data.curTypes.decode][Data.mode](Data.byteRepresentation, Data.curTypes.encode);
+
+
+            const _toClipboard = input => {
+
+                window.navigator.clipboard.writeText(input);
+                const copied = document.querySelector("#copied");
+                
+                // reset animation in case it is running 
+                clearTimeout(window.copyTimer);
+                copied.getAnimations().forEach(anim => {
+                    anim.cancel();
+                    anim.play();
+                });
+
+                // start animation
+                copied.classList.add("show");
+                window.copyTimer = setTimeout(() => {
+                    copied.classList.remove("show");
+                }, 1500);
+            }
                 
             const app = createApp({
                 data() {
@@ -104,17 +108,13 @@
                 methods: {
                     toClipboard: function(e) {
                         const code = e.target.previousSibling.textContent;
-                        window.navigator.clipboard.writeText(code);
-
-                        const copied = document.querySelector("#copied");
-                        copied.classList.add("show");
-                        
-                        setTimeout(() => {
-                            copied.classList.remove("show");
-                        }, 1500);
+                        _toClipboard(code);
                     },
+
                     switchInOut: function() {
-                        [this.input, this.output] = [this.output, this.input];
+                        const input = this.output;
+                        this.input = input;
+                        this.$refs.inputRef.message = input;
                     },
                 },
 
@@ -124,11 +124,15 @@
                         const isDecoding = (this.mode === "decode");
                         const simpleBase = (this.curTypes.decode.slice(0,10) === "simpleBase");
                         
-                        // generate a byte string, that is separated by commas
-                        const preIn = (isBytes) ? this.input.split(" ").join(", ") : this.input;
+                        // generate a cleaned byte string, that is separated by commas
+                        const preIn = (isBytes) ? String(this.input).split(",").map(b => b.trim()).filter(b => b !== "").join(", ") : String(this.input);
 
                         // escape double quotes and escape char 
                         let max56Inpt = preIn.replace(/[\"\\]/g, '\\$&');
+
+                        // remove whitespace for decoding
+                        if (isDecoding) max56Inpt = max56Inpt.replace(/\s/g, "");
+
                         let copyPasteInfo = "You can copy this code as it is to your environment";
                         
                         // trim output after 56 characters
@@ -137,13 +141,13 @@
                             copyPasteInfo = "Your input was shortened for this demonstration purpose.\n// You can either use shorter input if you want to copy and\n// test it or you need to adjust it in your environment.";
                         }
                         
-                        // generate code for bytes (needs some work) or string (as is)
+                        // generate code for the input
                         let input;
                         if (!isDecoding && isBytes) {
                             input = `new Uint8Array([${max56Inpt}])`
                         } else if (!isDecoding && this.curTypes.encode === "int_n") {
                             input = max56Inpt;
-                            if (input < -Number.MAX_SAFE_INTEGER || input > Number.MAX_SAFE_INTEGER) {
+                            if (Math.abs(input) > Number.MAX_SAFE_INTEGER) {
                                 input += "n";
                             }
                         } else {
@@ -198,7 +202,7 @@
                             ${importStatement}
 
                             // input assignment
-                            const input = ${input.replace("<", "&lt;").replace(">", "&gt;")};
+                            const input = ${input};
 
                             // Main class BaseEx
                             const baseEx = new ${scopeVar}BaseEx();
@@ -270,28 +274,46 @@
                         },
 
                         set: function(val) {
+
+                            // remove invalid state
+                            if (this.isInvalid) this.isInvalid = false;
+
                             // If the user changes the selection, the
                             // first decision is wether it is a base
                             // change or str/bytes switches. The latter
                             // is the first route below.
 
                             if (this.dataTypes.encode.includes(val)) {
-                                // Change the current value (str/bytes)
+                                // Change the current value (str/bytes/int_n)
                                 // on the Data object 
                                 this.curTypes.encode = val;
 
-                                // Convert this.input or this.output to bytes/str
+                                const endianness = baseEx[this.curTypes.decode].littleEndian
+                                    ? "le"
+                                    : "be";
+
+
+                                // Convert this.input or this.output to bytes/str/int_n
                                 // according to the select field from in- or output
-                                const otherField = (this._type === "input") ? "output" : "input";
                                 let fieldVal;
                                 try {
-                                    fieldVal = baseEx[this.curTypes.decode].decode(this[otherField], this.curTypes.encode);
+                                    fieldVal = bc.decode(this.byteRepresentation, this.curTypes.encode, endianness);
                                 } catch(e) {
-                                    fieldVal = this[this._type];
-                                    showInvalid();
+                                    this.showInvalid(e);
+                                    return;
+                                }
+                                
+                                if (val === "bytes") {
+                                    this[this._type] = byteConverter.toStrBytes(this.byteRepresentation);
+                                } else {
+                                    this[this._type] = fieldVal;
                                 }
 
-                                this[this._type] = (val === "bytes") ? byteConverter.toStrBytes(fieldVal) : String(fieldVal);
+                                // refresh the input for mode encode
+                                if (this.mode === "encode") {
+                                    this.message = this.input;
+                                }
+                                
 
                             } else {
                                 // Change the current base type on the 
@@ -307,16 +329,14 @@
                                     // If the base change appearers on input
                                     // the current mode is "decode". In this
                                     // case the input field needs to change its 
-                                    // base. To achieve this, the output value
-                                    // gets encoded back and refreshes on input. 
+                                    // base. The byteRepresentation can be used
+                                    // to encode the fresh base. 
 
-                                    const input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.output) : this.output;
-                                    
-                                   try { 
-                                        this.input = baseEx[val].encode(input, this.curTypes.encode);
-                                   } catch(e) {
-                                       showInvalid();
-                                   }
+                                    try { 
+                                        this.input = baseEx[val].encode(this.byteRepresentation, this.curTypes.encode);
+                                    } catch(e) {
+                                        this.showInvalid(e);
+                                    }
                                 }
                             }
                         },
@@ -336,66 +356,108 @@
                         set: function(val) {
                             // Gets called if the user changes the input
                             // (also after a select field changes)
-
-                            // The actual input, that feedArrayBuffer.isViews the BaseEx
-                            // class can vary. Therefore a local var "input"
-                            // gets initialized.
-                            let input;
+     
+                            // Remove invalid state if present
+                            if (this.isInvalid) this.isInvalid = false;
 
                             // If the output type is set to bytes it gets
                             // converted to a string where each byte value
-                            // is separated by a space. To activate this case
-                            // "toStrBytes" needs to be set to true.
+                            // is separated by with a comma. To activate this
+                            // case "toStrBytes" needs to be set to true later.
                             let toStrBytes = false;
 
                             // First determine if the textarea was changed
                             // on in- or output. (As output is set to 
                             // readonly it can not get changed directly,
                             // but it can switch by changing the base or
-                            // str/bytes)
+                            // str/bytes).
+
+                            const endianness = baseEx[this.curTypes.decode].littleEndian
+                                        ? "le"
+                                        : "be";
 
                             if (this._type === "input") {
-                                // Store the current value of the textarea
-                                // on the Data object.
-                                this.input = val;
-
-                                // Also set "input" to this value for starters
-                                input = val;
-
+                                
                                 // If mode is encode, run some tests on the input,
                                 // convert it to the desired type and clean the it
-                                // from unwanted characters. For decode only set
-                                // the bytes switch if dealing with bytes.
-                                if (this.mode === "encode") {
-                                    let modifiedStr;
-                                    [input, modifiedStr] = handleInput(val);
-                                    if (modifiedStr) {
-                                        this.input = modifiedStr;
+                                // from unwanted characters. For decode do nothing
+                                // but setting the bytes switch if dealing with bytes.
+
+                                if (this.mode === "encode") { 
+
+                                    // reset the "isNumber" indicator
+                                    this.isNumber = false;
+
+                                    // Handle input
+                                    let byteRepresentation;
+                                    let cleanedStr = String(val);
+                                    let n = null;
+                                    
+                                    if (Data.curTypes.encode === "bytes") {
+                                        
+                                        // Replace everything but digits and commas.
+                                        cleanedStr = cleanedStr.replace(/[^\d, ]/g, "");
+                                        byteRepresentation = byteConverter.toUint(cleanedStr.trim());
                                     }
-                                } else if (this.curTypes.encode === "bytes") {
-                                    toStrBytes = true;
-                                } 
+
+                                    else if (Data.curTypes.encode === "int_n") {
+                                        
+                                        // set the "isNumber" indicator
+                                        this.isNumber = true;
+
+                                        // Replace everything but digits, but allow
+                                        // negative sign at the beginning.
+                                        cleanedStr = cleanedStr.replace(/(?!^-)[^\d]/g, "");
+                                        if (cleanedStr === "-") {
+                                            cleanedStr = "";
+                                        }
+
+                                        n = Math.abs(cleanedStr) > Number.MAX_SAFE_INTEGER
+                                            ? BigInt(cleanedStr)
+                                            : Number(cleanedStr);
+                                                            
+                                        byteRepresentation = bc.encode(n, endianness);
+                                    } 
+
+                                    else if (Data.curTypes.encode === "str") {
+                                        byteRepresentation = bc.encode(cleanedStr);
+                                    }
+
+                                    this.byteRepresentation = byteRepresentation;
+                                    
+                                    this.input = "";
+                                    this.input = cleanedStr;
+
+                                    if (this.isNumber) {
+                                        this.output = baseEx[this.curTypes.decode].encode(n, this.curTypes.encode);
+                                    } else {
+                                        this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
+                                    }
+                                    
+                                } else {   
+
+                                    try {
+                                        this.byteRepresentation = baseEx[this.curTypes.decode].decode(val, "bytes");
+                                    } catch(e) {
+                                        this.showInvalid(e);
+                                    }
+
+                                    this.output = this.curTypes.encode === "bytes"
+                                        ? byteConverter.toStrBytes(this.byteRepresentation)
+                                        : bc.decode(this.byteRepresentation, this.curTypes.encode, endianness);
+                                }
 
                             } else {
-                                // If the type of the textarea is output
-                                // use "this.input" directly or convert
-                                // to bytes if necessary.
+                                // If the type of the textarea is output use 
+                                // the "byteRepresentation" or the according
+                                // number directly.
 
-                                input = (this.curTypes.encode === "bytes") ? byteConverter.toUint(this.input) : this.input;
-                            }
-                            
-                            // Generate output by running the
-                            // specified conversion.
-                            let output; 
-                            try {
-                                output = baseEx[this.curTypes.decode][this.mode](input, this.curTypes.encode);
-                            } catch(e) {
-                                showInvalid();
-                            }
-
-                            // As explained above.
-                            if (output) {
-                                this.output = (toStrBytes) ? byteConverter.toStrBytes(output) : output;
+                                if (this.isNumber) {
+                                    const n = bc.decode(this.byteRepresentation, "int_n", endianness);
+                                    this.output = baseEx[this.curTypes.decode].encode(n, this.curTypes.encode);
+                                } else {
+                                    this.output = baseEx[this.curTypes.decode].encode(this.byteRepresentation, this.curTypes.encode);
+                                }
                             }
                         },
                     },
@@ -417,7 +479,21 @@
                         // true for input, false for output
                         type: Boolean,
                         required: true,
+                    }
+                },
+
+                methods: {
+
+                    toClipboard: function(e) {
+                        const code = e.target.previousSibling.value;
+                        _toClipboard(code);
                     },
+
+                    showInvalid: function(e) {
+                        this.isInvalid = true;
+                        this.error.name = e.name;
+                        this.error.message = e.message;
+                    }
                 },
 
                 template: document.querySelector("#in-out-form").innerHTML,
@@ -460,6 +536,40 @@
             textarea {
                 margin: 6px 0 8px 0;
                 resize: none;
+            }
+            .invalid #input textarea {
+                box-shadow: 0 0 10px #ea1212;
+                color: #9b2f2f;
+                outline-color: transparent;
+            }
+            .invalid #output textarea, .invalid #output select, .invalid .radio-wrapper {
+                opacity: 0.7;
+                pointer-events: none;
+            }
+            .invalid #output form, .invalid #control form {
+                cursor: not-allowed;
+            }
+            #input #error-message {
+                display: block;
+                padding: 5px 40px;
+                background: rgba(223, 16, 16, 0.8);
+                color: white;
+                font-weight: 500;
+                width: 280px;
+                margin: 10px auto 0 auto;
+                opacity: 0;
+                transform: rotate3d(1, 0, 0, -90deg) translateY(-60px);
+                transform-origin: 5% center;
+                transition: none;
+                pointer-events: none;
+                max-height: 0;
+            }
+            .invalid #input #error-message {
+                opacity: 1;
+                transform: rotate3d(1, 0, 0, 0deg) translateY(0);
+                transition: all 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
+                max-height: 200px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
             select {
                 cursor: pointer;
@@ -517,14 +627,19 @@
                     font-size: 1rem;
                 }
             }
-            @media screen and (max-width: 580px) {
-                #code-section h3 label {
-                    display: none;
-                }
-            }
             .copy {
                 float: right;
+                position: relative;
+                z-index: 1;
+                border-radius: 20px;
+            }
+            #converter .copy {
+                margin-top: -34px;
+                background-color: rgba(255, 255, 255, 0.5);
+            }
+            #codeblock .copy {
                 margin-top: -26px;
+                background-color: rgba(240, 248, 255, 0.7);
             }
             section#copied {
                 position: fixed;
@@ -587,6 +702,7 @@
                         rows="8"
                         spellcheck="false"
                     ></textarea>
+                    <span v-on:click="toClipboard" title="copy to clipboard" class="copy"></span>
                 </p>
             </form>
         </template>
@@ -615,14 +731,19 @@
 
     <!-- Input/Output section -->
 
-            <section>
+            <section :class="{ invalid: isInvalid }" id="converter">
                 <article id="input">
                     <h3>input</h3>
                     <in-out-form
+                        ref="inputRef"
                         _type="input"
                         placeholder="Input goes here..."
                         v-bind:readonly="false"
                     ></in-out-form>
+                    <div id="error-message">
+                        <u>{{ error.name }}:</u>
+                        {{ error.message }}
+                    </div>
                 </article>
                 
                 <article id="control">
@@ -641,6 +762,7 @@
                 <article id="output">
                     <h3>output</h3>
                     <in-out-form
+                        ref="outputRef"
                         _type="output"
                         placeholder="...output will show up automatically."
                         v-bind:readonly="true"
@@ -656,7 +778,6 @@
                 <article>
                     <h3>
                         <span>possible implementations</span>
-                        <label for="import">as import type</label>
                         <select id="import" v-model="importType">
                             <option v-for="option in importTypes">{{ option }}</option>
                         </select>

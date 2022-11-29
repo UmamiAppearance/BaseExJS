@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -26,21 +26,17 @@ export default class Base1 extends BaseTemplate {
     constructor(...args) {
         super();
 
-        // Remove global charset adding method as
-        // it is not suitable for this converter.
-        delete this.addCharset;
-
         // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
-        this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        this.charsets.all = [..." !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"];
         
         // The sequence is used from left to right again and again
-        this.charsets.sequence = "Hello World!";
+        this.charsets.sequence = [..."Hello World!"];
         
         // Standard unary string with one character
-        this.charsets.default = "1";
+        this.charsets.default = ["1"];
 
         // Telly Mark string, using hash for 5 and vertical bar for 1 
-        this.charsets.tmark = "|#";
+        this.charsets.tmark = ["|", "#"];
 
         // Base 10 converter
         this.converter = new BaseConverter(10, 0, 0);
@@ -51,6 +47,7 @@ export default class Base1 extends BaseTemplate {
         this.signed = true;
         
         // mutable extra args
+        this.isMutable.charsets = false;
         this.isMutable.signed = true;
         this.isMutable.upper = true;
         
@@ -86,7 +83,7 @@ export default class Base1 extends BaseTemplate {
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
         } else if (n > 16777216) {
-            this.utils.constructor.warning("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
+            console.warn("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
         }
         
         n = Number(n);
@@ -97,7 +94,7 @@ export default class Base1 extends BaseTemplate {
 
         // Convert to unary in respect to the version differences
         if (charAmount === 1) {
-            output = charset.repeat(n)
+            output = charset.at(0).repeat(n)
         } else if (settings.version === "all") {
             for (let i=0; i<n; i++) {
                 const charIndex = Math.floor(Math.random() * charAmount); 
@@ -106,9 +103,9 @@ export default class Base1 extends BaseTemplate {
         } else if (settings.version === "tmark") {
             const singulars = n % 5;
             if (n > 4) {
-                output = charset[1].repeat((n - singulars) / 5);
+                output = charset.at(1).repeat((n - singulars) / 5);
             }
-            output += charset[0].repeat(singulars);
+            output += charset.at(0).repeat(singulars);
         } else {
             for (let i=0; i<n; i++) {
                 output += charset[i%charAmount];
@@ -121,7 +118,7 @@ export default class Base1 extends BaseTemplate {
             output = output.toUpperCase();
         }
         
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
     
 
@@ -137,7 +134,7 @@ export default class Base1 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
-        input = String(input);
+        input = this.utils.normalizeInput(input);
         
         // Test for a negative sign
         let negative;
@@ -152,7 +149,7 @@ export default class Base1 extends BaseTemplate {
         input = String(input.length);
 
         // Run the decoder
-        const output = this.converter.decode(input, "0123456789", settings.littleEndian);
+        const output = this.converter.decode(input, [..."0123456789"], [], "", settings.integrity, settings.littleEndian);
         
         // Return the output
         return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);

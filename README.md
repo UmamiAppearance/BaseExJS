@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/base-ex?color=%23009911&style=for-the-badge)](https://www.npmjs.com/package/base-ex)
 
 
-**BaseEx** is a collection of classes for data representation from Base16 (hex) to basE91.
+**BaseEx** is a collection of classes for data representation from Base16 (hex) to Base2048 or even BasePhi.
 BaseEx is completely standalone and works client and server side.
 There are other good solutions for e.g. Base32, Base64, Base85, but BaseEx has them all in one place.
 The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - for an **X**.
@@ -14,11 +14,11 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 
 <table>
     <thead>
-        <tr><th><h4>converter</h4></th><th><h4>charsets</h4></th></tr>
+        <tr><th><strong>converter</strong></th><th><strong>charsets</strong></th></tr>
     </thead>
     <tbody>
         <tr>
-            <td>Base1/Unary</td>
+            <td><a href="https://en.wikipedia.org/wiki/Unary_numeral_system" target="_blank">Base1/Unary</a></td>
             <td>
                 <ul>
                     <li>all</li>
@@ -29,7 +29,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base16</td>
+            <td><a href="https://en.wikipedia.org/wiki/Hexadecimal" target="_blank">Base16</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -37,7 +37,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base32</td>
+            <td><a href="https://en.wikipedia.org/wiki/Base32" target="_blank">Base32</a></td>
             <td>
                 <ul>
                     <li>crockford</li>
@@ -48,7 +48,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base58</td>
+            <td><a href="https://learnmeabitcoin.com/technical/base58" target="_blank">Base58</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -58,7 +58,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base64</td>
+            <td><a href="https://en.wikipedia.org/wiki/Base64" target="_blank">Base64</a></td>
             <td>
                 <ul>
                     <li>standard</li>
@@ -67,7 +67,17 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base85</td>
+            <td><a href="https://en.wikipedia.org/wiki/Uuencoding" target="_blank">UUencode</a></td>
+            <td>
+                <ul>
+                    <li>default</li>
+                    <li>original</li>
+                    <li>xx</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="https://en.wikipedia.org/wiki/Ascii85" target="_blank">Base85</a></td>
             <td>
                 <ul>
                     <li>adobe</li>
@@ -78,7 +88,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base91</td>
+            <td><a href="https://base91.sourceforge.net/" target="_blank">Base91</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -86,7 +96,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>LEB128</td>
+            <td><a href="https://en.wikipedia.org/wiki/LEB128" target="_blank">LEB128</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -95,7 +105,32 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>SimpleBase (Base2-Base36)</td>
+            <td><a href="https://github.com/keith-turner/ecoji" target="_blank">Ecoji</a></td>
+            <td>
+                <ul>
+                    <li>emojis_v1</li>
+                    <li>emojis_v2</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="https://github.com/qntm/base2048" target="_blank">Base2048</a></td>
+            <td>
+                <ul>
+                    <li>default</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="https://en.wikipedia.org/wiki/Radix" target="_blank">SimpleBase (Base2-Base62)</td>
+            <td>
+                <ul>
+                    <li>default</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><a href="https://en.wikipedia.org/wiki/Golden_ratio_base" target="_blank">BasePhi (Golden Ratio Base)</td>
             <td>
                 <ul>
                     <li>default</li>
@@ -124,17 +159,24 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>base58_flickr</li>
                     <li>base64</li>
                     <li>base64_urlsafe</li>
+                    <li>uuencode</li>
+                    <li>xxencode</li>
                     <li>base85_adobe</li>
                     <li>base85_ascii</li>
                     <li>base85_z85</li>
                     <li>base91</li>
                     <li>leb128</li>
+                    <li>ecoji_v1</li>
+                    <li>ecoji_v2</li>
+                    <li>base2048</li>
                     <li>byteConverter</li>
                     <li>simpleBase
                         <ul>
                             <li>base2</li>
                             <li>⋮</li>
                             <li>base36</li>
+                            <li>⋮</li>
+                            <li>base62</li>
                         </ul>
                     </li>
                 </ul>
@@ -238,10 +280,14 @@ import {
     Base32,
     Base58,
     Base64,
+    UUencode,
     Base85,
     Base91,
     LEB128,
+    Ecoji,
+    Base2048,
     SimpleBase,
+    BasePhi,
     ByteConverter,
     BaseEx 
 } from "./path/BaseEx.esm.min.js"
@@ -261,7 +307,7 @@ The constructor takes some arguments/options (which may differ between different
 ### Options
 <table>
     <thead>
-        <tr><th><h6>property</h6></th><th colspan="2"><h6>arguments</h6></th></tr>
+        <tr><th><strong>property</strong></th><th colspan="2"><strong>arguments</strong></th></tr>
     </thead>
     <tbody>
         <tr><th>endianness</th><td>be</td><td>le</td></tr>

@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -29,7 +29,9 @@ export default class Base16 extends BaseTemplate {
         this.converter = new BaseConverter(16, 1, 2);
 
         // default settings
-        this.charsets.default = "0123456789abcdef";
+        this.charsets.default = [..."0123456789abcdef"];
+        this.padChars.default = [];
+
         this.hasSignedMode = true;
         
         // mutable extra args
@@ -61,9 +63,8 @@ export default class Base16 extends BaseTemplate {
     decode(input, ...args) {
         
         // pre decoding function
-        const normalizeInput = (scope) => {
-
-            let { input: normInput } = scope;
+        const normalizeInput = ({ input: normInput }) => {
+            
             // Remove "0x" if present
             normInput = normInput.replace(/^0x/, "");
 
@@ -75,6 +76,6 @@ export default class Base16 extends BaseTemplate {
             return normInput;
         }
         
-        return super.decode(input, normalizeInput, null, ...args);
+        return super.decode(input, normalizeInput, null, false, ...args);
     }
 }

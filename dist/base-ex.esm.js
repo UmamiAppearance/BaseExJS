@@ -514,6 +514,23 @@ class SmartOutput {
 const DEFAULT_INPUT_HANDLER = SmartInput;
 const DEFAULT_OUTPUT_HANDLER = SmartOutput;
 
+class SignError extends TypeError {
+    constructor() {
+        super("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        this.name = "SignError";
+    }
+}
+
+class DecodingError extends TypeError {
+    constructor(char, msg=null) {
+        if (msg === null) {
+            msg = `Character '${char}' is not part of the charset.`;
+        }
+        super(msg);
+        this.name = "DecodingError";
+    }
+}
+
 
 /**
  * Utilities for every BaseEx class.
@@ -522,16 +539,19 @@ const DEFAULT_OUTPUT_HANDLER = SmartOutput;
  */
 class Utils {
 
-    constructor(main, addCharsetTools=true) {
+    constructor(main) {
 
         // Store the calling class in this.root
         // for accessability.
         this.root = main;
+        
+        // set specific args object for converters
+        this.converterArgs = {};
 
         // If charsets are uses by the parent class,
         // add extra functions for the user.
 
-        if ("charsets" in main && addCharsetTools) this.#charsetUserToolsConstructor();
+        this.#charsetUserToolsConstructor();
     }
 
     setIOHandlers(inputHandler=DEFAULT_INPUT_HANDLER, outputHandler=DEFAULT_OUTPUT_HANDLER) {
@@ -539,73 +559,135 @@ class Utils {
         this.outputHandler = outputHandler;
     }
 
+
+    /**
+     * Constructor for the ability to add a charset and 
+     * change the default version.
+     */
     #charsetUserToolsConstructor() {
-        /*
-            Constructor for the ability to add a charset and 
-            change the default version.
-        */
 
-        this.root.addCharset = (name, charset) => {
-            /*
-                Save method to add a charset.
-                ----------------------------
+        /**
+         * Save method to add a charset.
+         * @param {string} name - "Charset name."
+         * @param {[string|set|array]} - "Charset"
+         */
+        this.root.addCharset = (name, _charset, _padChars=[], info=true) => {
 
-                @name: string that represents the key for the new charset
-                @charset: string, array or Set of chars - the length must fit to the according class 
-            */
+            const normalize = (typeName, set, setLen) => {
+
+                if (setLen === 0 && set.length) {
+                    console.warn(`This converter has no ${typeName}. The following argument was ignored:\n'${set}'`);
+                    return [];
+                }
+
+                let inputLen = setLen;
+
+                if (typeof set === "string") {
+                    set = [...set];
+                }
                 
+                if (Array.isArray(set)) {
+                    
+                    // Store the input length of the input
+                    inputLen = set.length;
+                    
+                    // Convert to "Set" -> eliminate duplicates
+                    // If duplicates are found the length of the
+                    // Set and the length of the initial input
+                    // differ.
+
+                    set = new Set(set);
+
+                } else if (!(set instanceof Set)) {
+                    throw new TypeError(`The ${typeName} must be one of the types:\n'str', 'set', 'array'."`);
+                }
+                
+                if (set.size === setLen) {
+                    return [...set];
+                }
+                
+                if (inputLen !== setLen) {
+                    throw new Error(`Your ${typeName} has a length of ${inputLen}. The converter requires a length of ${setLen}.`);
+                } else {
+                    const charAmounts = {};
+                    _charset = [..._charset];
+                    _charset.forEach(c => {
+                        if (c in charAmounts) {
+                            charAmounts[c]++;
+                        } else {
+                            charAmounts[c] = 1;
+                        }
+                    });
+                    
+                    let infoStr = "";
+                    if (setLen < 100) {
+                        infoStr = `${_charset.join("")}\n`;
+                        _charset.forEach(c => {
+                            if (charAmounts[c] > 1) {
+                                infoStr += "^";
+                            } else {
+                                infoStr += " ";
+                            }
+                        });
+                    }
+                    const rChars = Object.keys(charAmounts).filter(c => charAmounts[c] > 1);
+                    throw new Error(`You have repetitive char(s) [ ${rChars.join(" | ")} ] in your ${typeName}. Make sure each character is unique.\n${infoStr}`);
+                }
+            };
+
+            if (this.root.frozenCharsets) {
+                throw new Error("The charsets of this converter cannot be changed.");
+            }
+
             if (typeof name !== "string") {
                 throw new TypeError("The charset name must be a string.");
             }
 
-            // Get the appropriate length for the charset
-            // from the according converter
-            
-            const setLen = this.root.converter.radix;
-            let inputLen = setLen;
-            
-            if (typeof charset === "string" || Array.isArray(charset)) {
-                
-                // Store the input length of the input
-                inputLen = charset.length;
-                
-                // Convert to "Set" -> eliminate duplicates
-                // If duplicates are found the length of the
-                // Set and the length of the initial input
-                // differ.
-
-                charset = new Set(charset);
-
-            } else if (!(charset instanceof Set)) {
-                throw new TypeError("The charset must be one of the types:\n'str', 'set', 'array'.");
+            if (info && name in this.root.charsets) {
+                console.warn(`An existing charset with name ${name} will get replaced.`);
             }
-            
-            if (charset.size === setLen) {
-                charset = [...charset].join("");
-                this.root.charsets[name] = charset;
+
+            const charset = normalize("charset", _charset, this.root.converter.radix);
+            const padChars = normalize("padding set", _padChars, this.root.padCharAmount);
+
+            this.root.charsets[name] = charset;
+            if (padChars.length) {
+                this.root.padChars[name] = padChars;
+            }
+
+            if (info) {
                 console.info(`New charset '${name}' was added and is ready to use`);
-            } else if (inputLen === setLen) {
-                throw new Error("There were repetitive chars found in your charset. Make sure each char is unique.");
-            } else {
-                throw new Error(`The length of the charset must be ${setLen}.`);
             }
         };
 
         // Save method (argument gets validated) to 
         // change the default version.
         this.root.setDefaultCharset = (version) => {
-            ({version } = this.validateArgs([version]));
+            if (!(version in this.root.charsets)) {
+                const sets = Object.keys(this.root.charsets).join("\n   * ");
+                const msg = `Charset ${version} was not found. Available charsets are:\n   * ${sets}`;
+                throw new TypeError(msg);
+            }
             this.root.version = version;
         };
     }
 
-    makeArgList(args) {
-        /*
-            Returns argument lists for error messages.
-        */
+    /**
+     * Argument lists for error messages.
+     * @param {string[]} args 
+     * @returns string - Arguments joined as a string. 
+     */
+    #makeArgList(args) {
         return args.map(s => `'${s}'`).join(", ");
     }
 
+    /**
+     * Removes all padded zeros a the start of the string,
+     * adds a "-" if value is negative.
+     * @param {string} output - Former output.
+     * @param {boolean} negative - Indicates a negative value if true.
+     * @returns {string} - Output without zero padding and a sign if negative.
+     */
     toSignedStr(output, negative) {
 
         output = output.replace(/^0+(?!$)/, "");
@@ -617,8 +699,14 @@ class Utils {
         return output;
     }
 
+    /**
+     * Analyzes the input for a negative sign.
+     * If a sign is found, it gets removed but
+     * negative bool gets true;
+     * @param {string} input - Input number as a string. 
+     * @returns {array} - Number without sign and negativity indication bool.
+     */
     extractSign(input) {
-        // Test for a negative sign
         let negative = false;
         if (input[0] === "-") {
             negative = true;
@@ -628,35 +716,68 @@ class Utils {
         return [input, negative];
     }
 
-    invalidArgument(arg, versions, outputTypes, initial) {
-        const IOHandlerHint = (initial) ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : ""; 
-        const signedHint = (this.root.isMutable.signed) ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "";
-        const endiannessHint = (this.root.isMutable.littleEndian) ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "";
-        const padHint = (this.root.isMutable.padding) ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "";
-        const caseHint = (this.root.isMutable.upper) ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "";
-        const outputHint = `\n * valid args for the output type are ${this.makeArgList(outputTypes)}`;
-        const versionHint = (versions) ? `\n * the options for version (charset) are: ${this.makeArgList(versions)}` : "";
-        const numModeHint = "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)";
+    /**
+     * All possible error messages for invalid arguments,
+     * gets adjusted according to the converter settings.
+     * @param {string} arg - Argument. 
+     * @param {string[]} versions - Charset array. 
+     * @param {string[]} outputTypes - Array of output types. 
+     * @param {boolean} initial - Indicates if the arguments where passed during construction. 
+     */
+    #invalidArgument(arg, versions, outputTypes, initial) {
+        const loopConverterArgs = () => Object.keys(this.converterArgs).map(
+            key => this.converterArgs[key].map(
+                keyword => `'${keyword}'`
+            )
+            .join(" and ")
+        )
+        .join("\n   - ");
         
-        throw new TypeError(`'${arg}'\n\nInput parameters:${IOHandlerHint}${signedHint}${endiannessHint}${padHint}${caseHint}${outputHint}${versionHint}${numModeHint}\n\nTraceback:`);
+        throw new TypeError([
+            `'${arg}'\n\nParameters:`,
+            initial ? "\n * valid declarations for IO handlers are 'bytesOnly', 'bytesIn', 'bytesOut'" : "",
+            this.root.isMutable.signed ? "\n * pass 'signed' to disable, 'unsigned' to enable the use of the twos's complement for negative integers" : "",
+            this.root.isMutable.littleEndian ? "\n * 'be' for big , 'le' for little endian byte order for case conversion" : "",
+            this.root.isMutable.padding ? "\n * pass 'pad' to fill up, 'nopad' to not fill up the output with the particular padding" : "",
+            this.root.isMutable.upper ? "\n * valid args for changing the encoded output case are 'upper' and 'lower'" : "",
+            `\n * valid args for the output type are ${this.#makeArgList(outputTypes)}`,
+            versions ? `\n * the option(s) for version/charset are: ${this.#makeArgList(versions)}` : "",
+            "\n * valid args for integrity check are: 'integrity' and 'nointegrity'",
+            this.root.hasDecimalMode ? "\n * 'decimal' for decimal-mode (directly converts Numbers including decimal values, without byte-conversion)" : "",
+            "\n * 'number' for number-mode (converts every number into a Float64Array to keep the natural js number type)",
+            Object.keys(this.converterArgs).length ? `\n * converter specific args:\n   - ${loopConverterArgs()}` : "",
+            "\n\nTraceback:"
+        ].join(""));
     }
 
+
+    /**
+     * Test if provided arguments are in the argument list.
+     * Everything gets converted to lowercase and returned.
+     * @param {string[]} args - Passed arguments. 
+     * @param {boolean} initial - Indicates if the arguments where passed during construction.  
+     * @returns {Object} - Converter settings object.
+     */
     validateArgs(args, initial=false) {
-        /* 
-            Test if provided arguments are in the argument list.
-            Everything gets converted to lowercase and returned
-        */
         
         // default settings
         const parameters = {
+            decimalMode: this.root.decimalMode,
+            integrity: this.root.integrity,
             littleEndian: this.root.littleEndian,
             numberMode: this.root.numberMode,
+            options: this.root.options,
             outputType: this.root.outputType,
             padding: this.root.padding,
             signed: this.root.signed,
             upper: this.root.upper,
             version: this.root.version
         };
+
+        // add any existing converter specific args
+        for (const param in this.converterArgs) {
+            parameters[param] = this.root[param];
+        }
 
         // if no args are provided return the default settings immediately
         if (!args.length) {
@@ -681,12 +802,14 @@ class Utils {
         };
 
         // set available versions and extra arguments
-        const versions = Object.prototype.hasOwnProperty.call(this.root, "charsets") ? Object.keys(this.root.charsets) : [];
+        const versions = Object.keys(this.root.charsets);
         const extraArgList = {
+            integrity: ["nointegrity", "integrity"],
             littleEndian: ["be", "le"],
             padding: ["nopad", "pad"],
             signed: ["unsigned", "signed"],
             upper: ["lower", "upper"],
+            ...this.converterArgs
         };
 
         // if initial, look for IO specifications
@@ -707,10 +830,31 @@ class Utils {
         if (extractArg("number")) {
             parameters.numberMode = true;
             parameters.outputType = "float_n";
+        } 
+        
+        // test for the special "decimal" keyword
+        if (extractArg("decimal")) {
+            if (!this.root.hasDecimalMode) {
+                throw TypeError(`Argument 'decimal' is only allowed for converters with a non-integer base.`);
+            }
+            parameters.decimalMode = true;
+            parameters.outputType = "decimal";
+
+            if (parameters.numberMode) {
+                parameters.numberMode = false;
+                console.warn("-> number-mode was disabled due to the decimal-mode");
+            }
         }
 
         // walk through the remaining arguments
         args.forEach((arg) => {
+            
+            // additional/optional non boolean options
+            if (typeof arg === "object") {
+                parameters.options = {...parameters.options, ...arg};
+                return;
+            }
+
             arg = String(arg).toLowerCase();
 
             if (versions.includes(arg)) {
@@ -746,7 +890,7 @@ class Utils {
                 }
 
                 if (invalidArg) {
-                    this.invalidArgument(arg, versions, outputTypes, initial);
+                    this.#invalidArgument(arg, versions, outputTypes, initial);
                 }
             }
         });
@@ -756,7 +900,7 @@ class Utils {
         // displayed.
         if (parameters.padding && parameters.signed) {
             parameters.padding = false;
-            this.constructor.warning("Padding was set to false due to the signed conversion.");
+            console.warn("-> padding was set to false due to the signed conversion");
         }
         
         // overwrite the default parameters for the initial call
@@ -769,17 +913,40 @@ class Utils {
         return parameters;
     }
 
+    /**
+     * A TypeError specifically for sign errors.
+     */
     signError() {
-        throw new TypeError("The input is signed but the converter is not set to treat input as signed.\nYou can pass the string 'signed' to the decode function or when constructing the converter.");
+        throw new SignError();
     }
 
-    static warning(message) {
-        if (Object.prototype.hasOwnProperty.call(console, "warn")) {
-            console.warn(message);
-        } else {
-            console.log(`___\n${message}\n`);
+    /**
+     * Wrap output to "cols" characters per line.
+     * @param {string} output - Output string. 
+     * @param {number} cols - Number of cols per line. 
+     * @returns {string} - Wrapped output.
+     */
+    wrapOutput(output, cols=0) {
+        if (!cols) {
+            return output;
         }
+        const m = new RegExp(`.{1,${cols}}`, "gu");
+        return output.match(m).join("\n");
     }
+
+    /**
+     * Ensures a string input.
+     * @param {*} input - Input.
+     * @param {boolean} [keepWS=false] - If set to false, whitespace is getting removed from the input if present.
+     * @returns {string} - Normalized input.
+     */
+    normalizeInput(input, keepWS=false) {
+        if (keepWS) {
+            return String(input);
+        }
+        return String(input).replace(/\s/g, "");
+    }
+
 }
 
 /**
@@ -851,7 +1018,7 @@ class BaseConverter {
      * @param {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} inputBytes - Input as Uint8Array.
      * @param {string} charset - The charset used for conversion.
      * @param {boolean} littleEndian - Byte order, little endian bool.
-     * @param {*} replacer - Replacer function can replace groups of characters during encoding.
+     * @param {function} replacer - Replacer function can replace groups of characters during encoding.
      * @returns {number[]} - Output string and padding amount. 
      */
     encode(inputBytes, charset, littleEndian=false, replacer=null) {
@@ -963,16 +1130,16 @@ class BaseConverter {
 
     /**
      * BaseEx Universal Base Decoding.
+     * Decodes to a string of the given radix to a byte array.
      * @param {string} inputBaseStr - Base as string (will also get converted to string but can only be used if valid after that).
-     * @param {string} charset - The charset used for conversion.
-     * @param {*} littleEndian - Byte order, little endian bool.
+     * @param {string[]} charset - The charset used for conversion.
+     * @param {string[]} padSet - Padding characters for integrity check.
+     * @param {boolean} integrity - If set to false invalid character will be ignored.
+     * @param {boolean} littleEndian - Byte order, little endian bool.
      * @returns {{ buffer: ArrayBufferLike; byteLength: any; byteOffset: any; length: any; BYTES_PER_ELEMENT: 1; }} - The decoded output as Uint8Array.
      */
-    decode(inputBaseStr, charset, littleEndian=false) {
-        /*
-            Decodes to a string of the given radix to a byte array
-        */
-        
+    decode(inputBaseStr, charset, padSet=[], integrity=true, littleEndian=false) {
+
         // Convert each char of the input to the radix-integer
         // (this becomes the corresponding index of the char
         // from the charset). Every char, that is not found in
@@ -986,13 +1153,14 @@ class BaseConverter {
         let bs = this.bsDec;
         const byteArray = new Array();
 
-        inputBaseStr.split('').forEach((c) => {
+        [...inputBaseStr].forEach(c => {
             const index = charset.indexOf(c);
             if (index > -1) { 
-               byteArray.push(index);
+                byteArray.push(index);
+            } else if (integrity && padSet.indexOf(c) === -1) {
+                throw new DecodingError(c);
             }
         });
-
         
         let padChars;
 
@@ -1149,18 +1317,28 @@ class BaseTemplate {
 
         // predefined settings
         this.charsets = {};
+        this.decimalMode = false;
+        this.frozenCharsets = false;
+        this.hasDecimalMode = false;
         this.hasSignedMode = false;
+        this.integrity = true;
         this.littleEndian = false;
         this.numberMode = false;
         this.outputType = "buffer";
         this.padding = false;
+        this.padCharAmount = 0;
+        this.padChars = {}; 
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
         this.version = "default";
+        this.options = {
+            lineWrap: 0
+        };
         
         // list of allowed/disallowed args to change
         this.isMutable = {
+            integrity: true,
             littleEndian: false,
             padding: false,
             signed: false,
@@ -1171,8 +1349,8 @@ class BaseTemplate {
     /**
      * BaseEx Generic Encoder.
      * @param {*} input - Any input the used byte converter allows.
-     * @param {*} [replacerFN] - Replacer function, which is passed to the encoder. 
-     * @param {*} [postEncodeFN] - Function, which is executed after encoding.
+     * @param {function} [replacerFN] - Replacer function, which is passed to the encoder. 
+     * @param {function} [postEncodeFN] - Function, which is executed after encoding.
      * @param  {...any} args - Converter settings.
      * @returns {string} - Base encoded string.
      */
@@ -1182,8 +1360,7 @@ class BaseTemplate {
         const settings = this.utils.validateArgs(args);
         
         // handle input
-        let inputBytes, negative, type;
-        [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
+        let [inputBytes, negative, type] = this.utils.inputHandler.toBytes(input, settings);
 
         // generate replacer function if given
         let replacer = null;
@@ -1192,8 +1369,7 @@ class BaseTemplate {
         }
         
         // Convert to base string
-        let output, zeroPadding;
-        [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
+        let [output, zeroPadding] = this.converter.encode(inputBytes, this.charsets[settings.version], settings.littleEndian, replacer);
 
         // set sign if requested
         if (settings.signed) {
@@ -1210,32 +1386,32 @@ class BaseTemplate {
             output = postEncodeFN({ inputBytes, output, settings, zeroPadding, type });
         }
 
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
     /**
      * BaseEx Generic Decoder.
-     * @param {string} rawInput - Base String.
-     * @param {*} [preDecodeFN] - Function, which gets executed before decoding. 
-     * @param {*} [postDecodeFN] - Function, which gets executed after decoding
+     * @param {string} input - Base String.
+     * @param {function} [preDecodeFN] - Function, which gets executed before decoding. 
+     * @param {function} [postDecodeFN] - Function, which gets executed after decoding
      * @param  {...any} args - Converter settings.
      * @returns {*} - Output according to converter settings.
      */
-    decode(rawInput, preDecodeFN, postDecodeFN, ...args) {
+    decode(input, preDecodeFN, postDecodeFN, keepNL, ...args) {
     
         // apply settings
         const settings = this.utils.validateArgs(args);
 
         // ensure a string input
-        let input = String(rawInput);
+        input = this.utils.normalizeInput(input, keepNL);
 
         // set negative to false for starters
         let negative = false;
         
         // Test for a negative sign if converter supports it
         if (this.hasSignedMode) {
-            [input, negative] = this.utils.extractSign(input);   
+            [ input, negative ] = this.utils.extractSign(input);   
             
             // But don't allow a sign if the decoder is not configured to use it
             if (negative && !settings.signed) {
@@ -1255,7 +1431,13 @@ class BaseTemplate {
         }
 
         // Run the decoder
-        let output = this.converter.decode(input, this.charsets[settings.version], settings.littleEndian);
+        let output = this.converter.decode(
+            input,
+            this.charsets[settings.version],
+            this.padChars[settings.version],
+            settings.integrity,
+            settings.littleEndian
+        );
 
         // Run post decode function if provided
         if (postDecodeFN) {
@@ -1269,7 +1451,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1292,21 +1474,17 @@ class Base1 extends BaseTemplate {
     constructor(...args) {
         super();
 
-        // Remove global charset adding method as
-        // it is not suitable for this converter.
-        delete this.addCharset;
-
         // All chars in the string are used and picked randomly (prob. suitable for obfuscation)
-        this.charsets.all = " !\"#$%&'()*+,./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+        this.charsets.all = [..." !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"];
         
         // The sequence is used from left to right again and again
-        this.charsets.sequence = "Hello World!";
+        this.charsets.sequence = [..."Hello World!"];
         
         // Standard unary string with one character
-        this.charsets.default = "1";
+        this.charsets.default = ["1"];
 
         // Telly Mark string, using hash for 5 and vertical bar for 1 
-        this.charsets.tmark = "|#";
+        this.charsets.tmark = ["|", "#"];
 
         // Base 10 converter
         this.converter = new BaseConverter(10, 0, 0);
@@ -1317,6 +1495,7 @@ class Base1 extends BaseTemplate {
         this.signed = true;
         
         // mutable extra args
+        this.isMutable.charsets = false;
         this.isMutable.signed = true;
         this.isMutable.upper = true;
         
@@ -1352,7 +1531,7 @@ class Base1 extends BaseTemplate {
         if (n > Number.MAX_SAFE_INTEGER) {
             throw new RangeError("Invalid string length.");
         } else if (n > 16777216) {
-            this.utils.constructor.warning("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
+            console.warn("The string length is really long. The JavaScript engine may have memory issues generating the output string.");
         }
         
         n = Number(n);
@@ -1363,7 +1542,7 @@ class Base1 extends BaseTemplate {
 
         // Convert to unary in respect to the version differences
         if (charAmount === 1) {
-            output = charset.repeat(n);
+            output = charset.at(0).repeat(n);
         } else if (settings.version === "all") {
             for (let i=0; i<n; i++) {
                 const charIndex = Math.floor(Math.random() * charAmount); 
@@ -1372,9 +1551,9 @@ class Base1 extends BaseTemplate {
         } else if (settings.version === "tmark") {
             const singulars = n % 5;
             if (n > 4) {
-                output = charset[1].repeat((n - singulars) / 5);
+                output = charset.at(1).repeat((n - singulars) / 5);
             }
-            output += charset[0].repeat(singulars);
+            output += charset.at(0).repeat(singulars);
         } else {
             for (let i=0; i<n; i++) {
                 output += charset[i%charAmount];
@@ -1387,7 +1566,7 @@ class Base1 extends BaseTemplate {
             output = output.toUpperCase();
         }
         
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
     
 
@@ -1403,7 +1582,7 @@ class Base1 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
-        input = String(input);
+        input = this.utils.normalizeInput(input);
         
         // Test for a negative sign
         let negative;
@@ -1418,7 +1597,7 @@ class Base1 extends BaseTemplate {
         input = String(input.length);
 
         // Run the decoder
-        const output = this.converter.decode(input, "0123456789", settings.littleEndian);
+        const output = this.converter.decode(input, [..."0123456789"], [], "", settings.integrity, settings.littleEndian);
         
         // Return the output
         return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
@@ -1428,7 +1607,7 @@ class Base1 extends BaseTemplate {
 /**
  * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1454,7 +1633,9 @@ class Base16 extends BaseTemplate {
         this.converter = new BaseConverter(16, 1, 2);
 
         // default settings
-        this.charsets.default = "0123456789abcdef";
+        this.charsets.default = [..."0123456789abcdef"];
+        this.padChars.default = [];
+
         this.hasSignedMode = true;
         
         // mutable extra args
@@ -1486,9 +1667,8 @@ class Base16 extends BaseTemplate {
     decode(input, ...args) {
         
         // pre decoding function
-        const normalizeInput = (scope) => {
-
-            let { input: normInput } = scope;
+        const normalizeInput = ({ input: normInput }) => {
+            
             // Remove "0x" if present
             normInput = normInput.replace(/^0x/, "");
 
@@ -1500,14 +1680,14 @@ class Base16 extends BaseTemplate {
             return normInput;
         };
         
-        return super.decode(input, normalizeInput, null, ...args);
+        return super.decode(input, normalizeInput, null, false, ...args);
     }
 }
 
 /**
  * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1536,19 +1716,24 @@ class Base32 extends BaseTemplate {
      */
     constructor(...args) {
         super();
-
-        // charsets
-        this.charsets.crockford = "0123456789abcdefghjkmnpqrstvwxyz";
-        this.charsets.rfc3548 =   "abcdefghijklmnopqrstuvwxyz234567";
-        this.charsets.rfc4648 =   "0123456789abcdefghijklmnopqrstuv";
-        this.charsets.zbase32 =   "ybndrfg8ejkmcpqxot1uwisza345h769";
-        
-        // converter
         this.converter = new BaseConverter(32, 5, 8);
 
+        // charsets
+        this.charsets.crockford = [ ..."0123456789abcdefghjkmnpqrstvwxyz" ];
+        this.padChars.crockford = ["="],
+
+        this.charsets.rfc3548 =   [..."abcdefghijklmnopqrstuvwxyz234567"];
+        this.padChars.rfc3548 =   ["="];
+
+        this.charsets.rfc4648 =   [..."0123456789abcdefghijklmnopqrstuv"];
+        this.padChars.rfc4648 =   ["="];
+
+        this.charsets.zbase32 =   [..."ybndrfg8ejkmcpqxot1uwisza345h769"];
+        this.padChars.zbase32 =   ["="];
+        
         // predefined settings
+        this.padCharAmount = 1;
         this.hasSignedMode = true;
-        this.padding = true;
         this.version = "rfc4648";
         
         // mutable extra args
@@ -1559,6 +1744,8 @@ class Base32 extends BaseTemplate {
 
         // apply user settings
         this.utils.validateArgs(args, true);
+        this.padding = (/rfc3548|rfc4648/).test(this.version);
+        this.upper = this.version === "crockford";
     }
     
 
@@ -1570,17 +1757,16 @@ class Base32 extends BaseTemplate {
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const applyPadding = ({ output, settings, zeroPadding }) => {
 
             if (!settings.littleEndian) {
                 // Cut of redundant chars and append padding if set
                 if (zeroPadding) {
                     const padValue = this.converter.padBytes(zeroPadding);
-                    output = output.slice(0, output.length-padValue);
+                    const padChar = this.padChars[settings.version].at(0);
+                    output = output.slice(0, -padValue);
                     if (settings.padding) { 
-                        output = output.concat("=".repeat(padValue));
+                        output = output.concat(padChar.repeat(padValue));
                     }
                 }
             }
@@ -1599,14 +1785,14 @@ class Base32 extends BaseTemplate {
      * @returns {*} - Output according to converter settings.
      */
     decode(input, ...args) {
-        return super.decode(input, null, null, ...args);
+        return super.decode(input, null, null, false, ...args);
     }
 }
 
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1631,15 +1817,25 @@ class Base58 extends BaseTemplate{
      * @param {...string} [args] - Converter settings.
      */
     constructor(...args) {
-        super(); 
+        super();
+        this.converter = new BaseConverter(58, 0, 0);
 
         // charsets
-        this.charsets.default = "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
-        this.charsets.bitcoin = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-        this.charsets.flickr =  "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+        this.charsets.default = [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "default", {
+            get: () => [ this.charsets.default.at(0) ]
+        });
 
-        // converter
-        this.converter = new BaseConverter(58, 0, 0);
+        this.charsets.bitcoin = [..."123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"];
+        Object.defineProperty(this.padChars, "bitcoin", {
+            get: () => [ this.charsets.bitcoin.at(0) ]
+        });
+        
+        this.charsets.flickr =  [..."123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ"];
+        Object.defineProperty(this.padChars, "flickr", {
+            get: () => [ this.charsets.flickr.at(0) ]
+        });
+        
 
         // predefined settings
         this.padding = true;
@@ -1662,9 +1858,7 @@ class Base58 extends BaseTemplate{
      */
     encode(input, ...args) {
 
-        const applyPadding = (scope) => {
-
-            let { inputBytes, output, settings, type } = scope;
+        const applyPadding = ({ inputBytes, output, settings, type }) => {
 
             if (settings.padding && type !== "int") { 
                 
@@ -1673,6 +1867,9 @@ class Base58 extends BaseTemplate{
                 // all the way through it, reset index and stop.
                 let i = 0;
                 const end = inputBytes.length;
+
+                // pad char is always! the first char in the set
+                const padChar = this.charsets[settings.version].at(0);
 
                 // only proceed if input has a length at all
                 if (end) {
@@ -1690,7 +1887,7 @@ class Base58 extends BaseTemplate{
 
                     // Set a one for every leading null byte
                     if (zeroPadding) {
-                        output = ("1".repeat(zeroPadding)).concat(output);
+                        output = (padChar.repeat(zeroPadding)).concat(output);
                     }
                 }
             }
@@ -1711,15 +1908,16 @@ class Base58 extends BaseTemplate{
     decode(input, ...args) {
         
         // post decoding function
-        const applyPadding = (scope) => {
+        const applyPadding = ({ input, output, settings }) => {
 
-            let { input, output, settings } = scope;
+            // pad char is always! the first char in the set
+            const padChar = this.charsets[settings.version].at(0);
 
             if (settings.padding && input.length > 1) {
                 
-                // Count leading ones 
+                // Count leading padding (char should be 1)
                 let i = 0;
-                while (input[i] === "1") {
+                while (input[i] === padChar) {
                     i++;
                 }
     
@@ -1737,14 +1935,14 @@ class Base58 extends BaseTemplate{
             return output;
         };
 
-        return super.decode(input, null, applyPadding, ...args);
+        return super.decode(input, null, applyPadding, false, ...args);
     }
 }
 
 /**
  * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1763,22 +1961,24 @@ class Base58 extends BaseTemplate{
  */
 class Base64 extends BaseTemplate {
 
-    /**
+    /**this.padChars.
      * BaseEx Base64 Constructor.
      * @param {...string} [args] - Converter settings.
      */
     constructor(...args) {
         super();
-
-        // charsets
-        const b62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        this.charsets.default = b62Chars.concat("+/");
-        this.charsets.urlsafe = b62Chars.concat("-_");
-     
-        // converter
         this.converter = new BaseConverter(64, 3, 4);
 
+        // charsets
+        this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"];
+        this.padChars.default = ["="];
+        
+        this.charsets.urlsafe = this.charsets.default.slice(0, -2).concat(["-", "_"]);
+        this.padChars.urlsafe = ["="];
+
+
         // predefined settings
+        this.padCharAmount = 1;
         this.padding = true;
         
         // mutable extra args
@@ -1797,16 +1997,15 @@ class Base64 extends BaseTemplate {
      */
     encode(input, ...args) {
         
-        const applyPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const applyPadding = ({ output, settings, zeroPadding }) => {
 
             // Cut of redundant chars and append padding if set
             if (zeroPadding) {
                 const padValue = this.converter.padBytes(zeroPadding);
-                output = output.slice(0, output.length-padValue);
+                const padChar = this.padChars[settings.version].at(0);
+                output = output.slice(0, -padValue);
                 if (settings.padding) { 
-                    output = output.concat("=".repeat(padValue));
+                    output = output.concat(padChar.repeat(padValue));
                 }
             }
 
@@ -1824,14 +2023,218 @@ class Base64 extends BaseTemplate {
      * @returns {*} - Output according to converter settings.
      */
     decode(input, ...args) {
-        return super.decode(input, null, null, ...args);
+        return super.decode(input, null, null, false, ...args);
     }
 }
 
 /**
+ * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+/**
+ * BaseEx UUencode Converter.
+ * ------------------------
+ * 
+ * This is a base64 converter. Various input can be 
+ * converted to a base64 string or a base64 string
+ * can be decoded into various formats.
+ * 
+ * Available charsets are:
+ *  - default
+ *  - urlsafe
+ */
+class UUencode extends BaseTemplate {
+
+    /**
+     * BaseEx UUencode Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
+    constructor(...args) {
+        super();
+        this.converter = new BaseConverter(64, 3, 4);
+
+        // charsets
+        this.charsets.default = [..."`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"];
+        Object.defineProperty(this.padChars, "default", {
+            get: () => [ this.charsets.default.at(0) ]
+        });
+
+        this.charsets.original = [" ", ...this.charsets.default.slice(1)];
+        Object.defineProperty(this.padChars, "original", {
+            get: () => [ this.charsets.original.at(0) ]
+        });
+
+        this.charsets.xx = [..."+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"];
+        Object.defineProperty(this.padChars, "xx", {
+            get: () => [ this.charsets.xx.at(0) ]
+        });
+
+
+        // predefined settings
+        this.padding = true;
+        this.header = false;
+        this.utils.converterArgs.header = ["noheader", "header"];
+        this.isMutable.header = true;
+        this.isMutable.integrity = false;
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
+    }
+
+
+    /**
+     * BaseEx UUencoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - UUencode string.
+     */
+    encode(input, ...args) {
+
+        const format = ({ output, settings, zeroPadding }) => {
+
+            const charset = this.charsets[settings.version];
+            const outArray = [...output];
+            
+            
+            if (settings.header) {
+                const permissions = settings.options.permissions || een();
+                const fileName = settings.options.file || ees();
+                output = `begin ${permissions} ${fileName}\n`;
+            }  else {
+                output = "";
+            }
+
+            // repeatedly take 60 chars from the output until it is empty 
+            for (;;) {
+                const lArray = outArray.splice(0, 60);
+                
+                // if all chars are taken, remove eventually added pad zeros
+                if (!outArray.length) { 
+                    const byteCount = this.converter.padChars(lArray.length) - zeroPadding;
+                    
+                    // add the the current chars plus the leading
+                    // count char
+                    output += `${charset.at(byteCount)}${lArray.join("")}\n`;
+                    break;
+                }
+                
+                // add the the current chars plus the leading
+                // count char ("M" for default charsets) 
+                output += `${charset.at(45)}${lArray.join("")}\n`;
+            }
+
+            output += `${charset.at(0)}\n`;
+
+            if (settings.header) {
+                output += "\nend";
+            }
+
+
+            return output;
+        };
+            
+        return super.encode(input, null, format, ...args);
+    }
+
+
+    /**
+     * BaseEx UUdecoder.
+     * @param {string} input - UUencode String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+     decode(input, ...args) {
+
+        let padChars = 0;
+
+        const format = ({ input, settings }) => {
+
+            const charset = this.charsets[settings.version];
+            const lines = input.trim().split("\n");
+            const inArray = [];
+            
+            if ((/^begin/i).test(lines.at(0))) {
+                lines.shift();
+            }
+            
+            for (const line of lines) {
+                const lArray = [...line];
+                const byteCount = charset.indexOf(lArray.shift());
+                
+                if (!(byteCount > 0)) {
+                    break;
+                }
+
+                inArray.push(...lArray);
+
+                if (byteCount !== 45) {
+                    padChars = this.converter.padChars(lArray.length) - byteCount;
+                    break;
+                }
+            }
+
+            return inArray.join("");
+
+        };
+
+        const removePadChars = ({ output }) => {
+            if (padChars) {
+                output = new Uint8Array(output.slice(0, -padChars));
+            }
+            return output;
+        };
+
+        return super.decode(input, format, removePadChars, true, ...args);
+    }
+}
+
+
+const een = () => {
+    const o = () => Math.floor(Math.random() * 8);
+    return `${o()}${o()}${o()}`;
+};
+
+const ees = () => {
+    const name = [
+        "unchronological",
+        "unconditionally",
+        "underemphasized",
+        "underprivileged",
+        "undistinguished",
+        "unsophisticated",
+        "untitled",
+        "untitled-1",
+        "untitled-3",
+        "uuencode"
+    ];
+
+    const ext = [
+        "applescript",
+        "bat",
+        "beam",
+        "bin",
+        "exe",
+        "js",
+        "mam",
+        "py",
+        "sh",
+        "vdo",
+        "wiz"
+    ];
+
+    const pick = (arr) => arr.at(Math.floor(Math.random() * arr.length));
+
+    return `${pick(name)}.${pick(ext)}`;
+};
+
+/**
  * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -1869,15 +2272,13 @@ class Base85 extends BaseTemplate {
      */
     constructor(...args) {
         super();
+        this.converter = new BaseConverter(85, 4, 5, 84);
 
         // charsets
-        this.charsets.adobe   =  "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
-        this.charsets.ascii85 =  this.charsets.adobe;
-        this.charsets.rfc1924 =  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~";
-        this.charsets.z85     =  "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#";
-
-        // converter
-        this.converter = new BaseConverter(85, 4, 5, 84);
+        this.charsets.adobe   =  [..."!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu"];
+        this.charsets.ascii85 =  this.charsets.adobe.slice();
+        this.charsets.rfc1924 =  [..."0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+-;<=>?@^_`{|}~"];
+        this.charsets.z85     =  [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-:+=^!/*?&<>()[]{}@%$#"];
 
         // predefined settings
         this.version = "ascii85";
@@ -1907,14 +2308,12 @@ class Base85 extends BaseTemplate {
                     
         // Remove padded values and add a frame for the
         // adobe variant
-        const framesAndPadding = (scope) => {
-
-            let { output, settings, zeroPadding } = scope;
+        const framesAndPadding = ({ output, settings, zeroPadding }) => {
 
             // Cut of redundant chars
             if (zeroPadding) {
                 const padValue = this.converter.padBytes(zeroPadding);
-                output = output.slice(0, output.length-padValue);
+                output = output.slice(0, -padValue);
             }
 
             // Adobes variant gets its <~framing~>
@@ -1937,9 +2336,7 @@ class Base85 extends BaseTemplate {
      */
     decode(input, ...args) {
 
-        const prepareInput = (scope) => {
-
-            let { input, settings } = scope;
+        const prepareInput = ({ input, settings }) => {
 
             // For default ascii85 convert "z" back to "!!!!!"
             // Remove the adobe <~frame~>
@@ -1953,14 +2350,14 @@ class Base85 extends BaseTemplate {
             return input
         };
 
-        return super.decode(input, prepareInput, null, ...args);
+        return super.decode(input, prepareInput, null, false, ...args);
     }
 }
 
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
@@ -1970,7 +2367,7 @@ class Base85 extends BaseTemplate {
  * ------------------------
  * 
  * This is a base91 converter. Various input can be 
- * converted to a base85 string or a base91 string
+ * converted to a base91 string or a base91 string
  * can be decoded into various formats.
  * 
  * It is an  implementation of Joachim Henkes method
@@ -1990,11 +2387,23 @@ class Base91 extends BaseTemplate {
     constructor(...args) {
         super();
 
+        // converter (properties only)
+        this.converter = {
+            radix: 91,
+            bsEnc: 0,
+            bsDec: 0
+        };
+
         // charsets
-        this.charsets.default = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
+        this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
+
+        this.version = "default";
 
         // apply user settings
         this.utils.validateArgs(args, true);
+
+        // mutable extra args
+        this.isMutable.integrity = false;
     }
 
 
@@ -2020,8 +2429,7 @@ class Base91 extends BaseTemplate {
         let n = 0;
         let output = "";
 
-        // Shortcut
-        const chars = this.charsets[settings.version];
+        const charset = this.charsets[settings.version];
 
         inputBytes.forEach(byte => {
             //n = n + byte * 2^bitcount;
@@ -2057,12 +2465,12 @@ class Base91 extends BaseTemplate {
                 // the before calculated remainder of n 
                 // -> "rN"
                 let q, r;
-                [q, r] = this.divmod(rN, 91);
+                [q, r] = this.#divmod(rN, 91);
 
                 // Lookup the corresponding characters for
                 // "r" and "q" in the set, append it to the 
                 // output string.
-                output = `${output}${chars[r]}${chars[q]}`;
+                output = `${output}${charset[r]}${charset[q]}`;
             }
         });
         
@@ -2071,20 +2479,20 @@ class Base91 extends BaseTemplate {
         // once more.
         if (bitCount) {
             let q, r;
-            [q, r] = this.divmod(n, 91);
+            [q, r] = this.#divmod(n, 91);
 
             // The remainder is concatenated in any case
-            output = output.concat(chars[r]);
+            output = output.concat(charset[r]);
 
             // The quotient is also appended, but only
             // if the bitCount still has the size of a byte
             // or n can still represent 91 conditions.
             if (bitCount > 7 || n > 90) {
-                output = output.concat(chars[q]);
+                output = output.concat(charset[q]);
             }
         }
         
-        return output;
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
     }
 
 
@@ -2100,9 +2508,10 @@ class Base91 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         // Make it a string, whatever goes in
-        input = String(input);
+        input = this.utils.normalizeInput(input);
+        const inArray = [...input];
 
-        let l = input.length;
+        let l = inArray.length;
 
         // For starters leave the last char behind
         // if the length of the input string is odd.
@@ -2118,7 +2527,7 @@ class Base91 extends BaseTemplate {
 
         let n = 0;
         let bitCount = 0;
-        const chars = this.charsets[settings.version];
+        const charset = this.charsets[settings.version];
         
         // Initialize an ordinary array
         const b256Array = new Array();
@@ -2127,8 +2536,18 @@ class Base91 extends BaseTemplate {
         // (aka collect remainder- and quotient-pairs)
         for (let i=0; i<l; i+=2) {
 
+            const c0 = charset.indexOf(inArray[i]);
+            const c1 =  charset.indexOf(inArray[i+1]);
+            
+            if (c0 < 0) {
+                throw new DecodingError(inArray[i]);
+            }
+            if (c1 < 0) {
+                throw new DecodingError(inArray[i+1]);
+            }
+
             // Calculate back the remainder of the integer "n"
-            const rN = chars.indexOf(input[i]) + chars.indexOf(input[i+1]) * 91;
+            const rN = c0 + c1 * 91;
             n = (rN << bitCount) + n;
             bitCount += (rN % 8192 > 88) ? 13 : 14;
 
@@ -2143,8 +2562,8 @@ class Base91 extends BaseTemplate {
         // Calculate the last byte if the input is odd
         // and add it
         if (odd) {
-            const lastChar = input.charAt(l);
-            const rN = chars.indexOf(lastChar);
+            const lastChar = inArray.at(l);
+            const rN = charset.indexOf(lastChar);
             b256Array.push(((rN << bitCount) + n) % 256);
         }
 
@@ -2161,22 +2580,1144 @@ class Base91 extends BaseTemplate {
      * @param {*} y - number 2
      * @returns {number} Modulo y of x
      */
-    divmod (x, y) {
+    #divmod (x, y) {
         return [Math.floor(x/y), x%y];
+    }
+}
+
+/**
+ * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+/**
+ * BaseEx Little Endian Base 128 Converter.
+ * ---------------------------------------
+ * 
+ * This is a leb128 converter. Various input can be 
+ * converted to a leb128 string or a leb128 string
+ * can be decoded into various formats.
+ * 
+ * There is no real charset available as the input is
+ * getting converted to bytes. For having the chance 
+ * to store these bytes, there is a hexadecimal output
+ * available.
+ */
+class LEB128 extends BaseTemplate {
+    
+    /**
+     * BaseEx LEB128 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
+    constructor(...args) {
+        // initialize base template without utils
+        super();
+
+        // converters
+        this.converter = new BaseConverter(10, 0, 0);
+        this.hexlify = new BaseConverter(16, 1, 2);
+
+        // charsets
+        this.charsets.default = "<placeholder>";
+        this.charsets.hex = "<placeholder>";
+
+        // predefined settings
+        this.version = "default";
+        this.frozenCharsets = true;
+
+        // predefined settings
+        this.littleEndian = true;
+        this.hasSignedMode = true;
+        this.isMutable.signed = true;
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
+    }
+
+
+    /**
+     * BaseEx LEB128 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {{ buffer: ArrayBufferLike; }} - LEB128 encoded Unit8Array (or hex string of it).
+     */
+    encode(input, ...args) {
+        
+        // argument validation and input settings
+        const settings = this.utils.validateArgs(args);
+        
+        const signed = settings.signed;
+        settings.signed = true;
+        const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
+
+        // Convert to BaseRadix string
+        let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
+
+        let n = BigInt(base10);
+        let output = new Array();
+        
+        if (negative) {
+            if (!signed) {
+                throw new TypeError("Negative values in unsigned mode are invalid.");
+            }
+            n = -n;
+        }
+          
+        if (signed) {
+
+            for (;;) {
+                const byte = Number(n & 127n);
+                n >>= 7n;
+                if ((n == 0 && (byte & 64) == 0) || (n == -1 && (byte & 64) != 0)) {
+                    output.push(byte);
+                    break;
+                }
+                output.push(byte | 128);
+            }
+        }
+
+        else {
+            for (;;) {
+                const byte = Number(n & 127n);
+                n >>= 7n;
+                if (n == 0) {
+                    output.push(byte);
+                    break;
+                }
+                output.push(byte | 128);
+            }
+        }
+
+        const Uint8Output = Uint8Array.from(output);
+
+        if (settings.version === "hex") {
+            return this.hexlify.encode(Uint8Output, [..."0123456789abcdef"], false)[0];
+        }
+
+        return Uint8Output;
+    }
+
+
+    /**
+     * BaseEx LEB128 Decoder.
+     * @param {{ buffer: ArrayBufferLike; }|string} input - LEB128-Bytes or String of Hex-Version.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+    decode(input, ...args) {
+        
+        // Argument validation and output settings
+        const settings = this.utils.validateArgs(args);
+
+        if (settings.version === "hex") {
+            input = this.hexlify.decode(this.utils.normalizeInput(input).toLowerCase(), [..."0123456789abcdef"], [], settings.integrity, false);
+        } else if (typeof input.byteLength !== "undefined") {
+            input = BytesInput.toBytes(input)[0];
+        } else {
+            throw new TypeError("Input must be a bytes like object.");
+        }
+
+        if (input.length === 1 && !input[0]) {
+            return this.utils.outputHandler.compile(new Uint8Array(1), settings.outputType, true);
+        }
+
+        input = Array.from(input);
+
+        let n = 0n;
+        let shiftVal = -7n;
+        let byte;
+
+        for (byte of input) {
+            shiftVal += 7n;
+            n += (BigInt(byte & 127) << shiftVal);
+        }
+        
+        if (settings.signed && ((byte & 64) !== 0)) {
+            n |= -(1n << shiftVal + 7n);
+        }
+
+        // Test for a negative sign
+        let decimalNum, negative;
+        [decimalNum, negative] = this.utils.extractSign(n.toString());
+
+        const output = this.converter.decode(decimalNum, [..."0123456789"], [], settings.integrity, true);
+
+        // Return the output
+        return this.utils.outputHandler.compile(output, settings.outputType, true, negative);
+    }
+}
+
+/**
+ * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/ecoji.js}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0 OR Apache-2.0
+ * @see https://github.com/keith-turner/ecoji
+ */
+
+/**
+ * BaseEx Ecoji (a Base 1024) Converter.
+ * ------------------------------------
+ * This an implementation of the Ecoji converter.
+ * Various input can be converted to an Ecoji string
+ * or an Ecoji string can be decoded into various 
+ * formats. Versions 1 and 2 are supported.
+ * This variant pretty much follows the standard
+ * (at least in its results, the algorithm is very
+ * different from the original).
+ * A deviation is the handling of padding. The last
+ * pad char can be trimmed for both versions and
+ * additionally omitted completely if integrity
+ * checks are disabled.
+ */
+class Ecoji extends BaseTemplate {
+
+    #revEmojiVersion = {};
+    #padRegex = null;
+
+    /**
+     * BaseEx Ecoji Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
+    constructor(...args) {
+        super();
+
+        // charsets
+        this.charsets.emojis_v1 = [..."🀄🃏🅰🅱🅾🅿🆎🆑🆒🆓🆔🆕🆖🆗🆘🆙🆚🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿🈁🈂🈚🈯🈲🈳🈴🈵🈶🈷🈸🈹🈺🉐🉑🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🌡🌤🌥🌦🌧🌨🌩🌪🌫🌬🌭🌮🌯🌰🌱🌲🌳🌴🌵🌶🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🍽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🎖🎗🎙🎚🎛🎞🎟🎠🎡🎢🎣🎤🎥🎦🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🏋🏌🏎🏏🏐🏑🏒🏓🏔🏕🏖🏗🏘🏙🏚🏛🏜🏝🏞🏟🏠🏡🏢🏣🏤🏥🏦🏧🏨🏩🏪🏫🏬🏭🏮🏯🏰🏳🏴🏵🏷🏸🏹🏺🏻🏼🏽🏾🏿🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🐿👀👁👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸💹💺💻💼💽💾💿📀📁📂📃📄📅📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳📴📵📶📷📸📹📺📻📼📽📿🔀🔁🔂🔃🔄🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🔙🔚🔛🔜🔝🔞🔟🔠🔡🔢🔣🔤🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🔴🔵🔶🔷🔸🔹🔺🔻🔼🔽🕉🕊🕋🕌🕍🕎🕐🕑🕒🕓🕔🕕🕖🕗🕘🕙🕚🕛🕜🕝🕞🕟🕠🕡🕢🕣🕤🕥🕦🕧🕯🕰🕳🕴🕵🕶🕷🕸🕹🕺🖇🖊🖋🖌🖍🖐🖕🖖🖤🖥🖨🖱🖲🖼🗂🗃🗄🗑🗒🗓🗜🗝🗞🗡🗣🗨🗯🗳🗺🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🛋🛌🛍🛎🛏🛐🛑🛒🛠🛡🛢🛣🛤🛥🛩🛫🛬🛰🛳🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🦰🦱🦲🦳🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
+        this.padChars.emojis_v1 = [ "⚜", "🏍", "📑", "🙋", "☕" ];
+
+        this.charsets.emojis_v2 = [..."🀄🃏⏰⏳☔♈♉♊♋♌♍♎♏♐♑♒♓♿⚓⚡⚽⚾⛄⛅⛎⛔⛪⛲⛳⛵⛺⛽✊✋✨⭐🛕🛖🛗🛝🛞🛟🛺🈁🛻🤌🤏🤿🥱🥲🥸🥹🥻🦣🦤🦥🦦🦧🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🦨🦩🦪🦫🦬🦭🦮🦯🦺🦻🌭🌮🌯🌰🌱🌲🌳🌴🌵🦼🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🦽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🦾🦿🧃🧄🧅🧆🧇🎠🎡🎢🎣🎤🎥🧈🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🧉🧊🧋🏏🏐🏑🏒🏓🧌🧍🧎🧏🧖🧗🧘🧙🧚🧛🧜🧝🏠🏡🏢🏣🏤🏥🏦🧞🏨🏩🏪🏫🏬🏭🏮🏯🏰🧟🏴🧠🧢🏸🏹🏺🧣🧤🧥🧦🧧🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🧨👀🧩👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸🧪💺💻💼💽💾💿📀🧫📂📃📄🧬📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳🧭📵📶📷📸📹📺📻📼🧮📿🧯🧰🧱🧲🧳🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🧴🧵🧶🧷🧸🧹🧺🧻🧼🧽🧾🧿🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🩰🩱🩲🩳🩴🩸🩹🩺🩻🩼🪀🪁🕋🕌🕍🕎🪂🪃🪄🪅🪆🪐🪑🪒🪓🪔🪕🪖🪗🪘🪙🪚🪛🪜🪝🪞🪟🪠🪡🪢🪣🪤🪥🪦🪧🪨🪩🪪🪫🕺🪬🪰🪱🪲🪳🪴🖕🖖🖤🪵🪶🪷🪸🪹🪺🫀🫁🫂🫃🫄🫅🫐🫑🫒🫓🫔🫕🫖🫗🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🫘🛌🫙🫠🫡🛐🛑🛒🫢🫣🫤🫥🫦🫧🫰🛫🛬🫱🫲🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🫳🫴🫵🫶🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
+        this.padChars.emojis_v2 = [ "🥷", "🛼", "📑", "🙋", "☕" ];
+      
+        // init mapping for decoding particularities of the two versions
+        this.#init();
+
+        // converter
+        this.converter = new BaseConverter(1024, 5, 4);
+
+        // predefined settings
+        this.padding = true;
+        this.padCharAmount = 5;
+        this.version = "emojis_v1";
+        
+        // mutable extra args
+        this.isMutable.padding = true;
+        this.isMutable.trim = true;
+
+        // set trim option
+        this.trim = null;
+        this.utils.converterArgs.trim = ["notrim", "trim"];
+        
+        // apply user settings
+        this.utils.validateArgs(args, true);
+
+        if (this.trim === null) {
+            this.trim = this.version === "emojis_v2";
+        }
+    }
+
+
+    /**
+     * Analyzes v1 and two charsets for equal and non
+     * equal characters to create a "revEmojiObj" for
+     * decoding lookup. Also generates a RegExp object 
+     * for handling concatenated strings.
+     */
+    #init() {
+
+        // Stores all padding for a regex generation.
+        const padAll = {};
+
+        // Creates an object which holds all characters
+        // of both versions. Unique chars for version one
+        // are getting the version value "1", version two "2"
+        // and overlaps "3". 
+        const revEmojisAdd = (version, set) => {
+            set.forEach((char) => {
+                if (char in this.#revEmojiVersion) {
+                    this.#revEmojiVersion[char].version += version;
+                } else {
+                    this.#revEmojiVersion[char] = { version };
+                }
+            });
+        };
+
+        // This function adds a padding character of both
+        // versions to the object, with additional information
+        // about the padding type. In this process each unique
+        // padChar is also added to the "padAll" object. 
+        const handlePadding = (version, set, type) => {
+            set.forEach(padChar => {
+            
+                if (padChar in padAll) {
+                    this.#revEmojiVersion[padChar].version = 3;
+                } else {
+                    this.#revEmojiVersion[padChar] = {
+                        version,
+                        padding: type
+                    };
+                    padAll[padChar] = type;
+                }    
+            });
+        };
+
+        revEmojisAdd(1, this.charsets.emojis_v1);
+        revEmojisAdd(2, this.charsets.emojis_v2);
+
+        handlePadding(1, this.padChars.emojis_v1.slice(0, -1), "last");
+        handlePadding(2, this.padChars.emojis_v2.slice(0, -1), "last");
+        handlePadding(1, this.padChars.emojis_v1.slice(-1), "fill");
+        handlePadding(2, this.padChars.emojis_v2.slice(-1), "fill");
+
+        
+        // Create an array of keys for the final regex
+        const regexArray = [];
+
+        for (const padChar in padAll) {
+            if (padAll[padChar] === "last") {
+                regexArray.push(padChar);
+            } else {
+                regexArray.push(`${padChar}+`);
+            }
+        }
+
+        // create a regex obj for matching all pad chars 
+        this.#padRegex = new RegExp(regexArray.join("|"), "g");
+    }
+
+
+    /**
+     * BaseEx Ecoji Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Ecoji encoded string.
+     */
+    encode(input, ...args) {
+
+        const applyPadding = ({ output, settings, zeroPadding }) => {
+
+            const charset = this.charsets[settings.version];
+            let outArray = [...output];
+            
+            if (zeroPadding > 1) {
+                const padValue = this.converter.padBytes(zeroPadding);
+                if (settings.padding) {
+                    const padLen = settings.trim ? 1 : padValue;
+                    const padArr = new Array(padLen).fill(this.padChars[settings.version].at(-1));
+                    outArray.splice(outArray.length-padValue, padValue, ...padArr);
+                } else {
+                    outArray.splice(outArray.length-padValue, padValue);
+                }
+            }
+            
+            else if (zeroPadding === 1) {
+                const lastVal = charset.indexOf(outArray.pop());
+                const x = lastVal >> 8;
+                outArray.push(this.padChars[settings.version].at(x));
+            }
+
+            return outArray.join("");
+        };
+        
+        return super.encode(input, null, applyPadding, ...args);
+    }
+
+    
+    /**
+     * BaseEx Ecoji Decoder.
+     * @param {string} input - Ecoji String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+    decode(input, ...args) {
+
+        // Argument validation and output settings
+        const settings = this.utils.validateArgs(args);
+        input = this.utils.normalizeInput(input);
+
+        let version = settings.version;
+        let versionKey = null;
+
+        if (settings.version === "emojis_v1" || settings.version === "emojis_v2") {
+            // versionKey can be both v1 or v2
+            versionKey = 3;
+        }
+
+        // the actual decoding is wrapped in a function
+        // for the possibility to call it multiple times
+        const decode = (input) => {
+
+            if (versionKey !== null) {
+                versionKey = this.#preDecode(input, versionKey, settings.integrity);
+                version = (versionKey === 3)
+                    ? settings.version
+                    : `emojis_v${versionKey}`;
+            }
+
+            const charset = this.charsets[version];
+            
+            const inArray = [...input];
+            const lastChar = inArray.at(-1);
+            let skipLast = false;
+
+            for (let i=0; i<this.padChars[version].length-1; i++) {                
+                if (lastChar === this.padChars[version].at(i)) {
+                    inArray.splice(-1, 1, charset.at(i << 8));
+                    input = inArray.join("");
+                    skipLast = true;
+                    break;
+                }
+            }
+
+            let output = this.converter.decode(input,
+                this.charsets[version],
+                [],
+                false
+            );
+
+            if (skipLast) {
+                output = new Uint8Array(output.buffer.slice(0, -1));
+            }
+
+            return output;
+        };
+
+        const matchGroup = [...input.matchAll(this.#padRegex)];
+
+        // decode the input directly if no or just one 
+        // match for padding was found
+        let output;
+        if (matchGroup.length < 2) {
+            output = decode(input);
+        }
+        
+        // otherwise decode every group separately and join it
+        // afterwards
+        else {
+
+            const preOutArray = [];
+            let start = 0;
+            
+            matchGroup.forEach(match => {
+                const end = match.index + match.at(0).length;
+                preOutArray.push(...decode(input.slice(start, end)));
+                start = end;
+            });
+
+            // in case the last group has no padding, it is not yet
+            // decoded -> do it now
+            if (start !== input.length) {
+                preOutArray.push(...decode(input.slice(start, input.length)));
+            }
+
+            output = Uint8Array.from(preOutArray);
+        }
+
+        return this.utils.outputHandler.compile(output, settings.outputType);
+    }
+
+
+    /**
+     * Determines the version (1/2) and analyzes the input for integrity.
+     * @param {string} input - Input string. 
+     * @param {number} versionKey - Version key from former calls (initially always 3). 
+     * @param {boolean} integrity - If false non standard or wrong padding gets ignored. 
+     * @returns {number} - Version key (1|2|3)
+     */
+    #preDecode(input, versionKey, integrity) {
+ 
+        const inArray = [...input];
+        let sawPadding;
+
+        inArray.forEach((char, i) => {
+
+            if (char in this.#revEmojiVersion) {
+
+                const charVersion = this.#revEmojiVersion[char].version;
+
+                // version changes can only happen if the char is
+                // not in both versions (not 3)
+                if (charVersion !== 3) {
+                    if (versionKey === 3) {
+                        versionKey = charVersion;
+                    } else if (versionKey !== charVersion) {
+                        throw new TypeError(`Emojis from different ecoji versions seen : ${char} from emojis_v${charVersion}`);
+                    }
+                }
+
+                // analyze possible wrong padding if integrity checks
+                // are enabled
+                if (integrity) {
+                    const padding = this.#revEmojiVersion[char].padding;
+                    if (padding) {
+
+                        // index relative to a group of four bytes
+                        const relIndex = i%4;
+                        sawPadding = true;
+
+                        if (padding === "fill") {
+                            if (relIndex === 0) {
+                                throw new TypeError(`Padding unexpectedly seen in first position ${char}`);
+                            }
+                        } else if (relIndex !== 3) {
+                            throw new TypeError(`Last padding seen in unexpected position ${char}`);
+                        }
+                    }
+
+                    else if (sawPadding) {
+                        throw new TypeError("Unexpectedly saw non-padding after padding");
+                    }
+                }
+
+            } else {
+                throw new DecodingError(char);
+            }
+        });
+
+        // lastly test for invalid string 
+        if (integrity && inArray.length % 4) {
+            if (
+                versionKey === 1 ||
+                this.#revEmojiVersion[inArray.at(-1)].padding !== "fill"
+            ) {
+                throw new TypeError("Unexpected end of data, input data size not multiple of 4");
+            }
+        }
+
+        return versionKey;
+    }
+}
+
+/**
+ * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+/**
+ * BaseEx Base 2048 Converter.
+ * ------------------------
+ * This is a base2048/converter. Various input can be 
+ * converted to a hex string or a hex string can be
+ * decoded into various formats. It is possible to 
+ * convert in both signed and unsigned mode.
+ * 
+ * @see https://github.com/qntm/base2048
+ */
+class Base2048 extends BaseTemplate {
+
+    /**
+     * BaseEx Base2048 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
+    constructor(...args) {
+        super();
+
+        // converter (properties only)
+        this.converter = {
+            radix: 2048,
+            bsEnc: 11,
+            bsEncPad: 3,
+            bsDec: 8
+        };
+        
+        // default settings
+        this.charsets.default = [..."89ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzÆÐØÞßæðøþĐđĦħıĸŁłŊŋŒœŦŧƀƁƂƃƄƅƆƇƈƉƊƋƌƍƎƏƐƑƒƓƔƕƖƗƘƙƚƛƜƝƞƟƢƣƤƥƦƧƨƩƪƫƬƭƮƱƲƳƴƵƶƷƸƹƺƻƼƽƾƿǀǁǂǃǝǤǥǶǷȜȝȠȡȢȣȤȥȴȵȶȷȸȹȺȻȼȽȾȿɀɁɂɃɄɅɆɇɈɉɊɋɌɍɎɏɐɑɒɓɔɕɖɗɘəɚɛɜɝɞɟɠɡɢɣɤɥɦɧɨɩɪɫɬɭɮɯɰɱɲɳɴɵɶɷɸɹɺɻɼɽɾɿʀʁʂʃʄʅʆʇʈʉʊʋʌʍʎʏʐʑʒʓʔʕʖʗʘʙʚʛʜʝʞʟʠʡʢʣʤʥʦʧʨʩʪʫʬʭʮʯͰͱͲͳͶͷͻͼͽͿΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩαβγδεζηθικλμνξοπρςστυφχψωϏϗϘϙϚϛϜϝϞϟϠϡϢϣϤϥϦϧϨϩϪϫϬϭϮϯϳϷϸϺϻϼϽϾϿЂЄЅІЈЉЊЋЏАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдежзиклмнопрстуфхцчшщъыьэюяђєѕіјљњћџѠѡѢѣѤѥѦѧѨѩѪѫѬѭѮѯѰѱѲѳѴѵѸѹѺѻѼѽѾѿҀҁҊҋҌҍҎҏҐґҒғҔҕҖҗҘҙҚқҜҝҞҟҠҡҢңҤҥҦҧҨҩҪҫҬҭҮүҰұҲҳҴҵҶҷҸҹҺһҼҽҾҿӀӃӄӅӆӇӈӉӊӋӌӍӎӏӔӕӘәӠӡӨөӶӷӺӻӼӽӾӿԀԁԂԃԄԅԆԇԈԉԊԋԌԍԎԏԐԑԒԓԔԕԖԗԘԙԚԛԜԝԞԟԠԡԢԣԤԥԦԧԨԩԪԫԬԭԮԯԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆאבגדהוזחטיךכלםמןנסעףפץצקרשתװױײؠءابةتثجحخدذرزسشصضطظعغػؼؽؾؿفقكلمنهوىي٠١٢٣٤٥٦٧٨٩ٮٯٱٲٳٴٹٺٻټٽپٿڀځڂڃڄڅچڇڈډڊڋڌڍڎڏڐڑڒړڔڕږڗژڙښڛڜڝڞڟڠڡڢڣڤڥڦڧڨکڪګڬڭڮگڰڱڲڳڴڵڶڷڸڹںڻڼڽھڿہۃۄۅۆۇۈۉۊۋیۍێۏېۑےەۮۯ۰۱۲۳۴۵۶۷۸۹ۺۻۼۿܐܒܓܔܕܖܗܘܙܚܛܜܝܞܟܠܡܢܣܤܥܦܧܨܩܪܫܬܭܮܯݍݎݏݐݑݒݓݔݕݖݗݘݙݚݛݜݝݞݟݠݡݢݣݤݥݦݧݨݩݪݫݬݭݮݯݰݱݲݳݴݵݶݷݸݹݺݻݼݽݾݿހށނރބޅކއވމފދތލގޏސޑޒޓޔޕޖޗޘޙޚޛޜޝޞޟޠޡޢޣޤޥޱ߀߁߂߃߄߅߆߇߈߉ߊߋߌߍߎߏߐߑߒߓߔߕߖߗߘߙߚߛߜߝߞߟߠߡߢߣߤߥߦߧߨߩߪࠀࠁࠂࠃࠄࠅࠆࠇࠈࠉࠊࠋࠌࠍࠎࠏࠐࠑࠒࠓࠔࠕࡀࡁࡂࡃࡄࡅࡆࡇࡈࡉࡊࡋࡌࡍࡎࡏࡐࡑࡒࡓࡔࡕࡖࡗࡘࡠࡡࡢࡣࡤࡥࡦࡧࡨࡩࡪࢠࢡࢢࢣࢤࢥࢦࢧࢨࢩࢪࢫࢬࢭࢮࢯࢰࢱࢲࢳࢴࢶࢷࢸࢹࢺࢻࢼࢽऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनपफबभमयरलळवशषसहऽॐॠॡ०१२३४५६७८९ॲॳॴॵॶॷॸॹॺॻॼॽॾॿঀঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহঽৎৠৡ০১২৩৪৫৬৭৮৯ৰৱ৴৵৶৷৸৹ৼਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਵਸਹੜ੦੧੨੩੪੫੬੭੮੯ੲੳੴઅઆઇઈઉઊઋઌઍએઐઑઓઔકખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહઽૐૠૡ૦૧૨૩૪૫૬૭૮૯ૹଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହଽୟୠୡ୦୧୨୩୪୫୬୭୮୯ୱ୲୳୴୵୶୷ஃஅஆஇஈஉஊஎஏஐஒஓகஙசஜஞடணதநனபமயரறலளழவஶஷஸஹௐ௦௧௨௩௪௫௬௭௮௯௰௱௲అఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽౘౙౚౠౡ౦౧౨౩౪౫౬౭౮౯౸౹౺౻౼౽౾ಀಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹಽೞೠೡ೦೧೨೩೪೫೬೭೮೯ೱೲഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺഽൎൔൕൖ൘൙൚൛൜൝൞ൟൠൡ൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸ൺൻർൽൾൿඅආඇඈඉඊඋඌඍඎඏඐඑඒඓඔඕඖකඛගඝඞඟචඡජඣඤඥඦටඨඩඪණඬතථදධනඳපඵබභමඹයරලවශෂසහළෆ෦෧෨෩෪෫෬෭෮෯กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะาเแโใไๅ๐๑๒๓๔๕๖๗๘๙ກຂຄງຈຊຍດຕຖທນບປຜຝພຟມຢຣລວສຫອຮຯະາຽເແໂໃໄ໐໑໒໓໔໕໖໗໘໙ໞໟༀ༠༡༢༣༤༥༦༧༨༩༪༫༬༭༮༯༰༱༲༳ཀཁགངཅཆཇཉཊཋཌཎཏཐདནཔཕབམཙཚཛཝཞཟའཡརལཤཥསཧཨཪཫཬྈྉྊྋྌကခဂဃငစဆဇဈဉညဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝသဟဠအဢဣဤဥဧဨဩဪဿ၀၁၂၃၄၅၆၇၈၉ၐၑၒၓၔၕ"];
+        this.padChars.default = [..."01234567"];
+
+        this.padCharAmount = 8;
+        this.hasSignedMode = true;
+        this.littleEndian = false;
+        
+        // apply user settings
+        this.utils.validateArgs(args, true);
+    }
+
+
+    /**
+     * BaseEx Base2048 Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...str} [args] - Converter settings.
+     * @returns {string} - Base2048 encoded string.
+     */
+    encode(input, ...args) {
+
+        const settings = this.utils.validateArgs(args);
+        let inputBytes = this.utils.inputHandler.toBytes(input, settings).at(0);
+
+        const charset = this.charsets[settings.version];
+        const padChars = this.padChars[settings.version];
+
+        let output = "";
+        let z = 0;
+        let numZBits = 0;
+
+        inputBytes.forEach(uint8 => {
+            
+            for (let i=this.converter.bsDec-1; i>=0; i--) {
+
+                z = (z << 1) + ((uint8 >> i) & 1);
+                numZBits++;
+
+                if (numZBits === this.converter.bsEnc) {
+                    output += charset.at(z);
+                    z = 0;
+                    numZBits = 0;
+                }
+            }
+        });
+
+        if (numZBits !== 0) {
+            
+            let bitCount;
+            let isPadding;
+
+            if (numZBits <= this.converter.bsEncPad) {
+                bitCount = this.converter.bsEncPad;
+                isPadding = true;
+            } else {
+                bitCount = this.converter.bsEnc; 
+                isPadding = false;
+            }
+
+            while (numZBits !== bitCount) {
+                z = (z << 1) + 1;
+                numZBits++;
+                if (numZBits > this.converter.bsEnc) {
+                    throw new Error("Cannot process input. This is a bug!");
+                }
+            }
+          
+            if (isPadding) { 
+                output += padChars.at(z);
+            } else {
+                output += charset.at(z);
+            }
+        }
+
+        return this.utils.wrapOutput(output, settings.options.lineWrap);
+    }
+
+    
+    /**
+     * BaseEx Base2048 Decoder.
+     * @param {string} input - Base2048/Hex String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+    decode(input, ...args) {
+
+        // apply settings
+        const settings = this.utils.validateArgs(args);
+
+        // ensure a string input
+        input = this.utils.normalizeInput(input);
+        const inArray = [...input];
+
+        const charset = this.charsets[settings.version];
+        const padChars = this.padChars[settings.version];
+
+        const byteArray = new Array();
+        let uint8 = 0;
+        let numUint8Bits = 0;
+
+        inArray.forEach((c, i) => {
+
+            let numZBits;
+            let z = charset.indexOf(c);
+            if (z > -1) { 
+                numZBits = this.converter.bsEnc;
+            } else {
+                z = padChars.indexOf(c);
+
+                if (z > -1) {
+                    if (i+1 !== inArray.length) {
+                        throw new DecodingError(null, `Secondary character found before end of input, index: ${i}`);    
+                    }
+
+                    numZBits = this.converter.bsEncPad;
+                }
+                
+                else if (settings.integrity) {
+                    throw new DecodingError(c);
+                }
+            }
+
+            // Take most significant bit first
+            for (let j=numZBits-1; j>=0; j--) {
+
+                uint8 = (uint8 << 1) + ((z >> j) & 1);
+                numUint8Bits++;
+
+                if (numUint8Bits === this.converter.bsDec) {
+                    byteArray.push(uint8);
+                    uint8 = 0;
+                    numUint8Bits = 0;
+                }
+            }
+        });
+
+        return this.utils.outputHandler.compile(
+            Uint8Array.from(byteArray),
+            settings.outputType
+        );
+    }
+}
+
+/**
+ * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+
+/**
+ * BaseEx SimpleBase Converter.
+ * ---------------------------
+ * SimpleBase provides the simple mathematical base
+ * conversion as known from (n).toString(radix) and
+ * parseInt(n, radix).
+ * 
+ * The constructor needs a radix between 2-62 as the
+ * first argument. In other regards it behaves pretty
+ * much as any other converter. 
+ */
+class SimpleBase extends BaseTemplate {
+    
+    /**
+     * SimpleBase Constructor.
+     * @param {number} radix - Radix between 2 and 62 
+     * @param  {...any} args - Converter settings.
+     */
+    constructor(radix, ...args) {
+        super();
+
+        if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 62) {
+            throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 62.")
+        }
+        this.converter = new BaseConverter(radix, 0, 0);
+
+
+        // charsets
+        this.charsets.default = [..."0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"].slice(0, radix);
+    
+
+        // predefined settings
+        this.frozenCharsets = true;
+        this.hasSignedMode = true;
+        this.littleEndian = !(radix === 2 || radix === 16);
+        this.signed = true;
+        this.version = "default";
+        
+        // list of allowed/disallowed args to change
+        this.isMutable.littleEndian = true,
+        this.isMutable.upper = radix <= 36;
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
+    }
+    
+
+    /**
+     * BaseEx SimpleBase Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {string} - Base 2-62 encoded string.
+     */
+    encode(input, ...args) {
+        return super.encode(input, null, null, ...args);
+    }
+
+
+    /**
+     * BaseEx SimpleBase Decoder.
+     * @param {string} input - Base 2-62 String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+    decode(rawInput, ...args) {
+
+        // pre decoding function
+        const normalizeInput = ({ input }) => {
+            
+            // normalize input (add leading zeros) for base 2 and 16
+            if (this.converter.radix === 2) {
+                const leadingZeros = (8 - (input.length % 8)) % 8;
+                input = `${"0".repeat(leadingZeros)}${input}`;
+            } else if (this.converter.radix === 16) {
+                const leadingZeros = input.length % 2;
+                input = `${"0".repeat(leadingZeros)}${input}`;
+            }
+
+            return input;
+        };
+        
+        return super.decode(rawInput, normalizeInput, null, false, ...args);
+
+    }
+}
+
+/**
+ * big.js v6.2.1 // Copyright (c) 2022 Michael Mclaughlin // https://github.com/MikeMcl/big.js/LICENCE.md // Modified (reduced) and minified for BaseEx
+ */
+let DP=20,RM=1,MAX_DP=1e6,NE=-7,PE=21,STRICT=!1,NAME="[big.js] ",INVALID=NAME+"Invalid ",INVALID_DP=INVALID+"decimal places",INVALID_RM=INVALID+"rounding mode",P={},NUMERIC=/^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i;function _Big_(){function Big(n){let x=this;if(!(x instanceof Big))return void 0===n?_Big_():new Big(n);if(n instanceof Big)x.s=n.s,x.e=n.e,x.c=n.c.slice();else {if("string"!=typeof n){if(!0===Big.strict&&"bigint"!=typeof n)throw TypeError(INVALID+"value");n=0===n&&1/n<0?"-0":String(n);}parse(x,n);}x.constructor=Big;}return Big.prototype=P,Big.DP=DP,Big.RM=RM,Big.NE=NE,Big.PE=PE,Big.strict=STRICT,Big.roundDown=0,Big.roundHalfUp=1,Big.roundHalfEven=2,Big.roundUp=3,Big}function parse(x,n){let e,i,nl;if(!NUMERIC.test(n))throw Error(`${INVALID}number`);for(x.s="-"==n.charAt(0)?(n=n.slice(1),-1):1,(e=n.indexOf("."))>-1&&(n=n.replace(".","")),(i=n.search(/e/i))>0?(e<0&&(e=i),e+=+n.slice(i+1),n=n.substring(0,i)):e<0&&(e=n.length),nl=n.length,i=0;i<nl&&"0"==n.charAt(i);)++i;if(i==nl)x.c=[x.e=0];else {for(;nl>0&&"0"==n.charAt(--nl););for(x.e=e-i-1,x.c=[],e=0;i<=nl;)x.c[e++]=+n.charAt(i++);}return x}function round(x,sd,rm,more){let xc=x.c;if(void 0===rm&&(rm=x.constructor.RM),0!==rm&&1!==rm&&2!==rm&&3!==rm)throw Error(INVALID_RM);if(sd<1)more=3===rm&&(more||!!xc[0])||0===sd&&(1===rm&&xc[0]>=5||2===rm&&(xc[0]>5||5===xc[0]&&(more||void 0!==xc[1]))),xc.length=1,more?(x.e=x.e-sd+1,xc[0]=1):xc[0]=x.e=0;else if(sd<xc.length){if(more=1===rm&&xc[sd]>=5||2===rm&&(xc[sd]>5||5===xc[sd]&&(more||void 0!==xc[sd+1]||1&xc[sd-1]))||3===rm&&(more||!!xc[0]),xc.length=sd,more)for(;++xc[--sd]>9;)if(xc[sd]=0,0===sd){++x.e,xc.unshift(1);break}for(sd=xc.length;!xc[--sd];)xc.pop();}return x}function stringify(x,doExponential,isNonzero){let e=x.e,s=x.c.join(""),n=s.length;if(doExponential)s=s.charAt(0)+(n>1?"."+s.slice(1):"")+(e<0?"e":"e+")+e;else if(e<0){for(;++e;)s="0"+s;s="0."+s;}else if(e>0)if(++e>n)for(e-=n;e--;)s+="0";else e<n&&(s=s.slice(0,e)+"."+s.slice(e));else n>1&&(s=s.charAt(0)+"."+s.slice(1));return x.s<0&&isNonzero?"-"+s:s}P.abs=function(){let x=new this.constructor(this);return x.s=1,x},P.cmp=function(y){let isneg,x=this,xc=x.c,yc=(y=new x.constructor(y)).c,i=x.s,j=y.s,k=x.e,l=y.e;if(!xc[0]||!yc[0])return xc[0]?i:yc[0]?-j:0;if(i!=j)return i;if(isneg=i<0,k!=l)return k>l^isneg?1:-1;for(j=(k=xc.length)<(l=yc.length)?k:l,i=-1;++i<j;)if(xc[i]!=yc[i])return xc[i]>yc[i]^isneg?1:-1;return k==l?0:k>l^isneg?1:-1},P.eq=function(y){return 0===this.cmp(y)},P.gt=function(y){return this.cmp(y)>0},P.gte=function(y){return this.cmp(y)>-1},P.lt=function(y){return this.cmp(y)<0},P.lte=function(y){return this.cmp(y)<1},P.minus=P.sub=function(y){let i,j,t,xlty,x=this,Big=x.constructor,a=x.s,b=(y=new Big(y)).s;if(a!=b)return y.s=-b,x.plus(y);let xc=x.c.slice(),xe=x.e,yc=y.c,ye=y.e;if(!xc[0]||!yc[0])return yc[0]?y.s=-b:xc[0]?y=new Big(x):y.s=1,y;if(a=xe-ye){for((xlty=a<0)?(a=-a,t=xc):(ye=xe,t=yc),t.reverse(),b=a;b--;)t.push(0);t.reverse();}else for(j=((xlty=xc.length<yc.length)?xc:yc).length,a=b=0;b<j;b++)if(xc[b]!=yc[b]){xlty=xc[b]<yc[b];break}if(xlty&&(t=xc,xc=yc,yc=t,y.s=-y.s),(b=(j=yc.length)-(i=xc.length))>0)for(;b--;)xc[i++]=0;for(b=i;j>a;){if(xc[--j]<yc[j]){for(i=j;i&&!xc[--i];)xc[i]=9;--xc[i],xc[j]+=10;}xc[j]-=yc[j];}for(;0===xc[--b];)xc.pop();for(;0===xc[0];)xc.shift(),--ye;return xc[0]||(y.s=1,xc=[ye=0]),y.c=xc,y.e=ye,y},P.plus=P.add=function(y){let e,k,t,x=this,Big=x.constructor;if(y=new Big(y),x.s!=y.s)return y.s=-y.s,x.minus(y);let xe=x.e,xc=x.c,ye=y.e,yc=y.c;if(!xc[0]||!yc[0])return yc[0]||(xc[0]?y=new Big(x):y.s=x.s),y;if(xc=xc.slice(),e=xe-ye){for(e>0?(ye=xe,t=yc):(e=-e,t=xc),t.reverse();e--;)t.push(0);t.reverse();}for(xc.length-yc.length<0&&(t=yc,yc=xc,xc=t),e=yc.length,k=0;e;xc[e]%=10)k=(xc[--e]=xc[e]+yc[e]+k)/10|0;for(k&&(xc.unshift(k),++ye),e=xc.length;0===xc[--e];)xc.pop();return y.c=xc,y.e=ye,y},P.round=function(dp,rm){if(void 0===dp)dp=0;else if(dp!==~~dp||dp<-MAX_DP||dp>MAX_DP)throw Error(INVALID_DP);return round(new this.constructor(this),dp+this.e+1,rm)},P.toFixed=function(dp,rm){let x=this,n=x.c[0];if(void 0!==dp){if(dp!==~~dp||dp<0||dp>MAX_DP)throw Error(INVALID_DP);for(x=round(new x.constructor(x),dp+x.e+1,rm),dp=dp+x.e+1;x.c.length<dp;)x.c.push(0);}return stringify(x,!1,!!n)},P[Symbol.for("nodejs.util.inspect.custom")]=P.toJSON=P.toString=function(){let x=this,Big=x.constructor;return stringify(x,x.e<=Big.NE||x.e>=Big.PE,!!x.c[0])},P.toNumber=function(){let n=Number(stringify(this,!0,!0));if(!0===this.constructor.strict&&!this.eq(n.toString()))throw Error(NAME+"Imprecise conversion");return n};const Big=_Big_();
+
+/**
+ * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
+ *
+ * @version 0.5.0
+ * @author UmamiAppearance [mail@umamiappearance.eu]
+ * @license GPL-3.0
+ */
+
+/**
+ * BaseEx Base Phi Converter.
+ * ------------------------
+ * 
+ * This is a base phi converter. Various input can be 
+ * converted to a base phi string or a base phi string
+ * can be decoded into various formats.
+ * 
+ */
+class BasePhi extends BaseTemplate {
+
+    #Phi = Big("1.618033988749894848204586834365638117720309179805762862135448622705260462818902449707207204189391137484754088075386891752");
+    
+    /**
+     * BaseEx basE91 Constructor.
+     * @param {...string} [args] - Converter settings.
+     */
+    constructor(...args) {
+        super();
+
+        // converter (properties only)
+        this.converter = {
+            radix: 2, // radix is Phi, but the normalized representation allows two chars
+            bsEnc: 0,
+            bsDec: 0
+        };
+
+        // base10 converter to have always have a numerical input 
+        this.b10 = new BaseConverter(10, 0, 0);
+
+        // charsets
+        this.charsets.default = ["0", "1"];
+
+        this.version = "default";
+        this.signed = true;
+        this.hasDecimalMode = true;
+
+        // apply user settings
+        this.utils.validateArgs(args, true);
+
+        // mutable extra args
+        this.isMutable.integrity = false;
+    }
+
+
+    /**
+     * BaseEx BasePhi Encoder.
+     * @param {*} input - Input according to the used byte converter.
+     * @param  {...string} [args] - Converter settings.
+     * @returns {string} - BasePhi encoded string.
+     */
+    encode(input, ...args) {
+        
+        // argument validation and input settings
+        const settings = this.utils.validateArgs(args);
+        const charset = this.charsets[settings.version];
+        
+        let inputBytes;
+        let negative;
+        let n;
+        let output = "";
+
+        // Base Phi allows direct encoding of rational 
+        // and irrational numbers, which can be enabled
+        // by using the special type "decimal". Input 
+        // type must be "Number" for this mode. 
+        if (settings.decimalMode) {
+            if (Number.isFinite(input)) {
+                if (input < 0) {
+                    negative = true;
+                    n = Big(-input);
+                } else {
+                    negative = false;
+                    n = Big(input);
+                }       
+            }
+
+            else {
+                throw new TypeError("When running the converter in decimal-mode, only input of type 'Number' is allowed.")
+            }
+        }
+
+        // Every other type first converts the byte representation
+        // of the input to base 10.
+        else {
+            [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
+            n = Big(
+                this.b10.encode(inputBytes, null, settings.littleEndian)[0]
+            );
+        }
+
+        // if "n" if 0 or 1 stop here and return 0 or 1 (according to the charset)
+        if (n.eq(0) || n.eq(1)) {
+            output = charset[n.toNumber()]; 
+            if (negative) {
+                output = `-${output}`;
+            }           
+            return output;
+        }
+        
+        // create two arrays to store all exponents
+        const exponents = [];
+        const decExponents = [];
+
+
+        // The very first step is to find the highest exponent
+        // of Phi which fits into "n" (the rounded highest exponent
+        // is also the highest Lucas number which fits into "n")
+        // To find the highest fitting exponent start with 
+        // Phi^0 (1) and Phi^1 (Phi).
+
+        let last = Big(1);
+        let cur = this.#Phi;
+        let exp = 0;
+        
+        // Now add the result with the last higher value "cur",
+        // util "cur" is bigger than "n"
+        while (cur.lt(n)) {
+            [ last, cur ] = this.#nextPhiExp(last, cur);
+            exp++;
+        }
+        
+        /**
+         * Recursive reduction function for "n". Finds the largest
+         * fitting exponent of Phi (Lucas index), stores that index
+         * in the exponent arrays and reduces "n" by the current exponents
+         * power.
+         * Once started, it calls itself until "n" is zero.  
+         * @param {Object} cur - Current result of Phi^exp as a Big.js object. 
+         * @param {Object} prev - Previous result of Phi^exp as a Big.js object. 
+         * @param {number} exp - Exponent of Phi/Lucas index. 
+         */
+        const reduceN = (cur, prev, exp) => {
+
+            // Due to the high floating point precision "n" should
+            // be exactly zero, but if not, an approximation is 
+            // sufficient.
+            if (this.#approxNull(n)) return;
+
+            // Reduce the exponents of Phi until it power fits into "n" 
+            while (cur.gt(n)) {
+                [ cur, prev ] = this.#prevPhiExp(cur, prev);
+                
+                // if "cur" gets negative return immediately
+                // prevent an infinite loop
+                if (cur.lte(0)) {
+                    console.warn("Could not find an exact base-phi representation. Value is approximated.");
+                    return;
+                }
+                exp--;
+            }
+
+            // Store the exponents
+            if (exp > -1) {
+                exponents.unshift(exp);
+            } else {
+                decExponents.push(exp);
+            }
+
+            // Reduce "n"
+            n = n.minus(cur);
+
+            reduceN(cur, prev, exp);
+        };
+
+        // Initial call of the reduction function
+        reduceN(last, cur, exp);
+
+
+        // Create a BasePhi string by setting a "1" at every
+        // index stored in the "exponent" array. for every
+        // number between two indices a zero is added. 
+        exp = 0; 
+        exponents.forEach(nExp => {
+            while (exp < nExp) {
+                output = `${charset[0]}${output}`;
+                exp++;
+            }
+            output = `${charset[1]}${output}`;
+            exp++;
+        });
+
+        // Add a decimal point
+        if (!output) {
+            output = "0.";
+        } else {
+            output += ".";
+        }
+        
+        // Proceed with the decimal exponents
+        exp = -1;
+        decExponents.forEach(nExp => {
+            while (exp > nExp) {
+                output += charset[0];
+                exp--;
+            }
+            output += charset[1];
+            exp--;
+        });
+
+        // Add a "-" if the input is negative.
+        if (negative) {
+            output = `-${output}`;
+        }
+ 
+        return output;
+    }
+
+
+    /**
+     * BaseEx Base Phi Decoder.
+     * @param {string} input - Base Phi String.
+     * @param  {...any} [args] - Converter settings.
+     * @returns {*} - Output according to converter settings.
+     */
+     decode(input, ...args) {
+        
+        // Argument validation and output settings
+        const settings = this.utils.validateArgs(args);
+        const charset = this.charsets[settings.version];
+
+        let negative;
+        [ input, negative ] = this.utils.extractSign(
+            this.utils.normalizeInput(input)
+        );
+        
+        // Split the input String at the decimal sign
+        // and initialize a big.js-object with value 0
+        const [ posExpStr, decExpStr ] = input.split(".");
+        let n = Big(0);
+
+        // Initialize two variables "last" and "cur"
+        // for Phi^exp-1 and Phi^exp
+        let last = this.#Phi.minus(1);
+        let cur = Big(1); 
+        
+        // Convert the left side of the input string
+        // to an array of chars and reverse it. Raise
+        // the exponent of Phi and its values until a
+        // one is found in the array, if a "1" was found
+        // add the value "cur" to number "n" (one can
+        // also be another corresponding char of the set
+        // which represents 1).
+        [...posExpStr].reverse().forEach((char) => {
+            const charIndex = charset.indexOf(char);
+            if (charIndex === 1) {
+                n = n.plus(cur);
+            } else if (charIndex !== 0) {
+                throw new DecodingError(char);
+            }
+            [ last, cur ] = this.#nextPhiExp(last, cur);
+        });
+
+        // Now also add the values for the decimal places.
+        if (decExpStr) {      
+            let prev = Big(1); 
+            cur = this.#Phi.minus(prev);
+            
+            [...decExpStr].forEach((char) => {
+                const charIndex = charset.indexOf(char);
+                if (charIndex === 1) {
+                    n = n.plus(cur);
+                } else if (charIndex !== 0) {
+                    throw new DecodingError(char);
+                }
+                [ cur, prev ] = this.#prevPhiExp(cur, prev);
+            });
+        }
+
+        // If running in decimal mode return n as a Number
+        if (settings.decimalMode) {
+            return n.toNumber();
+        }
+
+        // For every other case round "n" and turn it
+        // into a string of an integer. 
+        n = n.round().toFixed();
+
+        // Use the base 10 decoder to get the byte
+        // representation of "n".
+        const output = this.b10.decode(n, [..."0123456789"], [], settings.integrity, settings.littleEndian);
+ 
+        // Return the output according to the settings.
+        return this.utils.outputHandler.compile(output, settings.outputType, settings.littleEndian, negative);
+    }
+
+    /**
+     * Test if n is approximately zero.
+     * @param {Object} n - Big.js Object. 
+     * @returns {Boolean}
+     */
+    #approxNull(n) { 
+        return !(n.round(50)
+            .abs()
+            .toNumber()
+        );
+    }
+    
+    /**
+     * Get the results of of the following exponents of Phi
+     * from the predecessors.
+     * @param {Object} last - Phi^exp-1 as a big.js-object 
+     * @param {Object} cur - Phi^exp as a big.js-object
+     * @returns {Object[]} - Array with Phi^exp and Phi^exp+1
+     */
+    #nextPhiExp(last, cur) {
+        return [ cur, last.plus(cur) ];
+    }
+
+    /**
+     * Get the results of of the previous exponents of Phi
+     * from the predecessors.
+     * @param {Object} cur - Phi^exp as a big.js-object 
+     * @param {Object} prev - Phi^exp-1 as a big.js-object
+     * @returns {Object[]} - Array with Phi^exp-1 and Phi^exp
+     */
+    #prevPhiExp(cur, prev) {
+        return [ prev.minus(cur), cur ];
     }
 }
 
 /**
  * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
 
+// Endianness of the system
+const LITTLE_ENDIAN = (() => {
+    const testInt = new Uint16Array([1]);
+    const byteRepresentation = new Uint8Array(testInt.buffer);
+    return Boolean(byteRepresentation.at(0));
+})();
+
+
 /**
  * BaseEx Byte Converter.
- * ---------------------------------------
+ * ---------------------
  * 
  * This is a byte converter. Various input can be 
  * converted to a bytes or bytes can be decoded into
@@ -2196,7 +3737,7 @@ class ByteConverter {
     constructor(...args) {
 
         // predefined settings
-        this.littleEndian = true;
+        this.littleEndian = LITTLE_ENDIAN;
         this.numberMode = false;
         this.outputType = "buffer";
 
@@ -2277,238 +3818,12 @@ class ByteConverter {
 }
 
 /**
- * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
- *
- * @version 0.4.3
- * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
- */
-
-/**
- * BaseEx Little Endian Base 128 Converter.
- * ---------------------------------------
- * 
- * This is a leb128 converter. Various input can be 
- * converted to a leb128 string or a leb128 string
- * can be decoded into various formats.
- * 
- * There is no real charset available as the input is
- * getting converted to bytes. For having the chance 
- * to store these byes, there is a hexadecimal output
- * available.
- */
-class LEB128 extends BaseTemplate {
-    
-    /**
-     * BaseEx LEB128 Constructor.
-     * @param {...string} [args] - Converter settings.
-     */
-    constructor(...args) {
-        // initialize base template without utils
-        super(false);
-
-        // charsets
-        this.charsets.default = "<placeholder>",
-        this.charsets.hex = "<placeholder>";
-        this.version = "default";
-
-        // converters
-        this.converter = new BaseConverter(10, 0, 0);
-        this.hexlify = new BaseConverter(16, 1, 2);
-
-        // utils (as lacking before)
-        this.utils = new Utils(this, false);
-        
-        // predefined settings
-        this.littleEndian = true;
-        this.hasSignedMode = true;
-        this.isMutable.signed = true;
-
-        // apply user settings
-        this.utils.validateArgs(args, true);
-    }
-
-
-    /**
-     * BaseEx LEB128 Encoder.
-     * @param {*} input - Input according to the used byte converter.
-     * @param  {...str} [args] - Converter settings.
-     * @returns {{ buffer: ArrayBufferLike; }} - LEB128 encoded Unit8Array (or hex string of it).
-     */
-    encode(input, ...args) {
-        
-        // argument validation and input settings
-        const settings = this.utils.validateArgs(args);
-        
-        let inputBytes, negative;
-        const signed = settings.signed;
-        settings.signed = true;
-        [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
-
-        // Convert to BaseRadix string
-        let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
-
-        let n = BigInt(base10);
-        let output = new Array();
-        
-        if (negative) {
-            if (!signed) {
-                throw new TypeError("Negative values in unsigned mode are invalid.");
-            }
-            n = -n;
-        }
-          
-        if (signed) {
-
-            for (;;) {
-                const byte = Number(n & 127n);
-                n >>= 7n;
-                if ((n == 0 && (byte & 64) == 0) || (n == -1 && (byte & 64) != 0)) {
-                    output.push(byte);
-                    break;
-                }
-                output.push(byte | 128);
-            }
-        }
-
-        else {
-            for (;;) {
-                const byte = Number(n & 127n);
-                n >>= 7n;
-                if (n == 0) {
-                    output.push(byte);
-                    break;
-                }
-                output.push(byte | 128);
-            }
-        }
-
-        const Uint8Output = Uint8Array.from(output);
-
-        if (settings.version === "hex") {
-            return this.hexlify.encode(Uint8Output, "0123456789abcdef", false)[0];
-        }
-
-        return Uint8Output;
-    }
-
-
-    /**
-     * BaseEx LEB128 Decoder.
-     * @param {{ buffer: ArrayBufferLike; }|string} input - LEB128-Bytes or String of Hex-Version.
-     * @param  {...any} [args] - Converter settings.
-     * @returns {*} - Output according to converter settings.
-     */
-    decode(input, ...args) {
-        
-        // Argument validation and output settings
-        const settings = this.utils.validateArgs(args);
-
-        if (settings.version === "hex") {
-            input = this.hexlify.decode(String(input).toLowerCase(), "0123456789abcdef", false);
-        } else if (input instanceof ArrayBuffer) {
-            input = new Uint8Array(input);
-        }
-
-        if (input.length === 1 && !input[0]) {
-            return this.utils.outputHandler.compile(new Uint8Array(1), settings.outputType, true);
-        }
-
-        input = Array.from(input);
-
-        let n = 0n;
-        let shiftVal = -7n;
-        let byte;
-
-        for (byte of input) {
-            shiftVal += 7n;
-            n += (BigInt(byte & 127) << shiftVal);
-        }
-        
-        if (settings.signed && ((byte & 64) !== 0)) {
-            n |= -(1n << shiftVal + 7n);
-        }
-
-        // Test for a negative sign
-        let decimalNum, negative;
-        [decimalNum, negative] = this.utils.extractSign(n.toString());
-
-        const output = this.converter.decode(decimalNum, "0123456789", true);
-
-        // Return the output
-        return this.utils.outputHandler.compile(output, settings.outputType, true, negative);
-    }
-}
-
-/**
- * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
- *
- * @version 0.4.3
- * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
- */
-
-class SimpleBase extends BaseTemplate {
-    constructor(radix, ...args) {
-        super();
-
-        if (!radix || !Number.isInteger(radix) || radix < 2 || radix > 36) {
-            throw new RangeError("Radix argument must be provided and has to be an integer between 2 and 36.")
-        }
-
-        this.charsets.default = "0123456789abcdefghijklmnopqrstuvwxyz".substring(0, radix);
-    
-        // predefined settings
-        this.converter = new BaseConverter(radix, 0, 0);
-        this.hasSignedMode = true;
-        this.littleEndian = !(radix === 2 || radix === 16);
-        this.signed = true;
-        this.version = "default";
-        
-        // list of allowed/disallowed args to change
-        this.isMutable.littleEndian = true,
-        this.isMutable.upper = true;
-
-        // apply user settings
-        this.utils.validateArgs(args, true);
-    }
-    
-    encode(input, ...args) {
-        return super.encode(input, null, null, ...args);
-    }
-
-    decode(rawInput, ...args) {
-
-        // pre decoding function
-        const normalizeInput = (scope) => {
-
-            let { input } = scope;
-
-            // normalize input (add leading zeros) for base 2 and 16
-            if (this.converter.radix === 2) {
-                const leadingZeros = (8 - (input.length % 8)) % 8;
-                input = `${"0".repeat(leadingZeros)}${input}`;
-            } else if (this.converter.radix === 16) {
-                const leadingZeros = input.length % 2;
-                input = `${"0".repeat(leadingZeros)}${input}`;
-            }
-
-            return input;
-        };
-        
-        return super.decode(rawInput, normalizeInput, null, ...args);
-
-    }
-}
-
-/**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
-
 
 /**
  * BaseEx Converter Collection.
@@ -2545,18 +3860,24 @@ class BaseEx {
         this.base58_flickr = new Base58("flickr", outputType);
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
+        this.uuencode = new UUencode("default", outputType);
+        this.xxencode = new UUencode("xx", outputType);
         this.base85_adobe = new Base85("adobe", outputType);
         this.base85_ascii = new Base85("ascii85", outputType);
         this.base85_z85 = new Base85("z85", outputType);
         this.base91 = new Base91("default",outputType);
         this.leb128 = new LEB128("default", outputType);
+        this.ecoji_v1 = new Ecoji("emojis_v1", outputType);
+        this.ecoji_v2 = new Ecoji("emojis_v2", outputType);
+        this.base2048 = new Base2048("default", outputType);
+        this.basePhi = new BasePhi("default", outputType);
         this.byteConverter = new ByteConverter(outputType);
 
         this.simpleBase = {};
-        for (let i=2; i<37; i++) {
+        for (let i=2; i<=62; i++) {
             this.simpleBase[`base${i}`] = new SimpleBase(i, outputType);
         }
     }
 }
 
-export { Base1, Base16, Base32, Base58, Base64, Base85, Base91, BaseEx, ByteConverter, LEB128, SimpleBase };
+export { Base1, Base16, Base2048, Base32, Base58, Base64, Base85, Base91, BaseEx, BasePhi, ByteConverter, Ecoji, LEB128, SimpleBase, UUencode };

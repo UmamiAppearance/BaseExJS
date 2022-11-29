@@ -463,14 +463,22 @@ var ByteConverter = (function () {
     /**
      * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
      *
-     * @version 0.4.3
+     * @version 0.5.0
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
 
+    // Endianness of the system
+    const LITTLE_ENDIAN = (() => {
+        const testInt = new Uint16Array([1]);
+        const byteRepresentation = new Uint8Array(testInt.buffer);
+        return Boolean(byteRepresentation.at(0));
+    })();
+
+
     /**
      * BaseEx Byte Converter.
-     * ---------------------------------------
+     * ---------------------
      * 
      * This is a byte converter. Various input can be 
      * converted to a bytes or bytes can be decoded into
@@ -490,7 +498,7 @@ var ByteConverter = (function () {
         constructor(...args) {
 
             // predefined settings
-            this.littleEndian = true;
+            this.littleEndian = LITTLE_ENDIAN;
             this.numberMode = false;
             this.outputType = "buffer";
 

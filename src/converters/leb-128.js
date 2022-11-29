@@ -1,13 +1,13 @@
 /**
  * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.4.3
+ * @version 0.5.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
 
 import { BaseConverter, BaseTemplate } from "../core.js";
-import { Utils } from "../utils.js";
+import { BytesInput } from "../io-handlers.js";
 
 /**
  * BaseEx Little Endian Base 128 Converter.
@@ -19,7 +19,7 @@ import { Utils } from "../utils.js";
  * 
  * There is no real charset available as the input is
  * getting converted to bytes. For having the chance 
- * to store these byes, there is a hexadecimal output
+ * to store these bytes, there is a hexadecimal output
  * available.
  */
 export default class LEB128 extends BaseTemplate {
@@ -30,20 +30,20 @@ export default class LEB128 extends BaseTemplate {
      */
     constructor(...args) {
         // initialize base template without utils
-        super(false);
-
-        // charsets
-        this.charsets.default = "<placeholder>",
-        this.charsets.hex = "<placeholder>"
-        this.version = "default";
+        super();
 
         // converters
         this.converter = new BaseConverter(10, 0, 0);
         this.hexlify = new BaseConverter(16, 1, 2);
 
-        // utils (as lacking before)
-        this.utils = new Utils(this, false);
-        
+        // charsets
+        this.charsets.default = "<placeholder>";
+        this.charsets.hex = "<placeholder>"
+
+        // predefined settings
+        this.version = "default";
+        this.frozenCharsets = true;
+
         // predefined settings
         this.littleEndian = true;
         this.hasSignedMode = true;
@@ -65,10 +65,9 @@ export default class LEB128 extends BaseTemplate {
         // argument validation and input settings
         const settings = this.utils.validateArgs(args);
         
-        let inputBytes, negative;
         const signed = settings.signed;
         settings.signed = true;
-        [inputBytes, negative,] = this.utils.inputHandler.toBytes(input, settings);
+        const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
 
         // Convert to BaseRadix string
         let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
@@ -111,7 +110,7 @@ export default class LEB128 extends BaseTemplate {
         const Uint8Output = Uint8Array.from(output);
 
         if (settings.version === "hex") {
-            return this.hexlify.encode(Uint8Output, "0123456789abcdef", false)[0];
+            return this.hexlify.encode(Uint8Output, [..."0123456789abcdef"], false)[0];
         }
 
         return Uint8Output;
@@ -130,9 +129,11 @@ export default class LEB128 extends BaseTemplate {
         const settings = this.utils.validateArgs(args);
 
         if (settings.version === "hex") {
-            input = this.hexlify.decode(String(input).toLowerCase(), "0123456789abcdef", false);
-        } else if (input instanceof ArrayBuffer) {
-            input = new Uint8Array(input);
+            input = this.hexlify.decode(this.utils.normalizeInput(input).toLowerCase(), [..."0123456789abcdef"], [], settings.integrity, false);
+        } else if (typeof input.byteLength !== "undefined") {
+            input = BytesInput.toBytes(input)[0];
+        } else {
+            throw new TypeError("Input must be a bytes like object.");
         }
 
         if (input.length === 1 && !input[0]) {
@@ -158,7 +159,7 @@ export default class LEB128 extends BaseTemplate {
         let decimalNum, negative;
         [decimalNum, negative] = this.utils.extractSign(n.toString());
 
-        const output = this.converter.decode(decimalNum, "0123456789", true);
+        const output = this.converter.decode(decimalNum, [..."0123456789"], [], settings.integrity, true);
 
         // Return the output
         return this.utils.outputHandler.compile(output, settings.outputType, true, negative);
