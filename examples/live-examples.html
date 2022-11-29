@@ -161,6 +161,7 @@
                             <tr><th>case</th><td>lower</td><td>upper</td></tr>
                             <tr><th>charset</th><td colspan="2"><i>&lt;various&gt;</i></td></tr>
                             <tr><th>number-mode</th><td colspan="2">number</td></tr>
+                            <tr><th>decimal-mode</th><td colspan="2">decimal</td></tr>
                             
                             <tr style="border-top: 1px solid #aaa;">
                                 <th>IO handler</th>
@@ -301,6 +302,28 @@
                                 "decoded (int_n):   ", bc.decode(bc.encode(short), "int_n"),
                                 "\ndecoded (float_n): ", bcNum.decode(bcNum.encode(short), "float_n"), "\n...",
                             )
+                        </script>
+                    </template>
+                </article>
+
+                <article>
+                    <h3>&#9755; Dealing with decimals</h3>
+                    <i>
+                        Yes, there are non integer bases, which can directly process rational and irrational numbers.
+                        Right now BaseEx has only BasePhi available. Every other converter is using the default conversion.
+                        If available, the decimal-mode must be specifically set with the <u>decimal</u>-Keyword. 
+                    </i>
+
+                    <template class="live-example no-scroll">
+                        <h1>Decimals (BasePhi)</h1>
+                        <script data-run="true">
+                            const phi = new BasePhi();
+                            
+                            console.log("Regular Conversion:");
+                            console.log(phi.encode(Math.PI));
+
+                            console.log("\nDecimal Mode:");
+                            console.log(phi.encode(Math.PI, "decimal"));
                         </script>
                     </template>
                 </article>

@@ -316,6 +316,7 @@ The constructor takes some arguments/options (which may differ between different
         <tr><th>case</th><td>lower</td><td>upper</td></tr>
         <tr><th>charset</th><td colspan="2"><i>&lt;various&gt;</i></td></tr>
         <tr><th>number-mode</th><td colspan="2">number</td></tr>
+        <tr><th>decimal-mode</th><td colspan="2">decimal</td></tr>
         <tr>
             <th>IO handler</th>
             <td colspan="2">
