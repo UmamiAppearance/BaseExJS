@@ -18,7 +18,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
     </thead>
     <tbody>
         <tr>
-            <td>Base1/Unary</td>
+            <td><a href="https://en.wikipedia.org/wiki/Unary_numeral_system" target="_blank">Base1/Unary</a></td>
             <td>
                 <ul>
                     <li>all</li>
@@ -29,7 +29,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base16</td>
+            <td><a href="https://en.wikipedia.org/wiki/Hexadecimal" target="_blank">Base16</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -37,7 +37,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base32</td>
+            <td><a href="https://en.wikipedia.org/wiki/Base32" target="_blank">Base32</a></td>
             <td>
                 <ul>
                     <li>crockford</li>
@@ -48,7 +48,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base58</td>
+            <td><a href="https://learnmeabitcoin.com/technical/base58" target="_blank">Base58</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -58,7 +58,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base64</td>
+            <td><a href="https://en.wikipedia.org/wiki/Base64" target="_blank">Base64</a></td>
             <td>
                 <ul>
                     <li>standard</li>
@@ -67,7 +67,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>UUencode</td>
+            <td><a href="https://en.wikipedia.org/wiki/Uuencoding" target="_blank">UUencode</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -77,7 +77,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base85</td>
+            <td><a href="https://en.wikipedia.org/wiki/Ascii85" target="_blank">Base85</a></td>
             <td>
                 <ul>
                     <li>adobe</li>
@@ -88,7 +88,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base91</td>
+            <td><a href="https://base91.sourceforge.net/" target="_blank">Base91</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -96,7 +96,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>LEB128</td>
+            <td><a href="https://en.wikipedia.org/wiki/LEB128" target="_blank">LEB128</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -105,7 +105,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Ecoji</td>
+            <td><a href="https://github.com/keith-turner/ecoji" target="_blank">Ecoji</a></td>
             <td>
                 <ul>
                     <li>emojis_v1</li>
@@ -114,7 +114,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>Base2048</td>
+            <td><a href="https://github.com/qntm/base2048" target="_blank">Base2048</a></td>
             <td>
                 <ul>
                     <li>default</li>
@@ -122,7 +122,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>SimpleBase (Base2-Base62)</td>
+            <td><a href="https://en.wikipedia.org/wiki/Radix" target="_blank">SimpleBase (Base2-Base62)</td>
             <td>
                 <ul>
                     <li>default</li>
@@ -130,7 +130,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td>BasePhi (Golden Ratio Base)</td>
+            <td><a href="https://en.wikipedia.org/wiki/Golden_ratio_base" target="_blank">BasePhi (Golden Ratio Base)</td>
             <td>
                 <ul>
                     <li>default</li>
