@@ -1469,7 +1469,7 @@ class BaseTemplate {
  * different from the original).
  * A deviation is the handling of padding. The last
  * pad char can be trimmed for both versions and
- * additionally ommitted completely if integrity
+ * additionally omitted completely if integrity
  * checks are disabled.
  */
 class Ecoji extends BaseTemplate {
@@ -1490,8 +1490,8 @@ class Ecoji extends BaseTemplate {
 
         this.charsets.emojis_v2 = [..."🀄🃏⏰⏳☔♈♉♊♋♌♍♎♏♐♑♒♓♿⚓⚡⚽⚾⛄⛅⛎⛔⛪⛲⛳⛵⛺⛽✊✋✨⭐🛕🛖🛗🛝🛞🛟🛺🈁🛻🤌🤏🤿🥱🥲🥸🥹🥻🦣🦤🦥🦦🦧🌀🌁🌂🌃🌄🌅🌆🌇🌈🌉🌊🌋🌌🌍🌎🌏🌐🌑🌒🌓🌔🌕🌖🌗🌘🌙🌚🌛🌜🌝🌞🌟🌠🦨🦩🦪🦫🦬🦭🦮🦯🦺🦻🌭🌮🌯🌰🌱🌲🌳🌴🌵🦼🌷🌸🌹🌺🌻🌼🌽🌾🌿🍀🍁🍂🍃🍄🍅🍆🍇🍈🍉🍊🍋🍌🍍🍎🍏🍐🍑🍒🍓🍔🍕🍖🍗🍘🍙🍚🍛🍜🍝🍞🍟🍠🍡🍢🍣🍤🍥🍦🍧🍨🍩🍪🍫🍬🍭🍮🍯🍰🍱🍲🍳🍴🍵🍶🍷🍸🍹🍺🍻🍼🦽🍾🍿🎀🎁🎂🎃🎄🎅🎆🎇🎈🎉🎊🎋🎌🎍🎎🎏🎐🎑🎒🎓🦾🦿🧃🧄🧅🧆🧇🎠🎡🎢🎣🎤🎥🧈🎧🎨🎩🎪🎫🎬🎭🎮🎯🎰🎱🎲🎳🎴🎵🎶🎷🎸🎹🎺🎻🎼🎽🎾🎿🏀🏁🏂🏃🏄🏅🏆🏇🏈🏉🏊🧉🧊🧋🏏🏐🏑🏒🏓🧌🧍🧎🧏🧖🧗🧘🧙🧚🧛🧜🧝🏠🏡🏢🏣🏤🏥🏦🧞🏨🏩🏪🏫🏬🏭🏮🏯🏰🧟🏴🧠🧢🏸🏹🏺🧣🧤🧥🧦🧧🐀🐁🐂🐃🐄🐅🐆🐇🐈🐉🐊🐋🐌🐍🐎🐏🐐🐑🐒🐓🐔🐕🐖🐗🐘🐙🐚🐛🐜🐝🐞🐟🐠🐡🐢🐣🐤🐥🐦🐧🐨🐩🐪🐫🐬🐭🐮🐯🐰🐱🐲🐳🐴🐵🐶🐷🐸🐹🐺🐻🐼🐽🐾🧨👀🧩👂👃👄👅👆👇👈👉👊👋👌👍👎👏👐👑👒👓👔👕👖👗👘👙👚👛👜👝👞👟👠👡👢👣👤👥👦👧👨👩👪👫👬👭👮👯👰👱👲👳👴👵👶👷👸👹👺👻👼👽👾👿💀💁💂💃💄💅💆💇💈💉💊💋💌💍💎💏💐💑💒💓💔💕💖💗💘💙💚💛💜💝💞💟💠💡💢💣💤💥💦💧💨💩💪💫💬💭💮💯💰💱💲💳💴💵💶💷💸🧪💺💻💼💽💾💿📀🧫📂📃📄🧬📆📇📈📉📊📋📌📍📎📏📐📒📓📔📕📖📗📘📙📚📛📜📝📞📟📠📡📢📣📤📥📦📧📨📩📪📫📬📭📮📯📰📱📲📳🧭📵📶📷📸📹📺📻📼🧮📿🧯🧰🧱🧲🧳🔅🔆🔇🔈🔉🔊🔋🔌🔍🔎🔏🔐🔑🔒🔓🔔🔕🔖🔗🔘🧴🧵🧶🧷🧸🧹🧺🧻🧼🧽🧾🧿🔥🔦🔧🔨🔩🔪🔫🔬🔭🔮🔯🔰🔱🔲🔳🩰🩱🩲🩳🩴🩸🩹🩺🩻🩼🪀🪁🕋🕌🕍🕎🪂🪃🪄🪅🪆🪐🪑🪒🪓🪔🪕🪖🪗🪘🪙🪚🪛🪜🪝🪞🪟🪠🪡🪢🪣🪤🪥🪦🪧🪨🪩🪪🪫🕺🪬🪰🪱🪲🪳🪴🖕🖖🖤🪵🪶🪷🪸🪹🪺🫀🫁🫂🫃🫄🫅🫐🫑🫒🫓🫔🫕🫖🫗🗻🗼🗽🗾🗿😀😁😂😃😄😅😆😇😈😉😊😋😌😍😎😏😐😑😒😓😔😕😖😗😘😙😚😛😜😝😞😟😠😡😢😣😤😥😦😧😨😩😪😫😬😭😮😯😰😱😲😳😴😵😶😷😸😹😺😻😼😽😾😿🙀🙁🙂🙃🙄🙅🙆🙇🙈🙉🙊🙌🙍🙎🙏🚀🚁🚂🚃🚄🚅🚆🚇🚈🚉🚊🚋🚌🚍🚎🚏🚐🚑🚒🚓🚔🚕🚖🚗🚘🚙🚚🚛🚜🚝🚞🚟🚠🚡🚢🚣🚤🚥🚦🚧🚨🚩🚪🚫🚬🚭🚮🚯🚰🚱🚲🚳🚴🚵🚶🚷🚸🚹🚺🚻🚼🚽🚾🚿🛀🛁🛂🛃🛄🛅🫘🛌🫙🫠🫡🛐🛑🛒🫢🫣🫤🫥🫦🫧🫰🛫🛬🫱🫲🛴🛵🛶🛷🛸🛹🤐🤑🤒🤓🤔🤕🤖🤗🤘🤙🤚🤛🤜🤝🤞🤟🤠🤡🤢🤣🤤🤥🤦🤧🤨🤩🤪🤫🤬🤭🤮🤯🤰🤱🤲🤳🤴🤵🤶🤷🤸🤹🤺🤼🤽🤾🥀🥁🥂🥃🥄🥅🥇🥈🥉🥊🥋🥌🥍🥎🥏🥐🥑🥒🥓🥔🥕🥖🥗🥘🥙🥚🥛🥜🥝🥞🥟🥠🥡🥢🥣🥤🥥🥦🥧🥨🥩🥪🥫🥬🥭🥮🥯🥰🥳🥴🥵🥶🥺🥼🥽🥾🥿🦀🦁🦂🦃🦄🦅🦆🦇🦈🦉🦊🦋🦌🦍🦎🦏🦐🦑🦒🦓🦔🦕🦖🦗🦘🦙🦚🦛🦜🦝🦞🦟🦠🦡🦢🫳🫴🫵🫶🦴🦵🦶🦷🦸🦹🧀🧁🧂🧐🧑🧒🧓🧔🧕"];
         this.padChars.emojis_v2 = [ "🥷", "🛼", "📑", "🙋", "☕" ];
-        
-        // init mapping for decoding particularites of the two versions
+      
+        // init mapping for decoding particularities of the two versions
         this.#init();
 
         // converter
@@ -1521,7 +1521,7 @@ class Ecoji extends BaseTemplate {
 
     /**
      * Analyzes v1 and two charsets for equal and non
-     * eqaul characters to create a revEmojiObj for
+     * equal characters to create a "revEmojiObj" for
      * decoding lookup. Also generates a RegExp object 
      * for handling concatenated strings.
      */
@@ -1546,7 +1546,7 @@ class Ecoji extends BaseTemplate {
 
         // This function adds a padding character of both
         // versions to the object, with additional information
-        // about the padding type. In this process each uinique
+        // about the padding type. In this process each unique
         // padChar is also added to the "padAll" object. 
         const handlePadding = (version, set, type) => {
             set.forEach(padChar => {
@@ -1641,7 +1641,7 @@ class Ecoji extends BaseTemplate {
         let versionKey = null;
 
         if (settings.version === "emojis_v1" || settings.version === "emojis_v2") {
-            // versonKey can be both v1 or v2
+            // versionKey can be both v1 or v2
             versionKey = 3;
         }
 
@@ -1693,7 +1693,7 @@ class Ecoji extends BaseTemplate {
             output = decode(input);
         }
         
-        // otherwise decode every group seperatly and join it
+        // otherwise decode every group separately and join it
         // afterwards
         else {
 
@@ -1720,9 +1720,9 @@ class Ecoji extends BaseTemplate {
 
 
     /**
-     * Determines the version (1/2) and analyzes the input for itegrity.
+     * Determines the version (1/2) and analyzes the input for integrity.
      * @param {string} input - Input string. 
-     * @param {number} versionKey - Version key from former calls (initially alwas 3). 
+     * @param {number} versionKey - Version key from former calls (initially always 3). 
      * @param {boolean} integrity - If false non standard or wrong padding gets ignored. 
      * @returns {number} - Version key (1|2|3)
      */
@@ -1747,7 +1747,7 @@ class Ecoji extends BaseTemplate {
                     }
                 }
 
-                // analyze possible wron padding if integrity checks
+                // analyze possible wrong padding if integrity checks
                 // are enabled
                 if (integrity) {
                     const padding = this.#revEmojiVersion[char].padding;
@@ -1776,7 +1776,7 @@ class Ecoji extends BaseTemplate {
             }
         });
 
-        // lastely test for invalid string 
+        // lastly test for invalid string 
         if (integrity && inArray.length % 4) {
             if (
                 versionKey === 1 ||
