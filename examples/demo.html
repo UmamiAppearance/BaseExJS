@@ -18,6 +18,11 @@
             //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.prod.js";
             import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.js";
 
+            // set location hash if not set
+            if (!window.location.hash.slice(1)) {
+                window.location.hash = "base64";
+            }
+
             // Initialize main BaseEx class
             const baseEx = new BaseEx();
             for (const sb in baseEx.simpleBase) {
@@ -52,6 +57,7 @@
                 ...args
             );
 
+
             // Global data object (source of truth) for Vue
             const Data = {
                 input: "Hello World!",
@@ -60,7 +66,7 @@
                 mode: "encode",
                 curTypes: { 
                     encode: "str",
-                    decode: "base64",
+                    decode: window.location.hash.slice(1),
                 },
                 dataTypes: {
                     encode: ["str", "bytes", "int_n"],
@@ -319,6 +325,7 @@
                                 // Change the current base type on the 
                                 // Data object
                                 this.curTypes.decode = val;
+                                window.location.hash = val;
 
                                 if (this._type === "output") {
                                     // If the base was changed on the output
