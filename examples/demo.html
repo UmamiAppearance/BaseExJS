@@ -523,6 +523,10 @@
                 background-color: aliceblue;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
             }
+            form > p {
+                display: flex;
+                flex-direction: column;
+            }
             section {
                 flex-direction: column;
                 justify-content: center;
@@ -543,6 +547,8 @@
             textarea {
                 margin: 6px 0 8px 0;
                 resize: none;
+                height: 196px;
+                width: 366px;
             }
             .invalid #input textarea {
                 box-shadow: 0 0 10px #ea1212;
@@ -635,17 +641,17 @@
                 }
             }
             .copy {
-                float: right;
                 position: relative;
                 z-index: 1;
-                border-radius: 20px;
+                display: inline-block;
+                margin: -34px 0 10px calc(100% - 26px);
             }
             #converter .copy {
-                margin-top: -34px;
                 background-color: rgba(255, 255, 255, 0.5);
             }
             #codeblock .copy {
                 margin-top: -26px;
+                margin-bottom: 14px;
                 background-color: rgba(240, 248, 255, 0.7);
             }
             section#copied {
@@ -705,8 +711,6 @@
                         v-model="message"
                         :readonly="readonly"
                         :placeholder="placeholder"
-                        cols="32"
-                        rows="8"
                         spellcheck="false"
                     ></textarea>
                     <span v-on:click="toClipboard" title="copy to clipboard" class="copy"></span>
