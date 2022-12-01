@@ -519,6 +519,9 @@
             form {
                 width: min-content;
             }
+            #input form, #output form {
+                width: 420px;
+            }
             form, code {
                 background-color: aliceblue;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -547,12 +550,12 @@
             textarea {
                 margin: 6px 0 8px 0;
                 resize: none;
-                height: 196px;
-                width: 366px;
+                height: 200px;
+                width: calc(100% - 20px);
             }
             @media screen and (max-width: 420px) {
-                h3 {
-                    margin-left: 10px;
+                #input form, #output form {
+                    width: calc(100vw - 1rem);
                 }
             }
             .invalid #input textarea {

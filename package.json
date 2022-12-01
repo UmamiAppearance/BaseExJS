@@ -26,6 +26,7 @@
     "lint": "eslint ./src/*",
     "lint:fix": "eslint ./src/* --fix",
     "start": "http-server -a localhost -o ./examples/demo.html",
+    "start:lan": "http-server -o ./examples/demo.html",
     "test": "ava"
   },
   "repository": {
