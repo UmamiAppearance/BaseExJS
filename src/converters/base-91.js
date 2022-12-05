@@ -168,6 +168,7 @@ export default class Base91 extends BaseTemplate {
             odd = true;
             l--;
         }
+        // FIXME: This is a problem, when there is garbage input and integrity is ignored (also base91, and eventually others)
 
         // Set again integer n for base conversion.
         // Also initialize a bitCount(er)
