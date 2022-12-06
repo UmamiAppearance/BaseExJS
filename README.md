@@ -14,7 +14,11 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 
 <table>
     <thead>
-        <tr><th><strong>converter</strong></th><th><strong>charsets</strong></th></tr>
+        <tr>
+            <th><strong>converter</strong></th>
+            <th><strong>charsets</strong></th>
+            <th><strong>standalone builds<strong></th>
+        </tr>
     </thead>
     <tbody>
         <tr>
@@ -27,12 +31,28 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>tmark</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base1/base-1.esm.js" target="_blank" download>base-1.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base1/base-1.esm.min.js" target="_blank" download>base-1.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base1/base-1.iife.js" target="_blank" download>base-1.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base1/base-1.iife.min.js" target="_blank" download>base-1.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td><a href="https://en.wikipedia.org/wiki/Hexadecimal" target="_blank">Base16</a></td>
             <td>
                 <ul>
                     <li>default</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base16/base-16.esm.js" target="_blank" download>base-16.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base16/base-16.esm.min.js" target="_blank" download>base-16.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base16/base-16.iife.js" target="_blank" download>base-16.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base16/base-16.iife.min.js" target="_blank" download>base-16.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -46,6 +66,14 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>zbase32</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base32/base-32.esm.js" target="_blank" download>base-32.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base32/base-32.esm.min.js" target="_blank" download>base-32.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base32/base-32.iife.js" target="_blank" download>base-32.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base32/base-32.iife.min.js" target="_blank" download>base-32.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td><a href="https://learnmeabitcoin.com/technical/base58" target="_blank">Base58</a></td>
@@ -54,6 +82,14 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>default</li>
                     <li>bitcoin</li>
                     <li>flickr</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base58/base-58.esm.js" target="_blank" download>base-58.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base58/base-58.esm.min.js" target="_blank" download>base-58.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base58/base-58.iife.js" target="_blank" download>base-58.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base58/base-58.iife.min.js" target="_blank" download>base-58.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -65,6 +101,14 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>urlsafe</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base64/base-64.esm.js" target="_blank" download>base-64.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base64/base-64.esm.min.js" target="_blank" download>base-64.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base64/base-64.iife.js" target="_blank" download>base-64.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base64/base-64.iife.min.js" target="_blank" download>base-64.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td><a href="https://en.wikipedia.org/wiki/Uuencoding" target="_blank">UUencode</a></td>
@@ -73,6 +117,14 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>default</li>
                     <li>original</li>
                     <li>xx</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.esm.js" target="_blank" download>uuencode.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.esm.min.js" target="_blank" download>uuencode.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.iife.js" target="_blank" download>uuencode.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.iife.min.js" target="_blank" download>uuencode.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -86,12 +138,28 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>z85</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base85/base-85.esm.js" target="_blank" download>base-85.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base85/base-85.esm.min.js" target="_blank" download>base-85.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base85/base-85.iife.js" target="_blank" download>base-85.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base85/base-85.iife.min.js" target="_blank" download>base-85.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td><a href="https://base91.sourceforge.net/" target="_blank">Base91</a></td>
             <td>
                 <ul>
                     <li>default</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base91/base-91.esm.js" target="_blank" download>base-91.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base91/base-91.esm.min.js" target="_blank" download>base-91.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base91/base-91.iife.js" target="_blank" download>base-91.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base91/base-91.iife.min.js" target="_blank" download>base-91.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -103,6 +171,14 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>hex</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.esm.js" target="_blank" download>leb-128.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.esm.min.js" target="_blank" download>leb-128.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.iife.js" target="_blank" download>leb-128.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.iife.min.js" target="_blank" download>leb-128.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td><a href="https://github.com/keith-turner/ecoji" target="_blank">Ecoji</a></td>
@@ -110,6 +186,14 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                 <ul>
                     <li>emojis_v1</li>
                     <li>emojis_v2</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Ecoji/ecoji.esm.js" target="_blank" download>ecoji.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Ecoji/ecoji.esm.min.js" target="_blank" download>ecoji.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Ecoji/ecoji.iife.js" target="_blank" download>ecoji.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Ecoji/ecoji.iife.min.js" target="_blank" download>ecoji.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -120,12 +204,28 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>default</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base2048/base-2048.esm.js" target="_blank" download>base-2048.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base2048/base-2048.esm.min.js" target="_blank" download>base-2048.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base2048/base-2048.iife.js" target="_blank" download>base-2048.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Base2048/base-2048.iife.min.js" target="_blank" download>base-2048.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td><a href="https://en.wikipedia.org/wiki/Radix" target="_blank">SimpleBase (Base2-Base62)</td>
             <td>
                 <ul>
                     <li>default</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/SimpleBase/simple-base.esm.js" target="_blank" download>simple-base.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/SimpleBase/simple-base.esm.min.js" target="_blank" download>simple-base.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/SimpleBase/simple-base.iife.js" target="_blank" download>simple-base.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/SimpleBase/simple-base.iife.min.js" target="_blank" download>simple-base.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -136,11 +236,27 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>default</li>
                 </ul>
             </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/BasePhi/base-phi.esm.js" target="_blank" download>base-phi.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/BasePhi/base-phi.esm.min.js" target="_blank" download>base-phi.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/BasePhi/base-phi.iife.js" target="_blank" download>base-phi.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/BasePhi/base-phi.iife.min.js" target="_blank" download>base-phi.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
         <tr>
             <td>ByteConverter</td>
             <td>
                 ---
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/ByteConverter/byte-converter.esm.js" target="_blank" download>byte-converter.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/ByteConverter/byte-converter.esm.min.js" target="_blank" download>byte-converter.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/ByteConverter/byte-converter.iife.js" target="_blank" download>byte-converter.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/ByteConverter/byte-converter.iife.min.js" target="_blank" download>byte-converter.iife.min.js</a></li>
+                </ul>
             </td>
         </tr>
         <tr>
@@ -181,6 +297,15 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     </li>
                 </ul>
             </td>
+            <td>
+                <i>(complete builds)</i>
+                <ul>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/base-ex.esm.js" target="_blank" download>base-ex.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/base-ex.esm.min.js" target="_blank" download>base-ex.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/base-ex.iife.js" target="_blank" download>base-ex.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/base-ex.iife.min.js" target="_blank" download>base-ex.iife.min.js</a></li>
+                </ul>
+            </td>
         </tr>
     </tbody>
 </table>
@@ -201,22 +326,13 @@ nmp install base-ex
 ```
 
 ## Builds
-The GitHub repository has ready to use builds included. The npm package comes without pre build files. 
-
-For building you have to run:
-
-```console
-npm install
-npm run build
-``` 
-
 There are multiple builds available which are always grouped as [esm](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE), plus a minified version of each. The full build with all converters included can be found at [dist](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist), which contains:
 * ``BaseEx.esm.js``
 * ``BaseEx.esm.min.js``
 * ``BaseEx.iife.js``
 * ``BaseEx.iife.min.js``
 
-Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). _Note that standalone converters are exported as default._
+Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). Or at the table [above](#available-converterscharsets). _Note that standalone converters are exported as default._
 
 
 ## Usage
@@ -254,8 +370,12 @@ import { BaseEx } from "base-ex"
 import { Base64 } from "base-ex"
 
 // CommonJS
-const BaseEx = require("base-ex"); 
+const BaseEx = require("base-ex");
 ```
+
+#### Command Line Interface
+A **CLI** can be found at: [https://github.com/UmamiAppearance/BaseExCLI](https://github.com/UmamiAppearance/BaseExCLI).
+
 
 #### Available imports Browser/Node
 The **classic import** via script tag has them all available without further ado. As it is a [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE), everything is available under the scope of ``BaseEx``. 
@@ -362,34 +482,8 @@ More explanation is shown at the [LiveExamples](https://umamiappearance.github.i
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
 
-### 3rd Party License
+### [Third Party Licenses](https://github.com/UmamiAppearance/BaseExJS/tree/main/third-party-licenses)
 
-The basE91 en-/decoder relies on the work of Joachim Henke. The original code is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause). His method was transpiled to JavaScript with small adjustments to fit the needs of this software.
+* The **basE91** en-/decoder relies on the work of _Joachim Henke_. The original code is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause). His method was transpiled to JavaScript with small adjustments.
 
-```
-Copyright (c) 2000-2006 Joachim Henke
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-  - Redistributions of source code must retain the above copyright notice, this
-    list of conditions and the following disclaimer.
-  - Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
-  - Neither the name of Joachim Henke nor the names of his contributors may be
-    used to endorse or promote products derived from this software without
-    specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-```
+* The **Base2048** Decoder relies on the work of _qnt_. The original code is licensed under the [MIT-License](https://opensource.org/licenses/MIT). The original code is already written in JavaScript and was slightly adjusted.

@@ -1451,7 +1451,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/ecoji.js}
  *
- * @version 0.5.1
+ * @version 0.5.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 OR Apache-2.0
  * @see https://github.com/keith-turner/ecoji

@@ -1454,7 +1454,7 @@ var Base16 = (function () {
     /**
      * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1514,10 +1514,18 @@ var Base16 = (function () {
         decode(input, ...args) {
             
             // pre decoding function
-            const normalizeInput = ({ input: normInput }) => {
+            const normalizeInput = ({ input: normInput, settings }) => {
                 
                 // Remove "0x" if present
                 normInput = normInput.replace(/^0x/, "");
+
+                // remove non-charset characters if integrity
+                // check is disabled
+                if (!settings.integrity) {
+                    normInput = normInput
+                        .toLowerCase()
+                        .replace(/[^0-9a-f]/g, "");
+                }
 
                 // Ensure even number of characters
                 if (normInput.length % 2) {

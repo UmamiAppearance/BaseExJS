@@ -1,7 +1,7 @@
 /**
  * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
  *
- * @version 0.5.1
+ * @version 0.5.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
@@ -49,9 +49,6 @@ export default class BasePhi extends BaseTemplate {
 
         // apply user settings
         this.utils.validateArgs(args, true);
-
-        // mutable extra args
-        this.isMutable.integrity = false;
     }
 
 
@@ -235,10 +232,21 @@ export default class BasePhi extends BaseTemplate {
         [ input, negative ] = this.utils.extractSign(
             this.utils.normalizeInput(input)
         );
+
+        // remove unwanted characters if integrity is false
+        if (!settings.integrity) {
+            const testChars = [...charset, "."];
+            input = [...input].filter(c => testChars.includes(c)).join("");
+        }
         
         // Split the input String at the decimal sign
         // and initialize a big.js-object with value 0
-        const [ posExpStr, decExpStr ] = input.split(".");
+        const inputSplit = input.split(".");
+        if (settings.integrity && inputSplit.length > 2) {
+            throw new DecodingError(null, "There are multiple decimal points in the input.");
+        } 
+
+        const [ posExpStr, decExpStr ] = inputSplit;
         let n = Big(0);
 
         // Initialize two variables "last" and "cur"
