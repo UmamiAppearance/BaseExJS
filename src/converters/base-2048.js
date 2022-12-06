@@ -3,7 +3,7 @@
  *
  * @version 0.5.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
+ * @license GPL-3.0 AND MIT (Base2048, Copyright (c) 2017 qntm)
  */
 
 import { BaseTemplate } from "../core.js";
