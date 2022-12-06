@@ -14,7 +14,11 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 
 <table>
     <thead>
-        <tr><th><strong>converter</strong></th><th><strong>charsets</strong></th></tr>
+        <tr>
+            <th><strong>converter</strong></th>
+            <th><strong>charsets</strong></th>
+            <th><strong>standalone builds<strong></th>
+        </tr>
     </thead>
     <tbody>
         <tr>
@@ -25,6 +29,11 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>sequence</li>
                     <li>default</li>
                     <li>tmark</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="https://raw.githubusercontent.com/UmamiAppearance/BaseExJS/main/dist/converters/Base1/base-1.esm.js" download>base-1.esm.js</a></li>
                 </ul>
             </td>
         </tr>
