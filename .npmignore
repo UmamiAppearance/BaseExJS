@@ -1,4 +1,3 @@
 BaseEx.code-workspace
-dist/*
-.vscode/
+.vscode/*
 .github

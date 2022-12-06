@@ -1454,7 +1454,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1610,7 +1610,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1670,10 +1670,18 @@ var BaseEx = (function (exports) {
         decode(input, ...args) {
             
             // pre decoding function
-            const normalizeInput = ({ input: normInput }) => {
+            const normalizeInput = ({ input: normInput, settings }) => {
                 
                 // Remove "0x" if present
                 normInput = normInput.replace(/^0x/, "");
+
+                // remove non-charset characters if integrity
+                // check is disabled
+                if (!settings.integrity) {
+                    normInput = normInput
+                        .toLowerCase()
+                        .replace(/[^0-9a-f]/g, "");
+                }
 
                 // Ensure even number of characters
                 if (normInput.length % 2) {
@@ -1690,7 +1698,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1795,7 +1803,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1945,7 +1953,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2033,7 +2041,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2237,7 +2245,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2360,7 +2368,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
      */
@@ -2399,14 +2407,10 @@ var BaseEx = (function (exports) {
 
             // charsets
             this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
-
             this.version = "default";
 
             // apply user settings
             this.utils.validateArgs(args, true);
-
-            // mutable extra args
-            this.isMutable.integrity = false;
         }
 
 
@@ -2509,10 +2513,17 @@ var BaseEx = (function (exports) {
 
             // Argument validation and output settings
             const settings = this.utils.validateArgs(args);
+            const charset = this.charsets[settings.version];
 
             // Make it a string, whatever goes in
             input = this.utils.normalizeInput(input);
-            const inArray = [...input];
+            let inArray = [...input];
+
+            // remove unwanted characters if integrity is false 
+            if (!settings.integrity) {
+                inArray = inArray.filter(c => charset.includes(c));
+            }
+
 
             let l = inArray.length;
 
@@ -2530,7 +2541,6 @@ var BaseEx = (function (exports) {
 
             let n = 0;
             let bitCount = 0;
-            const charset = this.charsets[settings.version];
             
             // Initialize an ordinary array
             const b256Array = new Array();
@@ -2591,7 +2601,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2756,7 +2766,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/ecoji.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 OR Apache-2.0
      * @see https://github.com/keith-turner/ecoji
@@ -3098,9 +3108,9 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
-     * @license GPL-3.0
+     * @license GPL-3.0 AND MIT (Base2048, Copyright (c) 2017 qntm)
      */
 
     /**
@@ -3276,7 +3286,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -3376,7 +3386,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -3420,9 +3430,6 @@ var BaseEx = (function (exports) {
 
             // apply user settings
             this.utils.validateArgs(args, true);
-
-            // mutable extra args
-            this.isMutable.integrity = false;
         }
 
 
@@ -3606,10 +3613,21 @@ var BaseEx = (function (exports) {
             [ input, negative ] = this.utils.extractSign(
                 this.utils.normalizeInput(input)
             );
+
+            // remove unwanted characters if integrity is false
+            if (!settings.integrity) {
+                const testChars = [...charset, "."];
+                input = [...input].filter(c => testChars.includes(c)).join("");
+            }
             
             // Split the input String at the decimal sign
             // and initialize a big.js-object with value 0
-            const [ posExpStr, decExpStr ] = input.split(".");
+            const inputSplit = input.split(".");
+            if (settings.integrity && inputSplit.length > 2) {
+                throw new DecodingError(null, "There are multiple decimal points in the input.");
+            } 
+
+            const [ posExpStr, decExpStr ] = inputSplit;
             let n = Big(0);
 
             // Initialize two variables "last" and "cur"
@@ -3705,7 +3723,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -3823,7 +3841,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
      *
-     * @version 0.5.1
+     * @version 0.5.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
      */
