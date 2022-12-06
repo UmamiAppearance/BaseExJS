@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.5.1
+ * @version 0.5.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
@@ -43,14 +43,10 @@ export default class Base91 extends BaseTemplate {
 
         // charsets
         this.charsets.default = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\""];
-
         this.version = "default";
 
         // apply user settings
         this.utils.validateArgs(args, true);
-
-        // mutable extra args
-        this.isMutable.integrity = false;
     }
 
 
@@ -153,10 +149,17 @@ export default class Base91 extends BaseTemplate {
 
         // Argument validation and output settings
         const settings = this.utils.validateArgs(args);
+        const charset = this.charsets[settings.version];
 
         // Make it a string, whatever goes in
         input = this.utils.normalizeInput(input);
-        const inArray = [...input];
+        let inArray = [...input];
+
+        // remove unwanted characters if integrity is false 
+        if (!settings.integrity) {
+            inArray = inArray.filter(c => charset.includes(c));
+        }
+
 
         let l = inArray.length;
 
@@ -168,14 +171,12 @@ export default class Base91 extends BaseTemplate {
             odd = true;
             l--;
         }
-        // FIXME: This is a problem, when there is garbage input and integrity is ignored (also base91, and eventually others)
 
         // Set again integer n for base conversion.
         // Also initialize a bitCount(er)
 
         let n = 0;
         let bitCount = 0;
-        const charset = this.charsets[settings.version];
         
         // Initialize an ordinary array
         const b256Array = new Array();
