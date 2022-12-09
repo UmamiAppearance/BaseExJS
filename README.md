@@ -15,9 +15,18 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 <table>
     <thead>
         <tr>
-            <th><strong>converter</strong></th>
-            <th><strong>charsets</strong></th>
-            <th><strong>standalone builds<strong></th>
+            <th>
+                <strong>converter</strong><br>
+                <i>(external links)</i>
+            </th>
+            <th>
+                <strong>charsets</strong></br>
+                <i>(as required as argument)</i>
+            </th>
+            <th>
+                <strong>standalone builds<strong><br>
+                <i><a href="./CDN.md">&gt;&gt; CDN links</a></i>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -121,10 +130,10 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
             <td>
                 <ul>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.esm.js" target="_blank" download>uuencode.esm.js</a></li>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.esm.min.js" target="_blank" download>uuencode.esm.min.js</a></li>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.iife.js" target="_blank" download>uuencode.iife.js</a></li>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Uuencode/uuencode.iife.min.js" target="_blank" download>uuencode.iife.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/UUencode/uuencode.esm.js" target="_blank" download>uuencode.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/UUencode/uuencode.esm.min.js" target="_blank" download>uuencode.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/UUencode/uuencode.iife.js" target="_blank" download>uuencode.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/UUencode/uuencode.iife.min.js" target="_blank" download>uuencode.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -173,10 +182,10 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
             <td>
                 <ul>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.esm.js" target="_blank" download>leb-128.esm.js</a></li>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.esm.min.js" target="_blank" download>leb-128.esm.min.js</a></li>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.iife.js" target="_blank" download>leb-128.iife.js</a></li>
-                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/Leb128/leb-128.iife.min.js" target="_blank" download>leb-128.iife.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/LEB128/leb-128.esm.js" target="_blank" download>leb-128.esm.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/LEB128/leb-128.esm.min.js" target="_blank" download>leb-128.esm.min.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/LEB128/leb-128.iife.js" target="_blank" download>leb-128.iife.js</a></li>
+                    <li><a href="https://umamiappearance.github.io/BaseExJS/dist/converters/LEB128/leb-128.iife.min.js" target="_blank" download>leb-128.iife.min.js</a></li>
                 </ul>
             </td>
         </tr>
@@ -214,7 +223,10 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
             </td>
         </tr>
         <tr>
-            <td><a href="https://en.wikipedia.org/wiki/Radix" target="_blank">SimpleBase (Base2-Base62)</td>
+            <td>
+                <a href="https://en.wikipedia.org/wiki/Radix" target="_blank">SimpleBase</a><br>
+                <i>(Base2-Base62)</i>
+            </td>
             <td>
                 <ul>
                     <li>default</li>
@@ -332,7 +344,9 @@ There are multiple builds available which are always grouped as [esm](https://de
 * ``BaseEx.iife.js``
 * ``BaseEx.iife.min.js``
 
-Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). Or at the table [above](#available-converterscharsets). _Note that standalone converters are exported as default._
+Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). Or at the table [above](#available-converterscharsets). Ready to use CDN-links are listed [here](./CDN.md).  
+  
+_Note that standalone converters are exported as default._
 
 
 ## Usage
@@ -386,7 +400,7 @@ The **classic import** via script tag has them all available without further ado
 * ...
 * ``BaseEx.BaseEx``
   
-_(Which is not true for standalone builds, which are directly accessible, eg: ``Base16``, ``Base32``, ...)_
+_(Which is not true for standalone builds, which are directly accessible, eg: ``Base16``, ``Base32``, ... See [list](#available-converterscharsets))_
   
 The same goes for the **CommonJS import** from Node. The only difference is, that the scope is not necessarily named ``BaseEx``, as this is defined by the user (``const myName = require("base-ex") --> myName.Base16...``).
 
@@ -476,8 +490,27 @@ The constructor takes some arguments/options (which may differ between different
 </table>
 
 
+### En- and Decoding
+Example:  
+```js
+const ecoji = new Ecoji();
+ecoji.encode("Hello World!");
+// result: 🏯🔩🚗🌷🍉👇🦒🪁👡📢☕
+
+// default output is an ArrayBuffer, pass 'str' to convert to string
+ejoji.decode("🏯🔩🚗🌷🍉👇🦒🪁👡📢☕", "str");
+// result: "Hello World!"
+```
+
 ### Demonstration
-More explanation is shown at the [LiveExamples](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html). Also try out the [Online Base Coverter](https://umamiappearance.github.io/BaseExJS/examples/demo.html), for additional code examples.
+More explanation is shown at the [LiveExamples](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html). Also try out the [Online Base Converter](https://umamiappearance.github.io/BaseExJS/examples/demo.html) for additional code examples.
+
+___
+You can play with the Examples om your local machine by running:
+```console
+npm start
+```
+_(``devDependencies`` required, run ``npm install`` from the package folder first)_
 
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
@@ -485,5 +518,7 @@ This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
 ### [Third Party Licenses](https://github.com/UmamiAppearance/BaseExJS/tree/main/third-party-licenses)
 
 * The **basE91** en-/decoder relies on the work of _Joachim Henke_. The original code is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause). His method was transpiled to JavaScript with small adjustments.
+
+* The [test files](https://github.com/UmamiAppearance/BaseExJS/tree/main/test/fixtures/ecoji) for the **Ecoji**npm decoder ([ecoji-orig.test.js](https://github.com/UmamiAppearance/BaseExJS/blob/main/test/ecoji-orig.test.js)) are copied from the [Ecoji repository](https://github.com/keith-turner/ecoji) and are created by _Keith Turner_. These are licensed under [Apache-2.0](https://opensource.org/licenses/APACHE-2.0)
 
 * The **Base2048** Decoder relies on the work of _qnt_. The original code is licensed under the [MIT-License](https://opensource.org/licenses/MIT). The original code is already written in JavaScript and was slightly adjusted.

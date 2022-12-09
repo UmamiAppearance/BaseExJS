@@ -1,4 +1,4 @@
-var Leb128 = (function () {
+var UUencode = (function () {
     'use strict';
 
     /**
@@ -1452,52 +1452,58 @@ var Leb128 = (function () {
     }
 
     /**
-     * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+     * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/uuencode.js}
      *
-     * @version 0.5.2
+     * @version 0.6.0
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
 
     /**
-     * BaseEx Little Endian Base 128 Converter.
-     * ---------------------------------------
+     * BaseEx UUencode Converter.
+     * ------------------------
      * 
-     * This is a leb128 converter. Various input can be 
-     * converted to a leb128 string or a leb128 string
+     * This is a base64 converter. Various input can be 
+     * converted to a base64 string or a base64 string
      * can be decoded into various formats.
      * 
-     * There is no real charset available as the input is
-     * getting converted to bytes. For having the chance 
-     * to store these bytes, there is a hexadecimal output
-     * available.
+     * Available charsets are:
+     *  - default
+     *  - urlsafe
      */
-    class LEB128 extends BaseTemplate {
-        
+    class UUencode extends BaseTemplate {
+
         /**
-         * BaseEx LEB128 Constructor.
+         * BaseEx UUencode Constructor.
          * @param {...string} [args] - Converter settings.
          */
         constructor(...args) {
-            // initialize base template without utils
             super();
-
-            // converters
-            this.converter = new BaseConverter(10, 0, 0);
-            this.hexlify = new BaseConverter(16, 1, 2);
+            this.converter = new BaseConverter(64, 3, 4);
 
             // charsets
-            this.charsets.default = "<placeholder>";
-            this.charsets.hex = "<placeholder>";
+            this.charsets.default = [..."`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"];
+            Object.defineProperty(this.padChars, "default", {
+                get: () => [ this.charsets.default.at(0) ]
+            });
+
+            this.charsets.original = [" ", ...this.charsets.default.slice(1)];
+            Object.defineProperty(this.padChars, "original", {
+                get: () => [ this.charsets.original.at(0) ]
+            });
+
+            this.charsets.xx = [..."+-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"];
+            Object.defineProperty(this.padChars, "xx", {
+                get: () => [ this.charsets.xx.at(0) ]
+            });
+
 
             // predefined settings
-            this.version = "default";
-            this.frozenCharsets = true;
-
-            // predefined settings
-            this.littleEndian = true;
-            this.hasSignedMode = true;
-            this.isMutable.signed = true;
+            this.padding = true;
+            this.header = false;
+            this.utils.converterArgs.header = ["noheader", "header"];
+            this.isMutable.header = true;
+            this.isMutable.integrity = false;
 
             // apply user settings
             this.utils.validateArgs(args, true);
@@ -1505,117 +1511,150 @@ var Leb128 = (function () {
 
 
         /**
-         * BaseEx LEB128 Encoder.
+         * BaseEx UUencoder.
          * @param {*} input - Input according to the used byte converter.
          * @param  {...str} [args] - Converter settings.
-         * @returns {{ buffer: ArrayBufferLike; }} - LEB128 encoded Unit8Array (or hex string of it).
+         * @returns {string} - UUencode string.
          */
         encode(input, ...args) {
-            
-            // argument validation and input settings
-            const settings = this.utils.validateArgs(args);
-            
-            const signed = settings.signed;
-            settings.signed = true;
-            const [ inputBytes, negative, ] = this.utils.inputHandler.toBytes(input, settings);
 
-            // Convert to BaseRadix string
-            let base10 = this.converter.encode(inputBytes, null, settings.littleEndian)[0];
+            const format = ({ output, settings, zeroPadding }) => {
 
-            let n = BigInt(base10);
-            let output = new Array();
-            
-            if (negative) {
-                if (!signed) {
-                    throw new TypeError("Negative values in unsigned mode are invalid.");
+                const charset = this.charsets[settings.version];
+                const outArray = [...output];
+                
+                
+                if (settings.header) {
+                    const permissions = settings.options.permissions || een();
+                    const fileName = settings.options.file || ees();
+                    output = `begin ${permissions} ${fileName}\n`;
+                }  else {
+                    output = "";
                 }
-                n = -n;
-            }
-              
-            if (signed) {
 
+                // repeatedly take 60 chars from the output until it is empty 
                 for (;;) {
-                    const byte = Number(n & 127n);
-                    n >>= 7n;
-                    if ((n == 0 && (byte & 64) == 0) || (n == -1 && (byte & 64) != 0)) {
-                        output.push(byte);
+                    const lArray = outArray.splice(0, 60);
+                    
+                    // if all chars are taken, remove eventually added pad zeros
+                    if (!outArray.length) { 
+                        const byteCount = this.converter.padChars(lArray.length) - zeroPadding;
+                        
+                        // add the the current chars plus the leading
+                        // count char
+                        output += `${charset.at(byteCount)}${lArray.join("")}\n`;
                         break;
                     }
-                    output.push(byte | 128);
+                    
+                    // add the the current chars plus the leading
+                    // count char ("M" for default charsets) 
+                    output += `${charset.at(45)}${lArray.join("")}\n`;
                 }
-            }
 
-            else {
-                for (;;) {
-                    const byte = Number(n & 127n);
-                    n >>= 7n;
-                    if (n == 0) {
-                        output.push(byte);
-                        break;
-                    }
-                    output.push(byte | 128);
+                output += `${charset.at(0)}\n`;
+
+                if (settings.header) {
+                    output += "\nend";
                 }
-            }
 
-            const Uint8Output = Uint8Array.from(output);
 
-            if (settings.version === "hex") {
-                return this.hexlify.encode(Uint8Output, [..."0123456789abcdef"], false)[0];
-            }
-
-            return Uint8Output;
+                return output;
+            };
+                
+            return super.encode(input, null, format, ...args);
         }
 
 
         /**
-         * BaseEx LEB128 Decoder.
-         * @param {{ buffer: ArrayBufferLike; }|string} input - LEB128-Bytes or String of Hex-Version.
+         * BaseEx UUdecoder.
+         * @param {string} input - UUencode String.
          * @param  {...any} [args] - Converter settings.
          * @returns {*} - Output according to converter settings.
          */
-        decode(input, ...args) {
-            
-            // Argument validation and output settings
-            const settings = this.utils.validateArgs(args);
+         decode(input, ...args) {
 
-            if (settings.version === "hex") {
-                input = this.hexlify.decode(this.utils.normalizeInput(input).toLowerCase(), [..."0123456789abcdef"], [], settings.integrity, false);
-            } else if (typeof input.byteLength !== "undefined") {
-                input = BytesInput.toBytes(input)[0];
-            } else {
-                throw new TypeError("Input must be a bytes like object.");
-            }
+            let padChars = 0;
 
-            if (input.length === 1 && !input[0]) {
-                return this.utils.outputHandler.compile(new Uint8Array(1), settings.outputType, true);
-            }
+            const format = ({ input, settings }) => {
 
-            input = Array.from(input);
+                const charset = this.charsets[settings.version];
+                const lines = input.trim().split("\n");
+                const inArray = [];
+                
+                if ((/^begin/i).test(lines.at(0))) {
+                    lines.shift();
+                }
+                
+                for (const line of lines) {
+                    const lArray = [...line];
+                    const byteCount = charset.indexOf(lArray.shift());
+                    
+                    if (!(byteCount > 0)) {
+                        break;
+                    }
 
-            let n = 0n;
-            let shiftVal = -7n;
-            let byte;
+                    inArray.push(...lArray);
 
-            for (byte of input) {
-                shiftVal += 7n;
-                n += (BigInt(byte & 127) << shiftVal);
-            }
-            
-            if (settings.signed && ((byte & 64) !== 0)) {
-                n |= -(1n << shiftVal + 7n);
-            }
+                    if (byteCount !== 45) {
+                        padChars = this.converter.padChars(lArray.length) - byteCount;
+                        break;
+                    }
+                }
 
-            // Test for a negative sign
-            let decimalNum, negative;
-            [decimalNum, negative] = this.utils.extractSign(n.toString());
+                return inArray.join("");
 
-            const output = this.converter.decode(decimalNum, [..."0123456789"], [], settings.integrity, true);
+            };
 
-            // Return the output
-            return this.utils.outputHandler.compile(output, settings.outputType, true, negative);
+            const removePadChars = ({ output }) => {
+                if (padChars) {
+                    output = new Uint8Array(output.slice(0, -padChars));
+                }
+                return output;
+            };
+
+            return super.decode(input, format, removePadChars, true, ...args);
         }
     }
 
-    return LEB128;
+
+    const een = () => {
+        const o = () => Math.floor(Math.random() * 8);
+        return `${o()}${o()}${o()}`;
+    };
+
+    const ees = () => {
+        const name = [
+            "unchronological",
+            "unconditionally",
+            "underemphasized",
+            "underprivileged",
+            "undistinguished",
+            "unsophisticated",
+            "untitled",
+            "untitled-1",
+            "untitled-3",
+            "uuencode"
+        ];
+
+        const ext = [
+            "applescript",
+            "bat",
+            "beam",
+            "bin",
+            "exe",
+            "js",
+            "mam",
+            "py",
+            "sh",
+            "vdo",
+            "wiz"
+        ];
+
+        const pick = (arr) => arr.at(Math.floor(Math.random() * arr.length));
+
+        return `${pick(name)}.${pick(ext)}`;
+    };
+
+    return UUencode;
 
 })();
