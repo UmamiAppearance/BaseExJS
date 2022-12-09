@@ -492,6 +492,8 @@ The constructor takes some arguments/options (which may differ between different
 
 ### En- and Decoding
 Example:  
+_(Ecoji is simple picked, because of its picturesque appearance, any other converter works the same)_
+  
 ```js
 const ecoji = new Ecoji();
 ecoji.encode("Hello World!");
