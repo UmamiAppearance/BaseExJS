@@ -521,6 +521,6 @@ This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
 
 * The **basE91** en-/decoder relies on the work of _Joachim Henke_. The original code is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause). His method was transpiled to JavaScript with small adjustments.
 
-* The [test files](https://github.com/UmamiAppearance/BaseExJS/tree/main/test/fixtures/ecoji) for the **Ecoji** decoder ([ecoji-orig.test.js](https://github.com/UmamiAppearance/BaseExJS/blob/main/test/ecoji-orig.test.js)) are copied from the [Ecoji repository](https://github.com/keith-turner/ecoji/tree/main/test_scripts/data) and are created by _@keith-turner_. These are licensed under [Apache-2.0](https://opensource.org/licenses/APACHE-2.0)
+* The [test files](https://github.com/UmamiAppearance/BaseExJS/tree/main/test/fixtures/ecoji) for the **Ecoji** decoder ([ecoji-orig.test.js](https://github.com/UmamiAppearance/BaseExJS/blob/main/test/ecoji-orig.test.js)) are copied from the [Ecoji repository](https://github.com/keith-turner/ecoji/tree/main/test_scripts/data) and are created by [_Keith Turner_](https://github.com/keith-turner). These are licensed under [Apache-2.0](https://opensource.org/licenses/APACHE-2.0)
 
-* The **Base2048** Decoder relies on the work of _@qntm_. The original code is licensed under the [MIT-License](https://opensource.org/licenses/MIT). The original code is already written in JavaScript and was slightly adjusted.
+* The **Base2048** Decoder relies on the work of [_qntm_](https://github.com/qntm). The original code is licensed under the [MIT-License](https://opensource.org/licenses/MIT). The original code is already written in JavaScript and was slightly adjusted.
