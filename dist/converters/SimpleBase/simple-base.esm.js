@@ -1449,9 +1449,9 @@ class BaseTemplate {
 }
 
 /**
- * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
+ * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/simple-base.js}
  *
- * @version 0.5.2
+ * @version 0.6.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */

@@ -2,7 +2,25 @@ import { readdirSync } from "fs";
 import terser from "@rollup/plugin-terser";
 import { yourFunction } from "rollup-plugin-your-function";
 
-const toInitCap = (str) => (str.charAt(0).toUpperCase() + str.substr(1)).replaceAll(/-./g, (s) => s[1].toUpperCase());
+const toInitCap = str => {
+    if (str === "uuencode") {
+        return "UUencode";
+    }
+
+    if (str === "leb-128") {
+        return "LEB128";
+    }
+
+    return str
+        .at(0)
+        .toUpperCase()
+        .concat(
+            str.slice(1))
+                .replaceAll(/-./g, (s) => s
+                    .at(1)
+                    .toUpperCase()
+        );
+}
 const converters = new Array();
 const bytesOnly = process.argv.includes("BYTES_ONLY");
 

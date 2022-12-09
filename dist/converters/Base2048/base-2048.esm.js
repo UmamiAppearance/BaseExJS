@@ -1099,9 +1099,9 @@ class BaseTemplate {
 }
 
 /**
- * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/src/converters/base-16.js}
+ * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-2048.js}
  *
- * @version 0.5.2
+ * @version 0.6.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 AND MIT (Base2048, Copyright (c) 2017 qntm)
  */
