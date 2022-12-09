@@ -500,7 +500,7 @@ ecoji.encode("Hello World!");
 // result: 🏯🔩🚗🌷🍉👇🦒🪁👡📢☕
 
 // default output is an ArrayBuffer, pass 'str' to convert to string
-ejoji.decode("🏯🔩🚗🌷🍉👇🦒🪁👡📢☕", "str");
+ecoji.decode("🏯🔩🚗🌷🍉👇🦒🪁👡📢☕", "str");
 // result: "Hello World!"
 ```
 

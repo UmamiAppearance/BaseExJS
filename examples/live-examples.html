@@ -112,6 +112,26 @@
 
             <section id="examples">
                 <article>
+                    <h3>&#9755; Basic example</h3>
+                    <template class="live-example">
+                        <h1>En- and decoding (Ecoji)</h1>
+                        
+                        <script data-run="true">
+                            const ecoji = new Ecoji();
+                            
+                            const inputString = "Hello World!";
+                            console.log("Input string:   ", inputString);
+                            
+                            const encoded = ecoji.encode(inputString);
+                            console.log("Encoded string: ", encoded);
+
+                            const decoded = ecoji.decode("🏯🔩🚗🌷🍉👇🦒🪁👡📢☕", "str"); 
+                            console.log("Decoded string: ", decoded);
+                        </script>
+                    </template>
+                </article>
+
+                <article>
                     <h3>&#9755; Encoders handle almost every input</h3>
                     <template class="live-example">
                         <h1>Input Variations (Base16)</h1>
