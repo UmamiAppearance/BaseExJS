@@ -1454,7 +1454,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1610,7 +1610,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-16.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1698,7 +1698,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1803,7 +1803,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -1953,7 +1953,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2041,7 +2041,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/uuencode.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2245,7 +2245,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2368,7 +2368,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
      */
@@ -2601,7 +2601,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -2766,7 +2766,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/ecoji.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 OR Apache-2.0
      * @see https://github.com/keith-turner/ecoji
@@ -3108,7 +3108,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-2048.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND MIT (Base2048, Copyright (c) 2017 qntm)
      */
@@ -3286,7 +3286,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/simple-base.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -3386,7 +3386,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -3723,7 +3723,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */
@@ -3841,7 +3841,7 @@ var BaseEx = (function (exports) {
     /**
      * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 AND BSD-3-Clause (only regarding Base91, Copyright (c) 2000-2006 Joachim Henke)
      */

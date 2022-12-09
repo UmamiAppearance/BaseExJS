@@ -1454,7 +1454,7 @@ var Base32 = (function () {
     /**
      * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
      *
-     * @version 0.6.0
+     * @version 0.6.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */

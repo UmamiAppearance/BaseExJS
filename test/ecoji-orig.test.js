@@ -1,6 +1,6 @@
 /**
  * JavaScript/AVA implementation
- * @see https://github.com/keith-turner/ecoji/blob/ecojiv2/test_scripts/ecoji_test.sh
+ * @see https://github.com/keith-turner/ecoji/blob/main/test_scripts/ecoji_test.sh
  */
 
 

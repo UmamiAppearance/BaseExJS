@@ -1451,7 +1451,7 @@ class BaseTemplate {
 /**
  * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/uuencode.js}
  *
- * @version 0.6.0
+ * @version 0.6.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
