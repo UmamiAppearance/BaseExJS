@@ -15,9 +15,18 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
 <table>
     <thead>
         <tr>
-            <th><strong>converter</strong></th>
-            <th><strong>charsets</strong></th>
-            <th><strong>standalone builds<strong></th>
+            <th>
+                <strong>converter</strong><br>
+                <i>(external links)</i>
+            </th>
+            <th>
+                <strong>charsets</strong></br>
+                <i>(as required as argument)</i>
+            </th>
+            <th>
+                <strong>standalone builds<strong><br>
+                <i><a href="./CDN.md">(CDN links)</a></i>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -332,7 +341,7 @@ There are multiple builds available which are always grouped as [esm](https://de
 * ``BaseEx.iife.js``
 * ``BaseEx.iife.min.js``
 
-Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). Or at the table [above](#available-converterscharsets). _Note that standalone converters are exported as default._
+Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). Or at the table [above](#available-converterscharsets). Ready to use CDN-links are listed [here](./CDN.md). _Note that standalone converters are exported as default._
 
 
 ## Usage
@@ -386,7 +395,7 @@ The **classic import** via script tag has them all available without further ado
 * ...
 * ``BaseEx.BaseEx``
   
-_(Which is not true for standalone builds, which are directly accessible, eg: ``Base16``, ``Base32``, ...)_
+_(Which is not true for standalone builds, which are directly accessible, eg: ``Base16``, ``Base32``, ... See [list](#available-converterscharsets))_
   
 The same goes for the **CommonJS import** from Node. The only difference is, that the scope is not necessarily named ``BaseEx``, as this is defined by the user (``const myName = require("base-ex") --> myName.Base16...``).
 
