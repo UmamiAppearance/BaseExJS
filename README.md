@@ -506,19 +506,21 @@ ejoji.decode("🏯🔩🚗🌷🍉👇🦒🪁👡📢☕", "str");
 More explanation is shown at the [LiveExamples](https://umamiappearance.github.io/BaseExJS/examples/live-examples.html). Also try out the [Online Base Converter](https://umamiappearance.github.io/BaseExJS/examples/demo.html) for additional code examples.
 
 ___
-You can play with the Examples om your local machine by running:
+You can play with the Examples on your local machine by running:
 ```console
 npm start
 ```
 _(``devDependencies`` required, run ``npm install`` from the package folder first)_
 
+
 ## License
 This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
+
 
 ### [Third Party Licenses](https://github.com/UmamiAppearance/BaseExJS/tree/main/third-party-licenses)
 
 * The **basE91** en-/decoder relies on the work of _Joachim Henke_. The original code is licensed under [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause). His method was transpiled to JavaScript with small adjustments.
 
-* The [test files](https://github.com/UmamiAppearance/BaseExJS/tree/main/test/fixtures/ecoji) for the **Ecoji**npm decoder ([ecoji-orig.test.js](https://github.com/UmamiAppearance/BaseExJS/blob/main/test/ecoji-orig.test.js)) are copied from the [Ecoji repository](https://github.com/keith-turner/ecoji) and are created by _Keith Turner_. These are licensed under [Apache-2.0](https://opensource.org/licenses/APACHE-2.0)
+* The [test files](https://github.com/UmamiAppearance/BaseExJS/tree/main/test/fixtures/ecoji) for the **Ecoji** decoder ([ecoji-orig.test.js](https://github.com/UmamiAppearance/BaseExJS/blob/main/test/ecoji-orig.test.js)) are copied from the [Ecoji repository](https://github.com/keith-turner/ecoji) and are created by _Keith Turner_. These are licensed under [Apache-2.0](https://opensource.org/licenses/APACHE-2.0)
 
 * The **Base2048** Decoder relies on the work of _qnt_. The original code is licensed under the [MIT-License](https://opensource.org/licenses/MIT). The original code is already written in JavaScript and was slightly adjusted.
