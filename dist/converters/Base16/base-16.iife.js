@@ -1454,7 +1454,7 @@ var Base16 = (function () {
     /**
      * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-16.js}
      *
-     * @version 0.6.1
+     * @version 0.6.2
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0
      */

@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
  *
- * @version 0.6.1
+ * @version 0.6.2
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0
  */
