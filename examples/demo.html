@@ -14,14 +14,8 @@
 
         <script type="module">
             import { BaseEx, ByteConverter, LEB128 } from "../src/base-ex.js";
-
             import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.prod.js";
-            //npmimport { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.js";
-
-            // set location hash if not set
-            if (!window.location.hash.slice(1)) {
-                window.location.hash = "base64";
-            }
+            //import { createApp } from "https://cdn.jsdelivr.net/npm/vue@3.2.45/dist/vue.esm-browser.js";
 
             // Initialize main BaseEx class
             const baseEx = new BaseEx();
@@ -58,6 +52,25 @@
             );
 
 
+            // get converter from location hash and test for validity
+            const getConverter = () => {
+                if (!window.location.hash) {
+                    return null;
+                }
+                const converter = window.location.hash.slice(1);
+                if (converter in baseEx) {
+                    return converter;
+                } else {
+                    return null;
+                }
+            }
+
+            // set location hash if not set
+            if (!getConverter()) {
+                window.location.hash = "base64";
+            }
+
+
             // Global data object (source of truth) for Vue
             const Data = {
                 input: "Hello World!",
@@ -66,7 +79,7 @@
                 mode: "encode",
                 curTypes: { 
                     encode: "str",
-                    decode: window.location.hash.slice(1),
+                    decode: getConverter(),
                 },
                 dataTypes: {
                     encode: ["str", "bytes", "int_n"],
