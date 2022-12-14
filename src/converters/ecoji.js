@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/ecoji.js}
  *
- * @version 0.6.2
+ * @version 0.6.3
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license GPL-3.0 OR Apache-2.0
  * @see https://github.com/keith-turner/ecoji

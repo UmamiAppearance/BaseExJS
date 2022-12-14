@@ -1454,7 +1454,7 @@ var Ecoji = (function () {
     /**
      * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/ecoji.js}
      *
-     * @version 0.6.2
+     * @version 0.6.3
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license GPL-3.0 OR Apache-2.0
      * @see https://github.com/keith-turner/ecoji
@@ -1503,7 +1503,7 @@ var Ecoji = (function () {
             // predefined settings
             this.padding = true;
             this.padCharAmount = 5;
-            this.version = "emojis_v1";
+            this.version = "emojis_v2";
             
             // mutable extra args
             this.isMutable.padding = true;
