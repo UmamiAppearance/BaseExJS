@@ -1,9 +1,9 @@
 /**
  * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/uuencode.js}
  *
- * @version 0.6.3
+ * @version 0.7.0
  * @author UmamiAppearance [mail@umamiappearance.eu]
- * @license GPL-3.0
+ * @license MIT
  */
 
 import { BaseConverter, BaseTemplate } from "../core.js";

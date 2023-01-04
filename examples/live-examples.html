@@ -116,7 +116,9 @@
                     <template class="live-example">
                         <h1>En- and decoding (Ecoji)</h1>
                         
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const ecoji = new Ecoji();
                             
                             const inputString = "Hello World!";
@@ -136,7 +138,9 @@
                     <template class="live-example">
                         <h1>Input Variations (Base16)</h1>
                         
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const b16 = new Base16();
                             
                             let inputStr = "Hello World";
@@ -156,7 +160,9 @@
 
                     <template class="live-example">
                         <h1>Output Types (Base32)</h1>
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const b32 = new Base32("rfc3548");
                             let input = "jbswy3dpeblw64tmmqqq====";
                             
@@ -214,7 +220,9 @@
 
                     <template class="live-example">
                         <h1>Arguments (Base64)</h1>
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const b64 = new Base64("nopad");
                             const b64urlsafe = new Base64("urlsafe");
 
@@ -235,7 +243,9 @@
 
                     <template class="live-example">
                         <h1>BaseEx Class</h1>
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const bx = new BaseEx();
 
                             console.log(bx.base16.encode("Hello World!"));
@@ -253,7 +263,9 @@
 
                     <template class="live-example">
                         <h1>Adding and using a charset</h1>
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const base16 = new Base16();
                             base16.addCharset("emojis", "😀😁😂😃😄😆😇😈😉😊😋😌😍😎😏😐");
                             
@@ -262,7 +274,7 @@
 
                             // setting the new set as default
                             base16.setDefaultCharset("emojis");
-                            console.log("\nnew default:", base16.encode("Hello World!"));
+                            console.log("\nnew default:", base16.encode("default"));
                         </script>
                     </template>
                 </article>
@@ -281,7 +293,9 @@
 
                     <template class="live-example no-scroll">
                         <h1>Integers (ByteConverter)</h1>
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const bc = new ByteConverter();
                             const bcNum = new ByteConverter("number");
 
@@ -336,7 +350,9 @@
 
                     <template class="live-example no-scroll">
                         <h1>Decimals (BasePhi)</h1>
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const phi = new BasePhi();
                             
                             console.log("Regular Conversion:");
@@ -360,7 +376,9 @@
                     <template class="live-example">
                         <h1>SimpleBase</h1>
                         
-                        <script data-run="true">
+                        <meta data-run="true">
+
+                        <script>
                             const sb2 = new SimpleBase(2);
                             const sb16 = new SimpleBase(16);
                             const sb36 = new SimpleBase(36);

@@ -516,7 +516,10 @@ _(``devDependencies`` required, run ``npm install`` from the package folder firs
 
 
 ## License
-This work is licensed under [GPL-3.0](https://opensource.org/licenses/GPL-3.0).
+
+[MIT](https://opensource.org/licenses/MIT)
+
+Copyright (c) 2023, UmamiAppearance
 
 
 ### [Third Party Licenses](https://github.com/UmamiAppearance/BaseExJS/tree/main/third-party-licenses)

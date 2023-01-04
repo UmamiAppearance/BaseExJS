@@ -1459,9 +1459,9 @@ var BasePhi = (function () {
     /**
      * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
      *
-     * @version 0.6.3
+     * @version 0.7.0
      * @author UmamiAppearance [mail@umamiappearance.eu]
-     * @license GPL-3.0
+     * @license MIT
      */
 
     /**

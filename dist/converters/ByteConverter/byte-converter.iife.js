@@ -463,9 +463,9 @@ var ByteConverter = (function () {
     /**
      * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
      *
-     * @version 0.6.3
+     * @version 0.7.0
      * @author UmamiAppearance [mail@umamiappearance.eu]
-     * @license GPL-3.0
+     * @license MIT
      */
 
     // Endianness of the system

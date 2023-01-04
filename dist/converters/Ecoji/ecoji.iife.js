@@ -1454,9 +1454,9 @@ var Ecoji = (function () {
     /**
      * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/ecoji.js}
      *
-     * @version 0.6.3
+     * @version 0.7.0
      * @author UmamiAppearance [mail@umamiappearance.eu]
-     * @license GPL-3.0 OR Apache-2.0
+     * @license MIT OR Apache-2.0
      * @see https://github.com/keith-turner/ecoji
      */
 
