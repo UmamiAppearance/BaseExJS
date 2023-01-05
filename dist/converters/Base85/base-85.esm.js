@@ -1451,7 +1451,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * @version 0.7.0
+ * @version 0.7.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */

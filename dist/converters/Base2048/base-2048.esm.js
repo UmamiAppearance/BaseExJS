@@ -1101,7 +1101,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-2048.js}
  *
- * @version 0.7.0
+ * @version 0.7.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
