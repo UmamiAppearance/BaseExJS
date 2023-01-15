@@ -339,10 +339,10 @@ nmp install base-ex
 
 ## Builds
 There are multiple builds available which are always grouped as [esm](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) and [iife](https://developer.mozilla.org/en-US/docs/Glossary/IIFE), plus a minified version of each. The full build with all converters included can be found at [dist](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist), which contains:
-* ``BaseEx.esm.js``
-* ``BaseEx.esm.min.js``
-* ``BaseEx.iife.js``
-* ``BaseEx.iife.min.js``
+* ``base-ex.esm.js``
+* ``base-ex.esm.min.js``
+* ``base-ex.iife.js``
+* ``base-ex.iife.min.js``
 
 Apart from the full build, every converter can be used standalone. The associated builds can be found at [dist/converters](https://github.com/UmamiAppearance/BaseExJS/tree/main/dist/converters). Or at the table [above](#available-converterscharsets). Ready to use CDN-links are listed [here](./CDN.md).  
   
@@ -357,7 +357,7 @@ _Note that standalone converters are exported as default._
 
 ```html
 <!-- the classic -->
-<script src="path/BaseEx.iife.min.js"></script>
+<script src="path/base-ex.iife.min.js"></script>
 ```
 
 ```js
