@@ -61,7 +61,7 @@
   },
   "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme",
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.3.0",
+    "@rollup/plugin-terser": "^0.4.0",
     "ava": "^5.1.1",
     "big.js": "^6.2.1",
     "eslint": "^8.32.0",
