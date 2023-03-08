@@ -1,7 +1,7 @@
 /**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.7.3
+ * @version 0.7.4
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
