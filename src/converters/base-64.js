@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
- * @version 0.7.4
+ * @version 0.7.5
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */

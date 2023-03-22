@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
  *
- * @version 0.7.4
+ * @version 0.7.5
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
