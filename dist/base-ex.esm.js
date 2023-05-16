@@ -1451,10 +1451,11 @@ class BaseTemplate {
 /**
  * [BaseEx|Base1 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-1.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 1 Converter.
@@ -1607,10 +1608,11 @@ class Base1 extends BaseTemplate {
 /**
  * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-16.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 16 Converter.
@@ -1695,10 +1697,11 @@ class Base16 extends BaseTemplate {
 /**
  * [BaseEx|Base32 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-32.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 32 Converter.
@@ -1800,10 +1803,11 @@ class Base32 extends BaseTemplate {
 /**
  * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 58 Converter.
@@ -1950,10 +1954,11 @@ class Base58 extends BaseTemplate{
 /**
  * [BaseEx|Base64 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-64.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 64 Converter.
@@ -2038,10 +2043,11 @@ class Base64 extends BaseTemplate {
 /**
  * [BaseEx|UUencode Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/uuencode.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx UUencode Converter.
@@ -2242,10 +2248,11 @@ const ees = () => {
 /**
  * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 85 Converter.
@@ -2365,10 +2372,11 @@ class Base85 extends BaseTemplate {
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */
+
 
 /**
  * BaseEx Base 91 Converter.
@@ -2598,10 +2606,11 @@ class Base91 extends BaseTemplate {
 /**
  * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Little Endian Base 128 Converter.
@@ -2763,11 +2772,12 @@ class LEB128 extends BaseTemplate {
 /**
  * [BaseEx|Ecoji Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/ecoji.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT OR Apache-2.0
  * @see https://github.com/keith-turner/ecoji
  */
+
 
 /**
  * BaseEx Ecoji (a Base 1024) Converter.
@@ -3105,10 +3115,11 @@ class Ecoji extends BaseTemplate {
 /**
  * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-2048.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base 2048 Converter.
@@ -3283,10 +3294,11 @@ class Base2048 extends BaseTemplate {
 /**
  * [BaseEx|SimpleBase Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/simple-base.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 
 /**
@@ -3383,10 +3395,11 @@ let DP=20,RM=1,MAX_DP=1e6,NE=-7,PE=21,STRICT=!1,NAME="[big.js] ",INVALID=NAME+"I
 /**
  * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Base Phi Converter.
@@ -3720,10 +3733,11 @@ class BasePhi extends BaseTemplate {
 /**
  * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 // Endianness of the system
 const LITTLE_ENDIAN = (() => {
@@ -3838,10 +3852,11 @@ class ByteConverter {
 /**
  * [BaseEx]{@link https://github.com/UmamiAppearance/BaseExJS}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
+
 
 /**
  * BaseEx Converter Collection.

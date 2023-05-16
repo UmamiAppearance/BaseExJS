@@ -1454,10 +1454,11 @@ var LEB128 = (function () {
     /**
      * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
      *
-     * @version 0.7.5
+     * @version 0.7.6
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license MIT
      */
+
 
     /**
      * BaseEx Little Endian Base 128 Converter.

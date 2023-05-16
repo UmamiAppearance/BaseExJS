@@ -463,10 +463,11 @@ var ByteConverter = (function () {
     /**
      * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
      *
-     * @version 0.7.5
+     * @version 0.7.6
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license MIT
      */
+
 
     // Endianness of the system
     const LITTLE_ENDIAN = (() => {

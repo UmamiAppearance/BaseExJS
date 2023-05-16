@@ -1,7 +1,7 @@
 /**
  * [BaseEx|Base16 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-16.js}
  *
- * @version 0.7.5
+ * @version 0.7.6
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
