@@ -61,6 +61,7 @@ class BaseEx {
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
         this.uuencode = new UUencode("default", outputType);
+        this.uuencode_original = new UUencode("original", outputType);
         this.xxencode = new UUencode("xx", outputType);
         this.base85_adobe = new Base85("adobe", outputType);
         this.base85_ascii = new Base85("ascii85", outputType);

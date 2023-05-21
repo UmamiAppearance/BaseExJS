@@ -288,6 +288,7 @@ The **Ex** in the name stands for **Ex**ponent (of n) or - as read out loud - fo
                     <li>base64</li>
                     <li>base64_urlsafe</li>
                     <li>uuencode</li>
+                    <li>uuencode_original</li>
                     <li>xxencode</li>
                     <li>base85_adobe</li>
                     <li>base85_ascii</li>

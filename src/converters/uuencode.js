@@ -12,13 +12,14 @@ import { BaseConverter, BaseTemplate } from "../core.js";
  * BaseEx UUencode Converter.
  * ------------------------
  * 
- * This is a base64 converter. Various input can be 
- * converted to a base64 string or a base64 string
+ * This is a UUencoder/UUdecoder. Various input can be 
+ * converted to a UUencoded string or a UUencoded string
  * can be decoded into various formats.
  * 
  * Available charsets are:
  *  - default
- *  - urlsafe
+ *  - original
+ *  - xx
  */
 export default class UUencode extends BaseTemplate {
 
@@ -83,7 +84,7 @@ export default class UUencode extends BaseTemplate {
 
             // repeatedly take 60 chars from the output until it is empty 
             for (;;) {
-                const lArray = outArray.splice(0, 60)
+                const lArray = outArray.splice(0, 60);
                 
                 // if all chars are taken, remove eventually added pad zeros
                 if (!outArray.length) { 
@@ -127,7 +128,7 @@ export default class UUencode extends BaseTemplate {
         const format = ({ input, settings }) => {
 
             const charset = this.charsets[settings.version];
-            const lines = input.trim().split("\n");
+            const lines = input.trim().split(/\r?\n/);
             const inArray = [];
             
             if ((/^begin/i).test(lines.at(0))) {
@@ -144,9 +145,16 @@ export default class UUencode extends BaseTemplate {
 
                 inArray.push(...lArray);
 
-                if (byteCount !== 45) {
+                if (byteCount !== 45) { 
                     padChars = this.converter.padChars(lArray.length) - byteCount;
                     break;
+                }
+
+                // fix probably missing spaces for original charset
+                else if (lArray.length !== 60 && settings.version === "original") {
+                    while (inArray.length % 60) {
+                        inArray.push(" ");
+                    }
                 }
             }
 
