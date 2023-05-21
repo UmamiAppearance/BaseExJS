@@ -1454,7 +1454,7 @@ var Base85 = (function () {
     /**
      * [BaseEx|Base85 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-85.js}
      *
-     * @version 0.7.6
+     * @version 0.7.7
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license MIT
      */

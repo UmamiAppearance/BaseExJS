@@ -1,6 +1,6 @@
 {
   "name": "base-ex",
-  "version": "0.7.6",
+  "version": "0.7.7",
   "description": "A collection of classes for data representation written in JavaScript.",
   "main": "./cjs/base-ex.cjs",
   "module": "./src/base-ex.js",
