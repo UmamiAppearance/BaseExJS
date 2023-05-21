@@ -84,7 +84,7 @@ export default class UUencode extends BaseTemplate {
 
             // repeatedly take 60 chars from the output until it is empty 
             for (;;) {
-                const lArray = outArray.splice(0, 60).split(/\r?\n/)
+                const lArray = outArray.splice(0, 60);
                 
                 // if all chars are taken, remove eventually added pad zeros
                 if (!outArray.length) { 
@@ -150,7 +150,7 @@ export default class UUencode extends BaseTemplate {
                     break;
                 }
 
-                // fix missing spaces for original charset
+                // fix probably missing spaces for original charset
                 else if (lArray.length !== 60 && settings.version === "original") {
                     while (inArray.length % 60) {
                         inArray.push(" ");
