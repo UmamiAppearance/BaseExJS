@@ -2053,13 +2053,14 @@ class Base64 extends BaseTemplate {
  * BaseEx UUencode Converter.
  * ------------------------
  * 
- * This is a base64 converter. Various input can be 
- * converted to a base64 string or a base64 string
+ * This is a UUencoder/UUdecoder. Various input can be 
+ * converted to a UUencoded string or a UUencoded string
  * can be decoded into various formats.
  * 
  * Available charsets are:
  *  - default
- *  - urlsafe
+ *  - original
+ *  - xx
  */
 class UUencode extends BaseTemplate {
 
@@ -2168,7 +2169,7 @@ class UUencode extends BaseTemplate {
         const format = ({ input, settings }) => {
 
             const charset = this.charsets[settings.version];
-            const lines = input.trim().split("\n");
+            const lines = input.trim().split(/\r?\n/);
             const inArray = [];
             
             if ((/^begin/i).test(lines.at(0))) {
@@ -2185,9 +2186,16 @@ class UUencode extends BaseTemplate {
 
                 inArray.push(...lArray);
 
-                if (byteCount !== 45) {
+                if (byteCount !== 45) { 
                     padChars = this.converter.padChars(lArray.length) - byteCount;
                     break;
+                }
+
+                // fix probably missing spaces for original charset
+                else if (lArray.length !== 60 && settings.version === "original") {
+                    while (inArray.length % 60) {
+                        inArray.push(" ");
+                    }
                 }
             }
 
@@ -3894,6 +3902,7 @@ class BaseEx {
         this.base64 = new Base64("default", outputType);
         this.base64_urlsafe = new Base64("urlsafe", outputType);
         this.uuencode = new UUencode("default", outputType);
+        this.uuencode_original = new UUencode("original", outputType);
         this.xxencode = new UUencode("xx", outputType);
         this.base85_adobe = new Base85("adobe", outputType);
         this.base85_ascii = new Base85("ascii85", outputType);

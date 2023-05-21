@@ -1464,13 +1464,14 @@ var UUencode = (function () {
      * BaseEx UUencode Converter.
      * ------------------------
      * 
-     * This is a base64 converter. Various input can be 
-     * converted to a base64 string or a base64 string
+     * This is a UUencoder/UUdecoder. Various input can be 
+     * converted to a UUencoded string or a UUencoded string
      * can be decoded into various formats.
      * 
      * Available charsets are:
      *  - default
-     *  - urlsafe
+     *  - original
+     *  - xx
      */
     class UUencode extends BaseTemplate {
 
@@ -1579,7 +1580,7 @@ var UUencode = (function () {
             const format = ({ input, settings }) => {
 
                 const charset = this.charsets[settings.version];
-                const lines = input.trim().split("\n");
+                const lines = input.trim().split(/\r?\n/);
                 const inArray = [];
                 
                 if ((/^begin/i).test(lines.at(0))) {
@@ -1596,9 +1597,16 @@ var UUencode = (function () {
 
                     inArray.push(...lArray);
 
-                    if (byteCount !== 45) {
+                    if (byteCount !== 45) { 
                         padChars = this.converter.padChars(lArray.length) - byteCount;
                         break;
+                    }
+
+                    // fix probably missing spaces for original charset
+                    else if (lArray.length !== 60 && settings.version === "original") {
+                        while (inArray.length % 60) {
+                            inArray.push(" ");
+                        }
                     }
                 }
 
