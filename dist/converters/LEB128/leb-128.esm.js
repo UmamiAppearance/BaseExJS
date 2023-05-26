@@ -976,6 +976,7 @@ class BaseConverter {
         }
 
         this.decPadVal = decPadVal;
+        this.powers = {};
     }
 
     /**
@@ -1149,19 +1150,25 @@ class BaseConverter {
             return new Uint8Array(0);
         }
 
-    
         let bs = this.bsDec;
-        const byteArray = new Array();
+        const byteArray = [];
+
+        const toObj = arr => {
+            const obj = {};
+            arr.forEach((v, i) => obj[v] = i);
+            return obj;
+        };
+        const charsetLookup = toObj(charset);
 
         [...inputBaseStr].forEach(c => {
-            const index = charset.indexOf(c);
-            if (index > -1) { 
+            const index = charsetLookup[c];
+            if (typeof index !== "undefined") { 
                 byteArray.push(index);
             } else if (integrity && padSet.indexOf(c) === -1) {
                 throw new DecodingError(c);
             }
         });
-        
+
         let padChars;
 
         if (bs === 0) {
@@ -1185,17 +1192,23 @@ class BaseConverter {
         // the blocksize.
 
         for (let i=0, l=byteArray.length; i<l; i+=bs) {
-            
+
             // Build a subarray of bs bytes.
             let n = 0n;
 
             for (let j=0; j<bs; j++) {
-                n += BigInt(byteArray[i+j]) * this.pow(bs-1-j);
+                const exp = bs-1-j;
+                const pow = this.powers[exp] || (() => {
+                    this.powers[exp] = BigInt(this.pow(exp));
+                    return this.powers[exp];
+                })();
+
+                n += BigInt(byteArray[i+j]) * pow;
             }
             
             // To store the output chunks, initialize a
             // new default array.
-            const subArray256 = new Array();
+            const subArray256 = [];
 
             // The subarray gets converted into a bs*8-bit 
             // binary number "n", most significant byte 
@@ -1223,7 +1236,7 @@ class BaseConverter {
             
             // The subarray gets concatenated with the
             // main array.
-            b256Array = b256Array.concat(subArray256);
+            b256Array.push(...subArray256);
         }
 
         // Remove padded zeros (or in case of LE all leading zeros)
@@ -1451,7 +1464,7 @@ class BaseTemplate {
 /**
  * [BaseEx|LEB128 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/leb-128.js}
  *
- * @version 0.7.8
+ * @version 0.7.9
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */
