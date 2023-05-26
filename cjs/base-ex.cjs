@@ -1154,23 +1154,17 @@ class BaseConverter {
 
         let bs = this.bsDec;
         const byteArray = [];
-
-        const toObj = arr => {
-            const obj = {};
-            arr.forEach((v, i) => obj[v] = i);
-            return obj;
-        };
-        const charsetLookup = toObj(charset);
-
+         
         [...inputBaseStr].forEach(c => {
-            const index = charsetLookup[c];
-            if (typeof index !== "undefined") { 
+            const index = charset.indexOf(c);
+            if (index > -1) { 
                 byteArray.push(index);
             } else if (integrity && padSet.indexOf(c) === -1) {
                 throw new DecodingError(c);
             }
         });
 
+        
         let padChars;
 
         if (bs === 0) {
