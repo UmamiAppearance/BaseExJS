@@ -145,8 +145,19 @@ export default class UUencode extends BaseTemplate {
 
                 inArray.push(...lArray);
 
-                if (byteCount !== 45) { 
-                    padChars = this.converter.padChars(lArray.length) - byteCount;
+                if (byteCount !== 45) {
+                    let len = lArray.length
+
+                    // fix probably missing spaces for original charset
+                    if (settings.version === "original") {
+                        const expectedLen = byteCount / 3 * 4;
+                        while (len < expectedLen) {
+                            len++;
+                            inArray.push(" ");
+                        }
+                    }
+
+                    padChars = this.converter.padChars(len) - byteCount;
                     break;
                 }
 
