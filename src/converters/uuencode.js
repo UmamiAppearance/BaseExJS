@@ -50,6 +50,9 @@ export default class UUencode extends BaseTemplate {
 
         // predefined settings
         this.padding = true;
+        this.buffering = false;
+        this.utils.converterArgs.buffering = ["nobuffering", "buffering"];
+        this.isMutable.buffering = true;
         this.header = false;
         this.utils.converterArgs.header = ["noheader", "header"];
         this.isMutable.header = true;
@@ -72,9 +75,11 @@ export default class UUencode extends BaseTemplate {
 
             const charset = this.charsets[settings.version];
             const outArray = [...output];
+            const outLen = outArray.length;
+            settings.options.lineWrap = 0;
             
             
-            if (settings.header) {
+            if (settings.header && !settings.buffering) {
                 const permissions = settings.options.permissions || een();
                 const fileName = settings.options.file || ees();
                 output = `begin ${permissions} ${fileName}\n`;
@@ -82,31 +87,34 @@ export default class UUencode extends BaseTemplate {
                 output = "";
             }
 
-            // repeatedly take 60 chars from the output until it is empty 
-            for (;;) {
-                const lArray = outArray.splice(0, 60);
+            // repeatedly take 60 chars from the output 
+            for (let start=0; start<outLen; start+=60) {
+                const end = start+60;
+                const lArray = outArray.slice(start, end);
                 
                 // if all chars are taken, remove eventually added pad zeros
-                if (!outArray.length) { 
+                if (end >= outLen) { 
                     const byteCount = this.converter.padChars(lArray.length) - zeroPadding;
                     
                     // add the the current chars plus the leading
                     // count char
                     output += `${charset.at(byteCount)}${lArray.join("")}\n`;
-                    break;
                 }
                 
                 // add the the current chars plus the leading
                 // count char ("M" for default charsets) 
-                output += `${charset.at(45)}${lArray.join("")}\n`;
+                else {
+                    output += `${charset.at(45)}${lArray.join("")}\n`;
+                }
             }
 
-            output += `${charset.at(0)}\n`;
-
-            if (settings.header) {
-                output += "\nend";
+            if (!settings.buffering) {
+                output += `${charset.at(0)}\n`;
+                
+                if (settings.header) {
+                    output += "end\n";
+                }
             }
-
 
             return output;
         }
@@ -150,7 +158,7 @@ export default class UUencode extends BaseTemplate {
 
                     // fix probably missing spaces for original charset
                     if (settings.version === "original") {
-                        const expectedLen = byteCount / 3 * 4;
+                        const expectedLen = calcUUStrLen(byteCount);
                         while (len < expectedLen) {
                             len++;
                             inArray.push(" ");
@@ -222,3 +230,11 @@ const ees = () => {
 
     return `${pick(name)}.${pick(ext)}`;
 };
+
+const calcUUStrLen = byteCount => {
+    const len = byteCount / 3 * 4;
+    if (len % 4) {
+        return Math.floor(len/4) * 4 + 4;
+    }
+    return len;
+}
