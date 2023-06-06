@@ -53,6 +53,7 @@ export default class Ecoji extends BaseTemplate {
         // predefined settings
         this.padding = true;
         this.padCharAmount = 5;
+        this.nonASCII = true;
         this.version = "emojis_v2";
         
         // mutable extra args

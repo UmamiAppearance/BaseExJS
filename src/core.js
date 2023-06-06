@@ -387,6 +387,7 @@ class BaseTemplate {
         this.padding = false;
         this.padCharAmount = 0;
         this.padChars = {} 
+        this.nonASCII = false;
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
