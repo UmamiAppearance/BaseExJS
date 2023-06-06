@@ -7,9 +7,10 @@
  */
 class BytesInput {
     static toBytes(input) {
-        if (ArrayBuffer.isView(input)) {
+        if (ArrayBuffer.isView(input) && !(typeof Buffer !== "undefined" && input instanceof Buffer)) {
             input = input.buffer;
-        } 
+        }
+        
         return [new Uint8Array(input), false, "bytes"];
     }
 }
@@ -222,14 +223,18 @@ class SmartInput {
         let negative = false;
         let type = "bytes";
         
-        // Buffer:
+        // ArrayBuffer:
         if (input instanceof ArrayBuffer) {
             inputUint8 = new Uint8Array(input.slice());
         }
 
-        // TypedArray or DataView:
+        // TypedArray/DataView or node Buffer:
         else if (ArrayBuffer.isView(input)) {
-            inputUint8 = new Uint8Array(input.buffer.slice());
+            if (typeof Buffer !== "undefined" && input instanceof Buffer) {
+                inputUint8 = new Uint8Array(input);
+            } else {
+                inputUint8 = new Uint8Array(input.buffer.slice());
+            }
         }
         
         // String:
@@ -1335,6 +1340,7 @@ class BaseTemplate {
         this.padding = false;
         this.padCharAmount = 0;
         this.padChars = {}; 
+        this.nonASCII = false;
         this.signed = false;
         this.upper = null;
         if (appendUtils) this.utils = new Utils(this);
@@ -2098,6 +2104,9 @@ class UUencode extends BaseTemplate {
 
         // predefined settings
         this.padding = true;
+        this.buffering = false;
+        this.utils.converterArgs.buffering = ["nobuffering", "buffering"];
+        this.isMutable.buffering = true;
         this.header = false;
         this.utils.converterArgs.header = ["noheader", "header"];
         this.isMutable.header = true;
@@ -2120,9 +2129,11 @@ class UUencode extends BaseTemplate {
 
             const charset = this.charsets[settings.version];
             const outArray = [...output];
+            const outLen = outArray.length;
+            settings.options.lineWrap = 0;
             
             
-            if (settings.header) {
+            if (settings.header && !settings.buffering) {
                 const permissions = settings.options.permissions || een();
                 const fileName = settings.options.file || ees();
                 output = `begin ${permissions} ${fileName}\n`;
@@ -2130,31 +2141,34 @@ class UUencode extends BaseTemplate {
                 output = "";
             }
 
-            // repeatedly take 60 chars from the output until it is empty 
-            for (;;) {
-                const lArray = outArray.splice(0, 60);
+            // repeatedly take 60 chars from the output 
+            for (let start=0; start<outLen; start+=60) {
+                const end = start+60;
+                const lArray = outArray.slice(start, end);
                 
                 // if all chars are taken, remove eventually added pad zeros
-                if (!outArray.length) { 
+                if (end >= outLen) { 
                     const byteCount = this.converter.padChars(lArray.length) - zeroPadding;
                     
                     // add the the current chars plus the leading
                     // count char
                     output += `${charset.at(byteCount)}${lArray.join("")}\n`;
-                    break;
                 }
                 
                 // add the the current chars plus the leading
                 // count char ("M" for default charsets) 
-                output += `${charset.at(45)}${lArray.join("")}\n`;
+                else {
+                    output += `${charset.at(45)}${lArray.join("")}\n`;
+                }
             }
 
-            output += `${charset.at(0)}\n`;
-
-            if (settings.header) {
-                output += "\nend";
+            if (!settings.buffering) {
+                output += `${charset.at(0)}\n`;
+                
+                if (settings.header) {
+                    output += "end\n";
+                }
             }
-
 
             return output;
         };
@@ -2193,8 +2207,19 @@ class UUencode extends BaseTemplate {
 
                 inArray.push(...lArray);
 
-                if (byteCount !== 45) { 
-                    padChars = this.converter.padChars(lArray.length) - byteCount;
+                if (byteCount !== 45) {
+                    let len = lArray.length;
+
+                    // fix probably missing spaces for original charset
+                    if (settings.version === "original") {
+                        const expectedLen = calcUUStrLen(byteCount);
+                        while (len < expectedLen) {
+                            len++;
+                            inArray.push(" ");
+                        }
+                    }
+
+                    padChars = this.converter.padChars(len) - byteCount;
                     break;
                 }
 
@@ -2258,6 +2283,14 @@ const ees = () => {
     const pick = (arr) => arr.at(Math.floor(Math.random() * arr.length));
 
     return `${pick(name)}.${pick(ext)}`;
+};
+
+const calcUUStrLen = byteCount => {
+    const len = byteCount / 3 * 4;
+    if (len % 4) {
+        return Math.floor(len/4) * 4 + 4;
+    }
+    return len;
 };
 
 /**
@@ -2837,6 +2870,7 @@ class Ecoji extends BaseTemplate {
         // predefined settings
         this.padding = true;
         this.padCharAmount = 5;
+        this.nonASCII = true;
         this.version = "emojis_v2";
         
         // mutable extra args
@@ -2999,7 +3033,7 @@ class Ecoji extends BaseTemplate {
             const lastChar = inArray.at(-1);
             let skipLast = false;
 
-            for (let i=0; i<this.padChars[version].length-1; i++) {                
+            for (let i=0, l=this.padChars[version].length-1; i<l; i++) {                
                 if (lastChar === this.padChars[version].at(i)) {
                     inArray.splice(-1, 1, charset.at(i << 8));
                     input = inArray.join("");
@@ -3170,6 +3204,7 @@ class Base2048 extends BaseTemplate {
         this.padCharAmount = 8;
         this.hasSignedMode = true;
         this.littleEndian = false;
+        this.nonASCII = true;
         
         // apply user settings
         this.utils.validateArgs(args, true);

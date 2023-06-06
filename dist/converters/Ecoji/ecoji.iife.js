@@ -10,9 +10,10 @@ var Ecoji = (function () {
      */
     class BytesInput {
         static toBytes(input) {
-            if (ArrayBuffer.isView(input)) {
+            if (ArrayBuffer.isView(input) && !(typeof Buffer !== "undefined" && input instanceof Buffer)) {
                 input = input.buffer;
-            } 
+            }
+            
             return [new Uint8Array(input), false, "bytes"];
         }
     }
@@ -225,14 +226,18 @@ var Ecoji = (function () {
             let negative = false;
             let type = "bytes";
             
-            // Buffer:
+            // ArrayBuffer:
             if (input instanceof ArrayBuffer) {
                 inputUint8 = new Uint8Array(input.slice());
             }
 
-            // TypedArray or DataView:
+            // TypedArray/DataView or node Buffer:
             else if (ArrayBuffer.isView(input)) {
-                inputUint8 = new Uint8Array(input.buffer.slice());
+                if (typeof Buffer !== "undefined" && input instanceof Buffer) {
+                    inputUint8 = new Uint8Array(input);
+                } else {
+                    inputUint8 = new Uint8Array(input.buffer.slice());
+                }
             }
             
             // String:
@@ -1338,6 +1343,7 @@ var Ecoji = (function () {
             this.padding = false;
             this.padCharAmount = 0;
             this.padChars = {}; 
+            this.nonASCII = false;
             this.signed = false;
             this.upper = null;
             if (appendUtils) this.utils = new Utils(this);
@@ -1511,6 +1517,7 @@ var Ecoji = (function () {
             // predefined settings
             this.padding = true;
             this.padCharAmount = 5;
+            this.nonASCII = true;
             this.version = "emojis_v2";
             
             // mutable extra args
@@ -1673,7 +1680,7 @@ var Ecoji = (function () {
                 const lastChar = inArray.at(-1);
                 let skipLast = false;
 
-                for (let i=0; i<this.padChars[version].length-1; i++) {                
+                for (let i=0, l=this.padChars[version].length-1; i<l; i++) {                
                     if (lastChar === this.padChars[version].at(i)) {
                         inArray.splice(-1, 1, charset.at(i << 8));
                         input = inArray.join("");

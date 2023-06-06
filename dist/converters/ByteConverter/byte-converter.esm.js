@@ -168,14 +168,18 @@ class SmartInput {
         let negative = false;
         let type = "bytes";
         
-        // Buffer:
+        // ArrayBuffer:
         if (input instanceof ArrayBuffer) {
             inputUint8 = new Uint8Array(input.slice());
         }
 
-        // TypedArray or DataView:
+        // TypedArray/DataView or node Buffer:
         else if (ArrayBuffer.isView(input)) {
-            inputUint8 = new Uint8Array(input.buffer.slice());
+            if (typeof Buffer !== "undefined" && input instanceof Buffer) {
+                inputUint8 = new Uint8Array(input);
+            } else {
+                inputUint8 = new Uint8Array(input.buffer.slice());
+            }
         }
         
         // String:
