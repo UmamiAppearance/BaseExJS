@@ -10,9 +10,10 @@ var BasePhi = (function () {
      */
     class BytesInput {
         static toBytes(input) {
-            if (ArrayBuffer.isView(input)) {
+            if (ArrayBuffer.isView(input) && !(typeof Buffer !== "undefined" && input instanceof Buffer)) {
                 input = input.buffer;
-            } 
+            }
+            
             return [new Uint8Array(input), false, "bytes"];
         }
     }
@@ -225,14 +226,18 @@ var BasePhi = (function () {
             let negative = false;
             let type = "bytes";
             
-            // Buffer:
+            // ArrayBuffer:
             if (input instanceof ArrayBuffer) {
                 inputUint8 = new Uint8Array(input.slice());
             }
 
-            // TypedArray or DataView:
+            // TypedArray/DataView or node Buffer:
             else if (ArrayBuffer.isView(input)) {
-                inputUint8 = new Uint8Array(input.buffer.slice());
+                if (typeof Buffer !== "undefined" && input instanceof Buffer) {
+                    inputUint8 = new Uint8Array(input);
+                } else {
+                    inputUint8 = new Uint8Array(input.buffer.slice());
+                }
             }
             
             // String:
@@ -1338,6 +1343,7 @@ var BasePhi = (function () {
             this.padding = false;
             this.padCharAmount = 0;
             this.padChars = {}; 
+            this.nonASCII = false;
             this.signed = false;
             this.upper = null;
             if (appendUtils) this.utils = new Utils(this);

@@ -53,6 +53,7 @@ export default class Ecoji extends BaseTemplate {
         // predefined settings
         this.padding = true;
         this.padCharAmount = 5;
+        this.nonASCII = true;
         this.version = "emojis_v2";
         
         // mutable extra args
@@ -215,7 +216,7 @@ export default class Ecoji extends BaseTemplate {
             const lastChar = inArray.at(-1);
             let skipLast = false;
 
-            for (let i=0; i<this.padChars[version].length-1; i++) {                
+            for (let i=0, l=this.padChars[version].length-1; i<l; i++) {                
                 if (lastChar === this.padChars[version].at(i)) {
                     inArray.splice(-1, 1, charset.at(i << 8));
                     input = inArray.join("");

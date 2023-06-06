@@ -43,6 +43,7 @@ export default class Base2048 extends BaseTemplate {
         this.padCharAmount = 8;
         this.hasSignedMode = true;
         this.littleEndian = false;
+        this.nonASCII = true;
         
         // apply user settings
         this.utils.validateArgs(args, true);
