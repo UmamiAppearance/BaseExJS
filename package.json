@@ -1,6 +1,6 @@
 {
   "name": "base-ex",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "A collection of classes for data representation written in JavaScript.",
   "main": "./cjs/base-ex.cjs",
   "module": "./src/base-ex.js",
@@ -63,12 +63,12 @@
   "homepage": "https://github.com/UmamiAppearance/BaseExJS#readme",
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.3",
-    "ava": "^5.3.0",
+    "ava": "^5.3.1",
     "big.js": "^6.2.1",
-    "eslint": "^8.42.0",
+    "eslint": "^8.44.0",
     "http-server": "^14.1.1",
-    "remembrance": "^0.3.0",
-    "rollup": "^3.23.1",
-    "rollup-plugin-your-function": "^0.5.2"
+    "remembrance": "^0.3.1",
+    "rollup": "^3.26.1",
+    "rollup-plugin-your-function": "^0.5.3"
   }
 }

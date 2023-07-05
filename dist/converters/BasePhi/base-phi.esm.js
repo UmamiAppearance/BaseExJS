@@ -1469,7 +1469,7 @@ let DP=20,RM=1,MAX_DP=1e6,NE=-7,PE=21,STRICT=!1,NAME="[big.js] ",INVALID=NAME+"I
 /**
  * [BaseEx|BasePhi Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-phi.js}
  *
- * @version 0.7.9
+ * @version 0.8.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */

@@ -1110,7 +1110,7 @@ var Base2048 = (function () {
     /**
      * [BaseEx|Base2048 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-2048.js}
      *
-     * @version 0.7.9
+     * @version 0.8.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license MIT
      */

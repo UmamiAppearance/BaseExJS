@@ -1107,7 +1107,7 @@ class BaseTemplate {
 /**
  * [BaseEx|Base91 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-91.js}
  *
- * @version 0.7.9
+ * @version 0.8.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT AND BSD-3-Clause (Base91, Copyright (c) 2000-2006 Joachim Henke)
  */

@@ -464,7 +464,7 @@ class SmartOutput {
 /**
  * [BaseEx|Byte Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/byte-converter.js}
  *
- * @version 0.7.9
+ * @version 0.8.1
  * @author UmamiAppearance [mail@umamiappearance.eu]
  * @license MIT
  */

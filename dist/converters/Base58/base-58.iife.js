@@ -1467,7 +1467,7 @@ var Base58 = (function () {
     /**
      * [BaseEx|Base58 Converter]{@link https://github.com/UmamiAppearance/BaseExJS/blob/main/src/converters/base-58.js}
      *
-     * @version 0.7.9
+     * @version 0.8.1
      * @author UmamiAppearance [mail@umamiappearance.eu]
      * @license MIT
      */
